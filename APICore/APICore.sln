@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29920.165
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "APICore", "APICore\APICore.csproj", "{115B4455-EFA9-46E3-9194-CC61F9C21FE2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebMvcPluginUser", "..\WebMvcPluginUser\WebMvcPluginUser\WebMvcPluginUser.csproj", "{D8750938-99DB-4094-9E40-FC9A7B71D493}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{115B4455-EFA9-46E3-9194-CC61F9C21FE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{115B4455-EFA9-46E3-9194-CC61F9C21FE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{115B4455-EFA9-46E3-9194-CC61F9C21FE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{115B4455-EFA9-46E3-9194-CC61F9C21FE2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D8750938-99DB-4094-9E40-FC9A7B71D493}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D8750938-99DB-4094-9E40-FC9A7B71D493}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D8750938-99DB-4094-9E40-FC9A7B71D493}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D8750938-99DB-4094-9E40-FC9A7B71D493}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {10F51F57-4D61-4DF8-A497-D4A37BDE8AC0}
+	EndGlobalSection
+EndGlobal

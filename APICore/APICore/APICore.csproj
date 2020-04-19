@@ -1,0 +1,58 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <UserSecretsId>2b717b5e-062e-476f-91db-f2f10e56f3d8</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+	<GenerateRuntimeConfigurationFiles>True</GenerateRuntimeConfigurationFiles>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ExtCore.Infrastructure" Version="5.0.0" />
+    <PackageReference Include="ExtCore.Mvc" Version="5.0.0" />
+    <PackageReference Include="ExtCore.Mvc.Infrastructure" Version="5.0.0" />
+    <PackageReference Include="ExtCore.WebApplication" Version="5.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.0.3" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.8" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Plugins\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="Plugins\TestAPI.deps.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="Plugins\WebMvcPluginUser.deps.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Plugins\TestAPI.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Plugins\TestAPI.pdb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Plugins\WebMvcPluginUser.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Plugins\WebMvcPluginUser.pdb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+<Target Name="BuildPlugin" BeforeTargets="Build">
+    <ItemGroup>
+	    <!--
+        <PluginProject Include="..\..\WebMvcPluginHello\ApiPluginHello\ApiPluginHello.csproj" />
+	    <PluginProject Include="..\..\WebMvcPluginUser\WebMvcPluginUser\WebMvcPluginUser.csproj" />
+        -->
+    </ItemGroup>
+
+	<MSBuild Projects="@(PluginProject)" Targets="Publish" Properties="PublishDir=$(TargetDir)Plugins\" />
+</Target>
+</Project>

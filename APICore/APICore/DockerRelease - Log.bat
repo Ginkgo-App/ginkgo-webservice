@@ -1,0 +1,1 @@
+heroku logs --tail -a micro-api-core
