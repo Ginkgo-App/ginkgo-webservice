@@ -1,14 +1,24 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using APICore.Helpers;
+using APICore.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Npgsql;
 using System;
+using WebMvcPluginUser.DBContext;
+using WebMvcPluginUser.Entities;
+using WebMvcPluginUser.Helpers;
 using WebMvcPluginUser.Models;
 using WebMvcPluginUser.Services;
+using static APICore.Helpers.ErrorList;
 
 namespace WebMvcPluginUser.Controllers
 {
     [Authorize]
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/" +UserVars.Version + "/users")]
     public class UsersController : ControllerBase
     {
         private IUserService _userService;
@@ -22,23 +32,54 @@ namespace WebMvcPluginUser.Controllers
         [HttpPost("authenticate")]
         public IActionResult Authenticate([FromBody]AuthenticateModel model)
         {
-            Console.WriteLine("Username: " + model?.Username + " password: " + model?.Password);
+            ResponseModel responseModel = new ResponseModel();
+            UserHelper userHelper = new UserHelper();
+            JArray data = new JArray();
 
-            var user = _userService.Authenticate(model.Username, model.Password);
+            _userService.Authenticate(model.Username, model.Password, out User user);
+            data.Add(JObject.Parse(JsonConvert.SerializeObject(userHelper.WithoutPassword(user))));
 
             if (user == null)
             {
-                return BadRequest(new { message = "Username or password is incorrect" });
-            }    
+                responseModel.ErrorCode = (int)ErrorCode.UsernamePasswordIncorrect;
+                responseModel.Message = Description(responseModel.ErrorCode);
+            }
+            else
+            {
+                responseModel.ErrorCode = (int)ErrorCode.Success;
+                responseModel.Message = Description(responseModel.ErrorCode);
+                responseModel.Data = data;
+            }
 
-            return Ok(user);
+            return Ok(responseModel.ToString());
         }
 
-        [HttpGet]
-        public IActionResult GetAll()
+        [AllowAnonymous]
+        [HttpPost("register")]
+        public IActionResult Register([FromBody]object requestBody)
         {
-            var users = _userService.GetAll();
-            return Ok(users);
+            return Ok("Success");
+        }
+
+        [HttpGet("{userId}")]
+        public IActionResult GetUser(string userId)
+        {
+            return Ok();
+        }
+
+        [AllowAnonymous]
+        [HttpGet("data")]
+        public IActionResult Data()
+        {
+            try
+            {
+                
+                return Ok("Success");
+            }
+            catch (Exception ex)
+            {
+                return Ok(ex.Message);
+            }
         }
     }
 }

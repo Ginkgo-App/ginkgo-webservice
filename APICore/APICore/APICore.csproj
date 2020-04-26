@@ -13,7 +13,16 @@
     <PackageReference Include="ExtCore.Mvc.Infrastructure" Version="5.0.0" />
     <PackageReference Include="ExtCore.WebApplication" Version="5.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="3.1.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.8" />
+    <PackageReference Include="NLog" Version="4.7.0" />
+    <PackageReference Include="NLog.Web.AspNetCore" Version="4.9.2" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.1.3" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.Design" Version="1.1.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.5.0" />
   </ItemGroup>
 
@@ -47,13 +56,15 @@
 
 <Target Name="BuildPlugin" BeforeTargets="Build">
     <ItemGroup>
-	<!--
+	    <!--
         <PluginProject Include="..\..\WebMvcPluginHello\ApiPluginHello\ApiPluginHello.csproj" />
-	 
+   	    <PluginProject Include="..\..\WebMvcPluginUser\WebMvcPluginUser\WebMvcPluginUser.csproj" />
         -->
-   	<PluginProject Include="..\..\WebMvcPluginUser\WebMvcPluginUser\WebMvcPluginUser.csproj" />
+	 
     </ItemGroup>
 
-	<MSBuild Projects="@(PluginProject)" Targets="Publish" Properties="PublishDir=$(TargetDir)Plugins\" />
+	<MSBuild Projects="@(PluginProject)" Targets="Publish" Properties="PublishDir=$(TargetDir)\Plugins" />
 </Target>
+
+<ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
 </Project>
