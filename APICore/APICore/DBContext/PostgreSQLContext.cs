@@ -19,5 +19,13 @@ namespace WebMvcPluginUser.DBContext
 
         public DbSet<User> Users { get; set; }
         public DbSet<AuthProvider> AuthProviders { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<AuthProvider>()
+                .HasOne(p => p.User)
+                .WithMany(b => b.AuthProviders)
+                .IsRequired();
+        }
     }
 }

@@ -10,6 +10,10 @@
             CannotConnectToDatabase = 2,
             InvalidParameter = 3,
             UsernamePasswordIncorrect = 4,
+            BodyInvalid = 5,
+            FieldMissing = 6,
+            UserAlreadyExits = 7,
+            FeatureIsBeingImplemented = 8,
         }
 
         public static string Description(int errorCode)
@@ -30,6 +34,14 @@
                     return "Invalid parameters";
                 case ErrorCode.UsernamePasswordIncorrect:
                     return "Username or password is incorrect";
+                case ErrorCode.BodyInvalid:
+                    return "Body is invalid";
+                case ErrorCode.FieldMissing:
+                    return "Field is missing or incorrect";
+                case ErrorCode.UserAlreadyExits:
+                    return "User already exist";
+                case ErrorCode.FeatureIsBeingImplemented:
+                    return "Feature is being implemented";
                 default:
                     return "Error code is invalid";
             }

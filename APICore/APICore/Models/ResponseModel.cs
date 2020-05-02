@@ -21,5 +21,12 @@ namespace APICore.Models
         {
             return JsonConvert.SerializeObject(this);
         }
+
+        public void FromErrorCode(ErrorList.ErrorCode errorCode)
+        {
+            ErrorCode = (int)errorCode;
+            Message = ErrorList.Description(ErrorCode);
+            Data = null;
+        }
     }
 }

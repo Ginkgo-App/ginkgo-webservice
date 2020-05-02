@@ -16,7 +16,7 @@ namespace WebMvcPluginUser.Helpers
             var result = new User
             {
                 Id = user.Id,
-                Username = user.Username,
+                Name = user.Name,
                 Password = null,
                 Address = user.Address,
                 Avatar = user.Avatar,

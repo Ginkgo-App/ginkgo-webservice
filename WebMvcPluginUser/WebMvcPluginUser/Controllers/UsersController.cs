@@ -1,13 +1,10 @@
-﻿using APICore.Helpers;
+﻿using APICore.Entities;
+using APICore.Helpers;
 using APICore.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Npgsql;
 using System;
-using WebMvcPluginUser.DBContext;
 using WebMvcPluginUser.Entities;
 using WebMvcPluginUser.Helpers;
 using WebMvcPluginUser.Models;
@@ -18,7 +15,7 @@ namespace WebMvcPluginUser.Controllers
 {
     [Authorize]
     [ApiController]
-    [Route("api/" +UserVars.Version + "/users")]
+    [Route("api/" + UserVars.Version + "/users")]
     public class UsersController : ControllerBase
     {
         private IUserService _userService;
@@ -30,15 +27,15 @@ namespace WebMvcPluginUser.Controllers
 
         [AllowAnonymous]
         [HttpPost("authenticate")]
-        public IActionResult Authenticate([FromBody]AuthenticateModel model)
+        public string Authenticate([FromBody]AuthenticateModel model)
         {
             ResponseModel responseModel = new ResponseModel();
             UserHelper userHelper = new UserHelper();
             JArray data = new JArray();
 
-            _userService.Authenticate(model.Username, model.Password, out User user);
-            data.Add(JObject.Parse(JsonConvert.SerializeObject(userHelper.WithoutPassword(user))));
-
+            _userService.Authenticate(model.Email, model.Password, out User user);
+            //data.Add(JObject.Parse(JsonConvert.SerializeObject(userHelper.WithoutPassword(user))));
+            data.Add(user.Token);
             if (user == null)
             {
                 responseModel.ErrorCode = (int)ErrorCode.UsernamePasswordIncorrect;
@@ -51,14 +48,52 @@ namespace WebMvcPluginUser.Controllers
                 responseModel.Data = data;
             }
 
-            return Ok(responseModel.ToString());
+
+            return responseModel.ToString();
         }
 
         [AllowAnonymous]
         [HttpPost("register")]
         public IActionResult Register([FromBody]object requestBody)
         {
-            return Ok("Success");
+            ResponseModel response = new ResponseModel();
+            User user = null;
+            do
+            {
+                JArray data = new JArray();
+
+                // Parse request body to json
+                JObject reqBody = requestBody != null
+                    ? JObject.Parse(requestBody.ToString())
+                    : null;
+
+                if (!CoreHelper.GetParameter(out JToken jsonName, reqBody, "Name", JTokenType.String, ref response)
+                    || !CoreHelper.GetParameter(out JToken jsonPhonenumber, reqBody, "PhoneNumber", JTokenType.String, ref response)
+                    || !CoreHelper.GetParameter(out JToken jsonEmail, reqBody, "Email", JTokenType.String, ref response)
+                    || !CoreHelper.GetParameter(out JToken jsonPassword, reqBody, "Password", JTokenType.String, ref response)
+                    )
+                {
+                    break;
+                }
+
+                string name = jsonName.ToString();
+                string email = jsonEmail.ToString();
+                string phonenumber = jsonPhonenumber.ToString();
+                string password = jsonPassword.ToString();
+
+                var statusCode = _userService.Register(name, email, phonenumber, password, out user);
+
+                if (statusCode == ErrorCode.Success)
+                {
+                    data.Add(user.Token);
+                }
+
+                response.ErrorCode = (int)statusCode;
+                response.Message = ErrorList.Description(response.ErrorCode);
+                response.Data = data;
+
+            } while (false);
+            return Ok(response.ToString());
         }
 
         [HttpGet("{userId}")]
@@ -73,13 +108,69 @@ namespace WebMvcPluginUser.Controllers
         {
             try
             {
-                
+
                 return Ok("Success");
             }
             catch (Exception ex)
             {
                 return Ok(ex.Message);
             }
+        }
+
+        [AllowAnonymous]
+        [HttpPost("social-provider")]
+        public IActionResult SocialProvider([FromBody]object requestBody)
+        {
+            ResponseModel responseModel = new ResponseModel();
+
+            do
+            {
+                JObject body = requestBody != null
+                    ? JObject.Parse(requestBody.ToString())
+                    : null;
+
+                if (!CoreHelper.GetParameter(out JToken jsonAccessToken, body, "AccessToken", JTokenType.String, ref responseModel)
+                    || !CoreHelper.GetParameter(out JToken jsonType, body, "Type", JTokenType.String, ref responseModel)
+                    || !CoreHelper.GetParameter(out JToken jsonEmail, body, "Email", JTokenType.String, ref responseModel))
+                {
+                    break;
+                }
+
+                string accessToken = jsonAccessToken.ToString();
+                string type = jsonType.ToString();
+                string email = jsonEmail.ToString();
+
+                if (type.Equals("facebook", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (!_userService.TryGetFacbookInfo(accessToken, out AuthProvider authProvider))
+                    {
+                        break;
+                    }
+
+                    JArray data = new JArray();
+
+                    ErrorCode errorCode = _userService.Authenticate(email, ref authProvider, out User user);
+
+                    if (errorCode == ErrorCode.Success)
+                    {
+                        data.Add(user.Token);
+                        responseModel.ErrorCode = (int)ErrorCode.Success;
+                        responseModel.Message = Description(responseModel.ErrorCode);
+                        responseModel.Data = data;
+                    }
+                    else
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                    }
+                }
+                else
+                {
+                    responseModel.FromErrorCode(ErrorCode.FeatureIsBeingImplemented);
+                }
+
+            } while (false);
+
+            return Ok(responseModel.ToString());
         }
     }
 }

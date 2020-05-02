@@ -11,7 +11,6 @@ using Microsoft.IdentityModel.Tokens;
 using System.IO;
 using System.Reflection;
 using System.Text;
-using WebMvcPluginUser;
 using WebMvcPluginUser.DBContext;
 
 namespace APICore
@@ -43,6 +42,10 @@ namespace APICore
             services.AddExtCore(this.pluginsPath);
 
             services.AddControllers();
+     //.AddNewtonsoftJson(options =>
+     //{
+     //    options.SerializerSettings.ContractResolver = new DefaultContractResolver();
+     //});
 
             services.AddCors();
 

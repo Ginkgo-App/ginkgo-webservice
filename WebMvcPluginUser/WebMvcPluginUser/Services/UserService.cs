@@ -1,12 +1,15 @@
 ﻿using APICore;
+using APICore.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 using NLog;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Net.Http;
 using System.Security.Claims;
 using System.Text;
 using WebMvcPluginUser.DBContext;
@@ -26,14 +29,14 @@ namespace WebMvcPluginUser.Services
             _appSettings = appSettings.Value;
         }
 
-        public ErrorCode Authenticate(string username, string password, out User user)
+        public ErrorCode Authenticate(string email, string password, out User user)
         {
             ErrorCode statusCode = ErrorCode.Default;
             user = null;
 
             do
             {
-                bool isGetUserSucess = TryGetUsers(username, out user);
+                bool isGetUserSucess = TryGetUsers(email, out user);
 
                 // Cannot get user
                 if (!isGetUserSucess)
@@ -46,7 +49,7 @@ namespace WebMvcPluginUser.Services
                 // return null if user not found
                 if (user == null)
                 {
-                    _logger.Error($"User {username} not found");
+                    _logger.Error($"User {email} not found");
                     statusCode = ErrorCode.Fail;
                     break;
                 }
@@ -60,13 +63,100 @@ namespace WebMvcPluginUser.Services
                     Subject = new ClaimsIdentity(new Claim[]
                     {
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                    new Claim(ClaimTypes.Name, user.Username),
+                    new Claim(ClaimTypes.Name, user.Email),
                     }),
                     Expires = DateTime.UtcNow.AddDays(7),
                     SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
                 };
                 var token = tokenHandler.CreateToken(tokenDescriptor);
                 user.Token = tokenHandler.WriteToken(token);
+                statusCode = ErrorCode.Success;
+            } while (false);
+
+            return statusCode;
+        }
+
+        public ErrorCode Authenticate(string email, ref AuthProvider authProvider, out User user)
+        {
+            ErrorCode statusCode = ErrorCode.Default;
+            user = null;
+
+            do
+            {
+                TryGetUsers(authProvider.Email ?? email, out user);
+
+                // return null if user not found
+                if (user == null)
+                {
+                    statusCode = Register(authProvider.Name, authProvider.Email ?? email, null, null, out user);
+                    if (statusCode != ErrorCode.Success)
+                    {
+                        break;
+                    }
+                }
+
+                // Save AuthProvider
+
+                if (!TryAddAuthProvider(authProvider, user))
+                {
+                    statusCode = ErrorCode.Fail;
+                    break;
+                }
+
+                // authentication successful so generate jwt token
+                var tokenHandler = new JwtSecurityTokenHandler();
+                Console.WriteLine("Key: " + _appSettings.Secret);
+                var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
+                var tokenDescriptor = new SecurityTokenDescriptor
+                {
+                    Subject = new ClaimsIdentity(new Claim[]
+                    {
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                    new Claim(ClaimTypes.Name, user.Email),
+                    }),
+                    Expires = DateTime.UtcNow.AddDays(7),
+                    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                };
+                var token = tokenHandler.CreateToken(tokenDescriptor);
+                user.Token = tokenHandler.WriteToken(token);
+                statusCode = ErrorCode.Success;
+            } while (false);
+
+            return statusCode;
+        }
+
+        public ErrorCode Register(string name, string email, string phoneNumber, string password, out User user)
+        {
+            ErrorCode statusCode = ErrorCode.Default;
+            user = null;
+
+            do
+            {
+                if (TryGetUsers(email, out user))
+                {
+                    statusCode = ErrorCode.UserAlreadyExits;
+                    break;
+                }
+
+                user = new User
+                {
+                    Name = name,
+                    Email = email,
+                    PhoneNumber = phoneNumber,
+                    Password = password
+                };
+
+                if (!TryAddUser(user))
+                {
+                    break;
+                };
+
+                if (Authenticate(email, password, out user) != ErrorCode.Success)
+                {
+                    break;
+                };
+
+
                 statusCode = ErrorCode.Success;
             } while (false);
 
@@ -97,7 +187,7 @@ namespace WebMvcPluginUser.Services
             return isSuccess;
         }
 
-        public bool TryGetUsers(string username, out User user)
+        public bool TryGetUsers(string email, out User user)
         {
             user = null;
             bool isSuccess = false;
@@ -108,11 +198,15 @@ namespace WebMvcPluginUser.Services
                 user =
                     (from u
                      in _context.Users
-                     where (u.Username == username)
+                     where (u.Email == email)
                      select u)
                     .FirstOrDefaultAsync()
                     .Result; // Lấy  Product có  ID  chỉ  ra
-                isSuccess = true;
+
+                if (user != null)
+                {
+                    isSuccess = true;
+                }
             }
             catch (Exception ex)
             {
@@ -164,6 +258,79 @@ namespace WebMvcPluginUser.Services
                 Console.WriteLine(ex);
                 DisconnectDB();
             }
+
+            return isSuccess;
+        }
+
+        public bool TryAddAuthProvider(AuthProvider authProvider, User user)
+        {
+            bool isSuccess = false;
+            try
+            {
+                ConnectDB();
+
+                var dbAuthProvider = _context.AuthProviders.FirstOrDefault(a => a.Id == authProvider.Id);
+                if (dbAuthProvider != null)
+                {
+                    dbAuthProvider.Name = authProvider.Name;
+                    dbAuthProvider.Avatar = authProvider.Avatar;
+                    dbAuthProvider.Email = authProvider.Email;
+                    dbAuthProvider.Provider = authProvider.Provider;
+                    dbAuthProvider.User = user;
+                    _context.AuthProviders.Update(dbAuthProvider);
+                }
+                else
+                {
+                    authProvider.User = user;
+                    _context.AuthProviders.Add(authProvider);
+                }
+
+
+                _context.SaveChanges();
+                isSuccess = true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                DisconnectDB();
+            }
+
+            return isSuccess;
+        }
+
+        public bool TryGetFacbookInfo(string accessToken, out AuthProvider authProvider)
+        {
+            bool isSuccess = false;
+
+            do
+            {
+                authProvider = null;
+                string _postToPageURL = "https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,email&access_token=" + accessToken;
+                IEnumerable<KeyValuePair<string, string>> postData = new Dictionary<string, string>();
+
+                using (var http = new HttpClient())
+                {
+                    var httpResponse = http.PostAsync(
+                        _postToPageURL,
+                        new FormUrlEncodedContent(postData)).Result;
+                    dynamic httpContent = JsonConvert.DeserializeObject(httpResponse.Content.ReadAsStringAsync().Result);
+
+                    if ((int)httpResponse.StatusCode != 200 || httpContent == null)
+                    {
+                        break;
+                    }
+
+
+                    authProvider = new AuthProvider();
+                    authProvider.Id = httpContent.id;
+                    authProvider.Name = httpContent.name;
+                    authProvider.Email = httpContent.email;
+                    authProvider.Provider = ProviderType.facebook.ToString();
+
+                    isSuccess = true;
+                }
+            } while (false);
+
 
             return isSuccess;
         }
