@@ -60,8 +60,8 @@
     <ItemGroup>
 	    <!--
         <PluginProject Include="..\..\WebMvcPluginHello\ApiPluginHello\ApiPluginHello.csproj" />
-   	    <PluginProject Include="..\..\WebMvcPluginUser\WebMvcPluginUser\WebMvcPluginUser.csproj" />
         -->
+   	    <PluginProject Include="..\..\WebMvcPluginUser\WebMvcPluginUser\WebMvcPluginUser.csproj" />
 	 
     </ItemGroup>
 

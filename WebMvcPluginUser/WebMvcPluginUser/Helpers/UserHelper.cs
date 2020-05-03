@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using WebMvcPluginUser.Entities;
 
 namespace WebMvcPluginUser.Helpers
@@ -34,6 +37,20 @@ namespace WebMvcPluginUser.Helpers
                 Tours = user.Tours,
             };
             return result;
+        }
+
+        public static string HashPassword(string password)
+        {
+            byte[] salt = Encoding.ASCII.GetBytes(APICore.Vars.PASSWORD_SALT);
+
+            string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
+                            password: password,
+                            salt: salt,
+                            prf: KeyDerivationPrf.HMACSHA1,
+                            iterationCount: 10000,
+                            numBytesRequested: 256 / 8));
+
+            return hashed;
         }
     }
 }

@@ -14,6 +14,7 @@
             FieldMissing = 6,
             UserAlreadyExits = 7,
             FeatureIsBeingImplemented = 8,
+            AuthProviderMissingEmail = 9,
         }
 
         public static string Description(int errorCode)
@@ -42,6 +43,8 @@
                     return "User already exist";
                 case ErrorCode.FeatureIsBeingImplemented:
                     return "Feature is being implemented";
+                case ErrorCode.AuthProviderMissingEmail:
+                    return "Authenticate provider is lack off emails";
                 default:
                     return "Error code is invalid";
             }

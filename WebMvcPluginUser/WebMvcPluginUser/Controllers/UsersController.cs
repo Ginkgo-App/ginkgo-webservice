@@ -30,25 +30,33 @@ namespace WebMvcPluginUser.Controllers
         public string Authenticate([FromBody]AuthenticateModel model)
         {
             ResponseModel responseModel = new ResponseModel();
-            UserHelper userHelper = new UserHelper();
             JArray data = new JArray();
+            string hashedPassword = UserHelper.HashPassword(model.Password);
 
-            _userService.Authenticate(model.Email, model.Password, out User user);
-            //data.Add(JObject.Parse(JsonConvert.SerializeObject(userHelper.WithoutPassword(user))));
-            data.Add(user.Token);
-            if (user == null)
+            try
             {
-                responseModel.ErrorCode = (int)ErrorCode.UsernamePasswordIncorrect;
-                responseModel.Message = Description(responseModel.ErrorCode);
+                var errorCode = _userService.Authenticate(model.Email, hashedPassword, out User user);
+                data.Add(user.Token);
+                //data.Add(JObject.Parse(JsonConvert.SerializeObject(userHelper.WithoutPassword(user))));
+                if (user == null || errorCode != ErrorCode.Success)
+                {
+                    responseModel.ErrorCode = (int)ErrorCode.UsernamePasswordIncorrect;
+                    responseModel.Message = Description(responseModel.ErrorCode);
+                }
+                else
+                {
+                    responseModel.ErrorCode = (int)ErrorCode.Success;
+                    responseModel.Message = Description(responseModel.ErrorCode);
+                    responseModel.Data = data;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                responseModel.ErrorCode = (int)ErrorCode.Success;
-                responseModel.Message = Description(responseModel.ErrorCode);
-                responseModel.Data = data;
+                Response.StatusCode = 501;
+                responseModel.ErrorCode = 501;
+                responseModel.Message = ex.Message;
             }
-
-
+            
             return responseModel.ToString();
         }
 
@@ -58,41 +66,50 @@ namespace WebMvcPluginUser.Controllers
         {
             ResponseModel response = new ResponseModel();
             User user = null;
-            do
+            try
             {
-                JArray data = new JArray();
-
-                // Parse request body to json
-                JObject reqBody = requestBody != null
-                    ? JObject.Parse(requestBody.ToString())
-                    : null;
-
-                if (!CoreHelper.GetParameter(out JToken jsonName, reqBody, "Name", JTokenType.String, ref response)
-                    || !CoreHelper.GetParameter(out JToken jsonPhonenumber, reqBody, "PhoneNumber", JTokenType.String, ref response)
-                    || !CoreHelper.GetParameter(out JToken jsonEmail, reqBody, "Email", JTokenType.String, ref response)
-                    || !CoreHelper.GetParameter(out JToken jsonPassword, reqBody, "Password", JTokenType.String, ref response)
-                    )
+                do
                 {
-                    break;
-                }
+                    JArray data = new JArray();
 
-                string name = jsonName.ToString();
-                string email = jsonEmail.ToString();
-                string phonenumber = jsonPhonenumber.ToString();
-                string password = jsonPassword.ToString();
+                    // Parse request body to json
+                    JObject reqBody = requestBody != null
+                        ? JObject.Parse(requestBody.ToString())
+                        : null;
 
-                var statusCode = _userService.Register(name, email, phonenumber, password, out user);
+                    if (!CoreHelper.GetParameter(out JToken jsonName, reqBody, "Name", JTokenType.String, ref response)
+                        || !CoreHelper.GetParameter(out JToken jsonPhonenumber, reqBody, "PhoneNumber", JTokenType.String, ref response)
+                        || !CoreHelper.GetParameter(out JToken jsonEmail, reqBody, "Email", JTokenType.String, ref response)
+                        || !CoreHelper.GetParameter(out JToken jsonPassword, reqBody, "Password", JTokenType.String, ref response)
+                        )
+                    {
+                        break;
+                    }
 
-                if (statusCode == ErrorCode.Success)
-                {
-                    data.Add(user.Token);
-                }
+                    string name = jsonName.ToString();
+                    string email = jsonEmail.ToString();
+                    string phonenumber = jsonPhonenumber.ToString();
+                    string hashedPassword = UserHelper.HashPassword(jsonPassword.ToString());
 
-                response.ErrorCode = (int)statusCode;
-                response.Message = ErrorList.Description(response.ErrorCode);
-                response.Data = data;
+                    var statusCode = _userService.Register(name, email, phonenumber, hashedPassword, out user);
 
-            } while (false);
+                    if (statusCode == ErrorCode.Success)
+                    {
+                        data.Add(user.Token);
+                    }
+
+                    response.ErrorCode = (int)statusCode;
+                    response.Message = ErrorList.Description(response.ErrorCode);
+                    response.Data = data;
+
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode = 501;
+                response.ErrorCode = 501;
+                response.Message = ex.Message;
+            }
             return Ok(response.ToString());
         }
 
@@ -123,52 +140,61 @@ namespace WebMvcPluginUser.Controllers
         {
             ResponseModel responseModel = new ResponseModel();
 
-            do
+            try
             {
-                JObject body = requestBody != null
-                    ? JObject.Parse(requestBody.ToString())
-                    : null;
-
-                if (!CoreHelper.GetParameter(out JToken jsonAccessToken, body, "AccessToken", JTokenType.String, ref responseModel)
-                    || !CoreHelper.GetParameter(out JToken jsonType, body, "Type", JTokenType.String, ref responseModel)
-                    || !CoreHelper.GetParameter(out JToken jsonEmail, body, "Email", JTokenType.String, ref responseModel))
+                do
                 {
-                    break;
-                }
+                    JObject body = requestBody != null
+                        ? JObject.Parse(requestBody.ToString())
+                        : null;
 
-                string accessToken = jsonAccessToken.ToString();
-                string type = jsonType.ToString();
-                string email = jsonEmail.ToString();
-
-                if (type.Equals("facebook", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (!_userService.TryGetFacbookInfo(accessToken, out AuthProvider authProvider))
+                    if (!CoreHelper.GetParameter(out JToken jsonAccessToken, body, "AccessToken", JTokenType.String, ref responseModel)
+                        || !CoreHelper.GetParameter(out JToken jsonType, body, "Type", JTokenType.String, ref responseModel)
+                        || !CoreHelper.GetParameter(out JToken jsonEmail, body, "Email", JTokenType.String, ref responseModel))
                     {
                         break;
                     }
 
-                    JArray data = new JArray();
+                    string accessToken = jsonAccessToken.ToString();
+                    string type = jsonType.ToString();
+                    string email = jsonEmail.ToString();
 
-                    ErrorCode errorCode = _userService.Authenticate(email, ref authProvider, out User user);
-
-                    if (errorCode == ErrorCode.Success)
+                    if (type.Equals("facebook", StringComparison.OrdinalIgnoreCase))
                     {
-                        data.Add(user.Token);
-                        responseModel.ErrorCode = (int)ErrorCode.Success;
-                        responseModel.Message = Description(responseModel.ErrorCode);
-                        responseModel.Data = data;
+                        if (!_userService.TryGetFacbookInfo(accessToken, out AuthProvider authProvider))
+                        {
+                            break;
+                        }
+
+                        JArray data = new JArray();
+
+                        ErrorCode errorCode = _userService.Authenticate(email, ref authProvider, out User user);
+
+                        if (errorCode == ErrorCode.Success)
+                        {
+                            data.Add(user.Token);
+                            responseModel.ErrorCode = (int)ErrorCode.Success;
+                            responseModel.Message = Description(responseModel.ErrorCode);
+                            responseModel.Data = data;
+                        }
+                        else
+                        {
+                            responseModel.FromErrorCode(ErrorCode.Fail);
+                        }
                     }
                     else
                     {
-                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        responseModel.FromErrorCode(ErrorCode.FeatureIsBeingImplemented);
                     }
-                }
-                else
-                {
-                    responseModel.FromErrorCode(ErrorCode.FeatureIsBeingImplemented);
-                }
 
-            } while (false);
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode = 501;
+                responseModel.ErrorCode = 501;
+                responseModel.Message = ex.Message;
+            }
 
             return Ok(responseModel.ToString());
         }

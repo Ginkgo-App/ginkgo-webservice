@@ -8,5 +8,6 @@ namespace APICore
     {
         public string Secret { get; set; }
         public string ConnectionString { get; set; }
+        public string PasswordSalt { get; set; }
     }
 }

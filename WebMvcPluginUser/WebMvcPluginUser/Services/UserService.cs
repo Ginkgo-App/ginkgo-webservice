@@ -14,6 +14,7 @@ using System.Security.Claims;
 using System.Text;
 using WebMvcPluginUser.DBContext;
 using WebMvcPluginUser.Entities;
+using WebMvcPluginUser.Helpers;
 using static APICore.Helpers.ErrorList;
 
 namespace WebMvcPluginUser.Services
@@ -47,29 +48,14 @@ namespace WebMvcPluginUser.Services
                 }
 
                 // return null if user not found
-                if (user == null)
+                if (user == null || !user.Password.Equals(password))
                 {
-                    _logger.Error($"User {email} not found");
+                    _logger.Error($"Email: '{email}' or password is incorrect");
                     statusCode = ErrorCode.Fail;
                     break;
                 }
 
-                // authentication successful so generate jwt token
-                var tokenHandler = new JwtSecurityTokenHandler();
-                Console.WriteLine("Key: " + _appSettings.Secret);
-                var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
-                var tokenDescriptor = new SecurityTokenDescriptor
-                {
-                    Subject = new ClaimsIdentity(new Claim[]
-                    {
-                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                    new Claim(ClaimTypes.Name, user.Email),
-                    }),
-                    Expires = DateTime.UtcNow.AddDays(7),
-                    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-                };
-                var token = tokenHandler.CreateToken(tokenDescriptor);
-                user.Token = tokenHandler.WriteToken(token);
+                GenerateToken(user);
                 statusCode = ErrorCode.Success;
             } while (false);
 
@@ -79,7 +65,6 @@ namespace WebMvcPluginUser.Services
         public ErrorCode Authenticate(string email, ref AuthProvider authProvider, out User user)
         {
             ErrorCode statusCode = ErrorCode.Default;
-            user = null;
 
             do
             {
@@ -103,22 +88,7 @@ namespace WebMvcPluginUser.Services
                     break;
                 }
 
-                // authentication successful so generate jwt token
-                var tokenHandler = new JwtSecurityTokenHandler();
-                Console.WriteLine("Key: " + _appSettings.Secret);
-                var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
-                var tokenDescriptor = new SecurityTokenDescriptor
-                {
-                    Subject = new ClaimsIdentity(new Claim[]
-                    {
-                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                    new Claim(ClaimTypes.Name, user.Email),
-                    }),
-                    Expires = DateTime.UtcNow.AddDays(7),
-                    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-                };
-                var token = tokenHandler.CreateToken(tokenDescriptor);
-                user.Token = tokenHandler.WriteToken(token);
+                GenerateToken(user);
                 statusCode = ErrorCode.Success;
             } while (false);
 
@@ -331,8 +301,28 @@ namespace WebMvcPluginUser.Services
                 }
             } while (false);
 
-
             return isSuccess;
+        }
+
+
+        private void GenerateToken(User user)
+        {
+            // authentication successful so generate jwt token
+            var tokenHandler = new JwtSecurityTokenHandler();
+            Console.WriteLine("Key: " + _appSettings.Secret);
+            var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new Claim[]
+                {
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                    new Claim(ClaimTypes.Name, user.Email),
+                }),
+                Expires = DateTime.UtcNow.AddDays(7),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            user.Token = tokenHandler.WriteToken(token);
         }
 
         #region ConnectDB
