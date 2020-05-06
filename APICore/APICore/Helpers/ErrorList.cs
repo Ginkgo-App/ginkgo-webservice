@@ -15,39 +15,29 @@
             UserAlreadyExits = 7,
             FeatureIsBeingImplemented = 8,
             AuthProviderMissingEmail = 9,
+            UserNotFound = 10,
         }
 
         public static string Description(int errorCode)
         {
             ErrorCode code = (ErrorCode)errorCode;
 
-            switch (code)
+            return code switch
             {
-                case ErrorCode.Default:
-                    return "Default Value";
-                case ErrorCode.Success:
-                    return "Success";
-                case ErrorCode.Fail:
-                    return "Fail";
-                case ErrorCode.CannotConnectToDatabase:
-                    return "Cannot connect to Database";
-                case ErrorCode.InvalidParameter:
-                    return "Invalid parameters";
-                case ErrorCode.UsernamePasswordIncorrect:
-                    return "Username or password is incorrect";
-                case ErrorCode.BodyInvalid:
-                    return "Body is invalid";
-                case ErrorCode.FieldMissing:
-                    return "Field is missing or incorrect";
-                case ErrorCode.UserAlreadyExits:
-                    return "User already exist";
-                case ErrorCode.FeatureIsBeingImplemented:
-                    return "Feature is being implemented";
-                case ErrorCode.AuthProviderMissingEmail:
-                    return "Authenticate provider is lack off emails";
-                default:
-                    return "Error code is invalid";
-            }
+                ErrorCode.Default => "Default Value",
+                ErrorCode.Success => "Success",
+                ErrorCode.Fail => "Fail",
+                ErrorCode.CannotConnectToDatabase => "Cannot connect to Database",
+                ErrorCode.InvalidParameter => "Invalid parameters",
+                ErrorCode.UsernamePasswordIncorrect => "Username or password is incorrect",
+                ErrorCode.BodyInvalid => "Body is invalid",
+                ErrorCode.FieldMissing => "Field is missing or incorrect",
+                ErrorCode.UserAlreadyExits => "User already exist",
+                ErrorCode.FeatureIsBeingImplemented => "Feature is being implemented",
+                ErrorCode.AuthProviderMissingEmail => "Authenticate provider is lack off emails",
+                ErrorCode.UserNotFound => "User not found",
+                _ => "Error code is invalid",
+            };
         }
     }
 

@@ -1,4 +1,6 @@
 ﻿using APICore.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json.Linq;
 using NLog;
 using System;
@@ -47,6 +49,23 @@ namespace APICore.Helpers
 
                 isSuccess = true;
             } while (false);
+            return isSuccess;
+        }
+
+        public bool ConvertFormToJson(ref IFormCollection form, out JObject json)
+        {
+            bool isSuccess = false;
+            json = new JObject();
+
+            do
+            {
+                foreach (var key in form.Keys)
+                {
+                    form.TryGetValue(key, out StringValues value);
+                    json.Add(key, value.ToString());
+                }
+            } while (false);
+
             return isSuccess;
         }
     }

@@ -11,6 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using Toycloud.AspNetCore.Mvc.ModelBinding;
 using WebMvcPluginUser.DBContext;
 
 namespace APICore
@@ -52,6 +53,7 @@ namespace APICore
             services.AddMvc(option =>
             {
                 option.EnableEndpointRouting = false;
+                option.ModelBinderProviders.InsertBodyOrDefaultBinding();
             }).SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
 
             // configure strongly typed settings objects

@@ -14,7 +14,8 @@
           "NLog": "4.7.0",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "3.1.3",
           "Npgsql.EntityFrameworkCore.PostgreSQL.Design": "1.1.0",
-          "System.IdentityModel.Tokens.Jwt": "6.5.0"
+          "System.IdentityModel.Tokens.Jwt": "6.5.0",
+          "Toycloud.AspNetCore.Mvc.ModelBinding.BodyAndFormBinding": "1.0.1"
         },
         "runtime": {
           "WebMvcPluginUser.dll": {}
@@ -160,7 +161,7 @@
           "Microsoft.Net.Http.Headers": "2.2.0"
         }
       },
-      "Microsoft.AspNetCore.Mvc.Core/2.2.0": {
+      "Microsoft.AspNetCore.Mvc.Core/2.2.5": {
         "dependencies": {
           "Microsoft.AspNetCore.Authentication.Core": "2.2.0",
           "Microsoft.AspNetCore.Authorization.Policy": "2.2.0",
@@ -182,7 +183,7 @@
       "Microsoft.AspNetCore.Mvc.Formatters.Json/2.2.0": {
         "dependencies": {
           "Microsoft.AspNetCore.JsonPatch": "2.2.0",
-          "Microsoft.AspNetCore.Mvc.Core": "2.2.0"
+          "Microsoft.AspNetCore.Mvc.Core": "2.2.5"
         }
       },
       "Microsoft.AspNetCore.ResponseCaching.Abstractions/2.2.0": {
@@ -1261,6 +1262,30 @@
           "System.Xml.ReaderWriter": "4.3.0"
         }
       },
+      "Toycloud.AspNetCore.Mvc.ModelBinding.BodyAndFormBinding/1.0.1": {
+        "dependencies": {
+          "Microsoft.AspNetCore.Mvc.Abstractions": "2.2.0",
+          "Microsoft.AspNetCore.Mvc.Core": "2.2.5"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Toycloud.AspNetCore.Mvc.ModelBinding.BodyAndFormBinding.dll": {
+            "assemblyVersion": "1.0.1.0",
+            "fileVersion": "1.0.1.0"
+          }
+        }
+      },
+      "Toycloud.AspNetCore.Mvc.ModelBinding.BodyOrDefaultBinding/1.0.12": {
+        "dependencies": {
+          "Microsoft.AspNetCore.Mvc.Abstractions": "2.2.0",
+          "Microsoft.AspNetCore.Mvc.Core": "2.2.5"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Toycloud.AspNetCore.Mvc.ModelBinding.BodyOrDefault.dll": {
+            "assemblyVersion": "1.0.12.0",
+            "fileVersion": "1.0.12.0"
+          }
+        }
+      },
       "APICore/1.0.0": {
         "dependencies": {
           "ExtCore.Infrastructure": "5.0.0",
@@ -1276,7 +1301,8 @@
           "Newtonsoft.Json": "12.0.3",
           "Npgsql.EntityFrameworkCore.PostgreSQL": "3.1.3",
           "Npgsql.EntityFrameworkCore.PostgreSQL.Design": "1.1.0",
-          "System.IdentityModel.Tokens.Jwt": "6.5.0"
+          "System.IdentityModel.Tokens.Jwt": "6.5.0",
+          "Toycloud.AspNetCore.Mvc.ModelBinding.BodyOrDefaultBinding": "1.0.12"
         },
         "runtime": {
           "APICore.dll": {}
@@ -1409,12 +1435,12 @@
       "path": "microsoft.aspnetcore.mvc.abstractions/2.2.0",
       "hashPath": "microsoft.aspnetcore.mvc.abstractions.2.2.0.nupkg.sha512"
     },
-    "Microsoft.AspNetCore.Mvc.Core/2.2.0": {
+    "Microsoft.AspNetCore.Mvc.Core/2.2.5": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-ALiY4a6BYsghw8PT5+VU593Kqp911U3w9f/dH9/ZoI3ezDsDAGiObqPu/HP1oXK80Ceu0XdQ3F0bx5AXBeuN/Q==",
-      "path": "microsoft.aspnetcore.mvc.core/2.2.0",
-      "hashPath": "microsoft.aspnetcore.mvc.core.2.2.0.nupkg.sha512"
+      "sha512": "sha512-/8sr8ixIUD57UFwUntha9bOwex7/AkZfdk1f9oNJG1Ek7p/uuKVa7fuHmYZpQOf35Oxrt+2Ku4WPwMSbNxOuWg==",
+      "path": "microsoft.aspnetcore.mvc.core/2.2.5",
+      "hashPath": "microsoft.aspnetcore.mvc.core.2.2.5.nupkg.sha512"
     },
     "Microsoft.AspNetCore.Mvc.Formatters.Json/2.2.0": {
       "type": "package",
@@ -2283,6 +2309,20 @@
       "sha512": "sha512-5zJ0XDxAIg8iy+t4aMnQAu0MqVbqyvfoUVl1yDV61xdo3Vth45oA2FoY4pPkxYAH5f8ixpmTqXeEIya95x0aCQ==",
       "path": "system.xml.xdocument/4.3.0",
       "hashPath": "system.xml.xdocument.4.3.0.nupkg.sha512"
+    },
+    "Toycloud.AspNetCore.Mvc.ModelBinding.BodyAndFormBinding/1.0.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-Grk2qJ8qT9zR+2gfGT6zCMXrSdR7Lsq1a51XKqiT1LluE9d/syQuvEkMui3oanA8rhecX98MftPO+nQZu8rv4Q==",
+      "path": "toycloud.aspnetcore.mvc.modelbinding.bodyandformbinding/1.0.1",
+      "hashPath": "toycloud.aspnetcore.mvc.modelbinding.bodyandformbinding.1.0.1.nupkg.sha512"
+    },
+    "Toycloud.AspNetCore.Mvc.ModelBinding.BodyOrDefaultBinding/1.0.12": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-t1ZEqTB4H8uizJTYjY21J/RgDo3HgTMCXBEUZM7KkzVGQ503PSqsVlYVR62S+Gpo45+ntLh6BL6AKspMw55xbQ==",
+      "path": "toycloud.aspnetcore.mvc.modelbinding.bodyordefaultbinding/1.0.12",
+      "hashPath": "toycloud.aspnetcore.mvc.modelbinding.bodyordefaultbinding.1.0.12.nupkg.sha512"
     },
     "APICore/1.0.0": {
       "type": "project",

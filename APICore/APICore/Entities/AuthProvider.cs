@@ -9,7 +9,7 @@ namespace APICore.Entities
         public string Email { get; set; }
         public string Avatar { get; set; }
         public string Provider { get; set; }
-        public User User { get; set; }
+        public int UserId { get; set; }
     }
 
     public enum ProviderType

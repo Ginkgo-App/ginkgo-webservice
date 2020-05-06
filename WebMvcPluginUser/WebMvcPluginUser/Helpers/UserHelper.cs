@@ -25,16 +25,14 @@ namespace WebMvcPluginUser.Helpers
                 Avatar = user.Avatar,
                 Bio = user.Bio,
                 Birthday = user.Birthday,
-                Diaries = user.Diaries,
                 Email = user.Email,
-                Friends = user.Friends,
                 FullName = user.FullName,
                 Gender = user.Gender,
                 Job = user.Job,
                 PhoneNumber = user.PhoneNumber,
-                AuthProviders = user.AuthProviders,
                 Token = user.Token,
-                Tours = user.Tours,
+                Role = user.Role,
+                Slogan = user.Slogan,
             };
             return result;
         }

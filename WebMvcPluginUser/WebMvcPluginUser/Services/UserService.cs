@@ -48,7 +48,7 @@ namespace WebMvcPluginUser.Services
                 }
 
                 // return null if user not found
-                if (user == null || !user.Password.Equals(password))
+                if (user == null || (user.Password != null && !user.Password.Equals(password)))
                 {
                     _logger.Error($"Email: '{email}' or password is incorrect");
                     statusCode = ErrorCode.Fail;
@@ -65,27 +65,46 @@ namespace WebMvcPluginUser.Services
         public ErrorCode Authenticate(string email, ref AuthProvider authProvider, out User user)
         {
             ErrorCode statusCode = ErrorCode.Default;
+            user = null;
 
             do
             {
-                TryGetUsers(authProvider.Email ?? email, out user);
+                TryGetAuthProvider(authProvider.Id, out AuthProvider dbAuth);
 
-                // return null if user not found
-                if (user == null)
+                // Chua dang ky
+                if (dbAuth == null)
                 {
-                    statusCode = Register(authProvider.Name, authProvider.Email ?? email, null, null, out user);
-                    if (statusCode != ErrorCode.Success)
+                    var inputEmail = authProvider.Email ?? email;
+
+                    if (!inputEmail.IsExistAndNotEmpty())
                     {
+                        statusCode = ErrorCode.AuthProviderMissingEmail;
                         break;
                     }
+                    else
+                    {
+                        // Kiem tra email da su dung hay chua
+                        if (!TryGetUsers(inputEmail, out user))
+                        {
+                            statusCode = Register(authProvider.Name, authProvider.Email ?? email, null, null, out user);
+                            if (statusCode != ErrorCode.Success)
+                            {
+                                break;
+                            }
+                        }
+
+                        if (!TryAddAuthProvider(authProvider, user))
+                        {
+                            TryRemoveUser(user.Id);
+                            break;
+                        }
+                    }
                 }
-
-                // Save AuthProvider
-
-                if (!TryAddAuthProvider(authProvider, user))
+                // Da dang ky
+                else
                 {
-                    statusCode = ErrorCode.Fail;
-                    break;
+                    // Dang loi cho nay, cai dbAuth ko lay ve cai user
+                    TryGetUsers(dbAuth.UserId, out user);
                 }
 
                 GenerateToken(user);
@@ -113,7 +132,8 @@ namespace WebMvcPluginUser.Services
                     Name = name,
                     Email = email,
                     PhoneNumber = phoneNumber,
-                    Password = password
+                    Password = password,
+                    Role = RoleType.User
                 };
 
                 if (!TryAddUser(user))
@@ -133,7 +153,7 @@ namespace WebMvcPluginUser.Services
             return statusCode;
         }
 
-        public bool TryGetUsers(out List<User> users)
+        public bool TryGetUsers(int page, int pageSize, out List<User> users)
         {
             users = null;
             bool isSuccess = false;
@@ -141,12 +161,28 @@ namespace WebMvcPluginUser.Services
             try
             {
                 ConnectDB();
-                users = (from u
+                var usersDb = (from u
                          in _context.Users
-                         select u)
+                               select u)
                         .ToListAsync()
                         .Result;
-                isSuccess = true;
+
+
+
+                var total = usersDb.Select(p => p.Id).Count();
+                var skip = pageSize * (page - 1);
+
+                var canPage = skip < total;
+
+                if (canPage)
+                {
+                    users = usersDb.Select(u => u)
+                            .Skip(skip)
+                            .Take(pageSize)
+                            .ToList();
+
+                    isSuccess = true;
+                }
             }
             catch (Exception ex)
             {
@@ -232,6 +268,47 @@ namespace WebMvcPluginUser.Services
             return isSuccess;
         }
 
+        public bool TryUpdateUser(User user)
+        {
+            bool isSuccess = false;
+            try
+            {
+                ConnectDB();
+                _context.Users.Update(user);
+                _context.SaveChanges();
+                isSuccess = true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                DisconnectDB();
+            }
+
+            return isSuccess;
+        }
+
+        public bool TryRemoveUser(int userId)
+        {
+            bool isSuccess = false;
+            try
+            {
+                ConnectDB();
+                var user = _context.Users.FirstOrDefault(u => u.Id == userId);
+                if (user != null)
+                {
+                    _context.Users.Remove(user);
+                    _context.SaveChanges();
+                    isSuccess = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                DisconnectDB();
+            }
+            return isSuccess;
+        }
+
         public bool TryAddAuthProvider(AuthProvider authProvider, User user)
         {
             bool isSuccess = false;
@@ -246,12 +323,12 @@ namespace WebMvcPluginUser.Services
                     dbAuthProvider.Avatar = authProvider.Avatar;
                     dbAuthProvider.Email = authProvider.Email;
                     dbAuthProvider.Provider = authProvider.Provider;
-                    dbAuthProvider.User = user;
+                    dbAuthProvider.UserId = user.Id;
                     _context.AuthProviders.Update(dbAuthProvider);
                 }
                 else
                 {
-                    authProvider.User = user;
+                    authProvider.UserId = user.Id;
                     _context.AuthProviders.Add(authProvider);
                 }
 
@@ -304,6 +381,26 @@ namespace WebMvcPluginUser.Services
             return isSuccess;
         }
 
+        public bool TryGetAuthProvider(string id, out AuthProvider authProvider)
+        {
+            authProvider = null;
+            bool isSuccess = false;
+
+            try
+            {
+                ConnectDB();
+                authProvider = _context.AuthProviders.Where(a => a.Id == id).Single();
+
+                isSuccess = true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                DisconnectDB();
+            }
+
+            return isSuccess;
+        }
 
         private void GenerateToken(User user)
         {
@@ -317,6 +414,7 @@ namespace WebMvcPluginUser.Services
                 {
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                     new Claim(ClaimTypes.Name, user.Email),
+                    new Claim(ClaimTypes.Role, user.Role),
                 }),
                 Expires = DateTime.UtcNow.AddDays(7),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
