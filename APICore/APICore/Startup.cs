@@ -54,7 +54,7 @@ namespace APICore
             {
                 option.EnableEndpointRouting = false;
                 option.ModelBinderProviders.InsertBodyOrDefaultBinding();
-            }).SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
+            }).AddNewtonsoftJson().SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
 
             // configure strongly typed settings objects
             var appSettingsSection = Configuration.GetSection("AppSettings");

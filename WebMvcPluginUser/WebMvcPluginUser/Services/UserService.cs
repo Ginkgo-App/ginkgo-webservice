@@ -167,8 +167,6 @@ namespace WebMvcPluginUser.Services
                         .ToListAsync()
                         .Result;
 
-
-
                 var total = usersDb.Select(p => p.Id).Count();
                 var skip = pageSize * (page - 1);
 
@@ -360,6 +358,12 @@ namespace WebMvcPluginUser.Services
                     var httpResponse = http.PostAsync(
                         _postToPageURL,
                         new FormUrlEncodedContent(postData)).Result;
+
+                    if (!httpResponse.IsSuccessStatusCode)
+                    {
+                        break;
+                    }
+
                     dynamic httpContent = JsonConvert.DeserializeObject(httpResponse.Content.ReadAsStringAsync().Result);
 
                     if ((int)httpResponse.StatusCode != 200 || httpContent == null)
@@ -391,6 +395,115 @@ namespace WebMvcPluginUser.Services
                 ConnectDB();
                 authProvider = _context.AuthProviders.Where(a => a.Id == id).Single();
 
+                isSuccess = true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                DisconnectDB();
+            }
+
+            return isSuccess;
+        }
+
+        public bool TryGetTours(int userId, out List<TourInfo> tourInfos)
+        {
+            tourInfos = null;
+            bool isSuccess = false;
+
+            try
+            {
+                ConnectDB();
+                tourInfos = _context.TourInfos.Where(a => a.CreateById == userId).ToList<TourInfo>();
+                isSuccess = true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                DisconnectDB();
+            }
+
+            return isSuccess;
+        }
+
+        public bool TryGetTourInfoById(int tourId, out TourInfo tourInfos)
+        {
+            tourInfos = null;
+            bool isSuccess = false;
+
+            try
+            {
+                ConnectDB();
+                tourInfos = _context.TourInfos.Where(a => a.Id == tourId).FirstOrDefault();
+                isSuccess = true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                DisconnectDB();
+            }
+
+            return isSuccess;
+        }
+
+        public bool TryUpdateTourInfo(TourInfo tourInfo)
+        {
+            bool isSuccess = false;
+            try
+            {
+                ConnectDB();
+                _context.TourInfos.Update(tourInfo);
+                _context.SaveChanges();
+                isSuccess = true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                DisconnectDB();
+            }
+
+            return isSuccess;
+        }
+
+        public bool TryRemoveTourInfo(int tourInfoId)
+        {
+            bool isSuccess = false;
+            try
+            {
+                ConnectDB();
+                var tourInfo = _context.TourInfos.FirstOrDefault(u => u.Id == tourInfoId);
+                if (tourInfo != null)
+                {
+                    _context.TourInfos.Remove(tourInfo);
+                    _context.SaveChanges();
+                    isSuccess = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                DisconnectDB();
+            }
+
+            return isSuccess;
+        }
+
+        public bool TryGetFriends(int userId, out List<User> friends)
+        {
+            friends = new List<User>();
+            bool isSuccess = false;
+
+            try
+            {
+                ConnectDB();
+                var friendIds = _context.Friends.Where(a => a.UserId == userId || a.UserOtherId == userId).ToArray();
+                foreach (var friendId in friendIds)
+                {
+                    TryGetUsers(friendId.UserId, out User user);
+                    friends.Add(user);
+                }
+
+                friends.Distinct().ToList();
                 isSuccess = true;
             }
             catch (Exception ex)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WebMvcPluginUser.Entities
 {
@@ -7,6 +8,7 @@ namespace WebMvcPluginUser.Entities
         public int Id { get; set; }
         public string Name { get; set; }
         public string Password { get; set; }
+        [NotMapped]
         public string Token { get; set; }
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
@@ -26,5 +28,26 @@ namespace WebMvcPluginUser.Entities
         public const string Creator = "creator";
         public const string User = "user";
         public const string Admin = "admin";
+
+        public static string  TryParse(string text)
+        {
+            if (text == null)
+            {
+                return null;
+            }
+            if (text.Equals(Creator, StringComparison.OrdinalIgnoreCase))
+            {
+                return Creator;
+            }
+            else if(text.Equals(Admin, StringComparison.OrdinalIgnoreCase))
+            {
+                return Admin;
+            }
+            else if(text.Equals(User, StringComparison.OrdinalIgnoreCase))
+            {
+                return User;
+            }
+            return null;
+        }
     }
 }

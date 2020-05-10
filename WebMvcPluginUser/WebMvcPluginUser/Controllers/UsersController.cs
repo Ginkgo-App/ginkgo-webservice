@@ -3,9 +3,12 @@ using APICore.Helpers;
 using APICore.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
 using WebMvcPluginUser.Entities;
 using WebMvcPluginUser.Helpers;
 using WebMvcPluginUser.Models;
@@ -28,7 +31,7 @@ namespace WebMvcPluginUser.Controllers
 
         [AllowAnonymous]
         [HttpPost("authenticate")]
-        public string Authenticate([FromBody]AuthenticateModel model)
+        public IActionResult Authenticate([FromBody]AuthenticateModel model)
         {
             ResponseModel responseModel = new ResponseModel();
             JArray data = new JArray();
@@ -60,7 +63,7 @@ namespace WebMvcPluginUser.Controllers
                 responseModel.Message = ex.Message;
             }
 
-            return responseModel.ToString();
+            return Content(responseModel.ToString());
         }
 
         [AllowAnonymous]
@@ -126,12 +129,10 @@ namespace WebMvcPluginUser.Controllers
             {
                 do
                 {
-                    
+
                     JObject body = requestBody != null
                         ? JObject.Parse(requestBody.ToString())
                         : null;
-
-
 
                     if (!CoreHelper.GetParameter(out JToken jsonAccessToken, body, "AccessToken", JTokenType.String, ref responseModel)
                         || !CoreHelper.GetParameter(out JToken jsonType, body, "Type", JTokenType.String, ref responseModel)
@@ -184,51 +185,51 @@ namespace WebMvcPluginUser.Controllers
             return Ok(responseModel.ToString());
         }
 
-        [Authorize(Roles = RoleType.Admin)]
-        [HttpGet]
-        public IActionResult GetAllUser(int userId, [FromQuery]int page, [FromQuery]int pageSize)
-        {
-            ResponseModel responseModel = new ResponseModel();
+        //[Authorize(Roles = RoleType.Admin)]
+        //[HttpGet]
+        //public IActionResult GetAllUser(int userId, [FromQuery]int page, [FromQuery]int pageSize)
+        //{
+        //    ResponseModel responseModel = new ResponseModel();
 
-            try
-            {
-                do
-                {
-                    List<User> users = null;
-                    JArray data = new JArray();
+        //    try
+        //    {
+        //        do
+        //        {
+        //            List<User> users = null;
+        //            JArray data = new JArray();
 
-                    if (!_userService.TryGetUsers(page, pageSize, out users))
-                    {
-                        break;
-                    }
+        //            if (!_userService.TryGetUsers(page, pageSize, out users))
+        //            {
+        //                break;
+        //            }
 
-                    if (users == null || users.Count == 0)
-                    {
-                        responseModel.ErrorCode = (int)ErrorList.ErrorCode.UserNotFound;
-                        responseModel.Message = ErrorList.Description(responseModel.ErrorCode);
-                        break;
-                    }
+        //            if (users == null || users.Count == 0)
+        //            {
+        //                responseModel.ErrorCode = (int)ErrorList.ErrorCode.UserNotFound;
+        //                responseModel.Message = ErrorList.Description(responseModel.ErrorCode);
+        //                break;
+        //            }
 
-                    foreach (var user in users)
-                    {
-                        data.Add(JObject.FromObject(user));
-                    }
+        //            foreach (var user in users)
+        //            {
+        //                data.Add(JObject.FromObject(user));
+        //            }
 
-                    responseModel.ErrorCode = (int)ErrorList.ErrorCode.Success;
-                    responseModel.Message = ErrorList.Description(responseModel.ErrorCode);
-                    responseModel.Data = data;
+        //            responseModel.ErrorCode = (int)ErrorList.ErrorCode.Success;
+        //            responseModel.Message = ErrorList.Description(responseModel.ErrorCode);
+        //            responseModel.Data = data;
 
-                } while (false);
-            }
-            catch (Exception ex)
-            {
-                Response.StatusCode = 501;
-                responseModel.ErrorCode = 501;
-                responseModel.Message = ex.Message;
-            }
+        //        } while (false);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Response.StatusCode = 501;
+        //        responseModel.ErrorCode = 501;
+        //        responseModel.Message = ex.Message;
+        //    }
 
-            return Ok(responseModel.ToString());
-        }
+        //    return Ok(responseModel.ToString());
+        //}
 
         [HttpGet("{userId}")]
         public IActionResult GetUserById(int userId)
@@ -300,7 +301,7 @@ namespace WebMvcPluginUser.Controllers
             return Ok(responseModel.ToString());
         }
 
-        [HttpPost("{userId}")]
+        [HttpPut("{userId}")]
         public IActionResult UpdateUser(int userId, [FromBody]object requestBody)
         {
             ResponseModel responseModel = new ResponseModel();
@@ -340,6 +341,7 @@ namespace WebMvcPluginUser.Controllers
 
                     if (!_userService.TryGetUsers(userId, out User user))
                     {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
                         break;
                     }
 
@@ -371,7 +373,131 @@ namespace WebMvcPluginUser.Controllers
             return Ok(responseModel.ToString());
         }
 
+        [HttpGet("me")]
+        public object GetMyInfo()
+        {
+            ResponseModel responseModel = new ResponseModel();
 
+            try
+            {
+                do
+                {
+                    var identity = HttpContext.User.Identity as ClaimsIdentity;
+                    if (identity == null)
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    IEnumerable<Claim> claims = identity.Claims;
+                    int.TryParse(claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value, out int userId);
+                    _userService.TryGetUsers(userId, out User user);
+
+                    if (user == null)
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    responseModel.FromErrorCode(ErrorCode.Success);
+                    responseModel.Data = new JArray
+                    {
+                        JObject.FromObject(user)
+                    };
+
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode = 501;
+                responseModel.ErrorCode = 501;
+                responseModel.Message = ex.Message;
+            }
+
+            return responseModel;
+        }
+
+        [HttpGet("me/tours")]
+        public IActionResult GetMyTours()
+        {
+            ResponseModel responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
+                    var identity = HttpContext.User.Identity as ClaimsIdentity;
+                    if (identity == null)
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    IEnumerable<Claim> claims = identity.Claims;
+                    int.TryParse(claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value, out int userId);
+                    _userService.TryGetTours(userId, out List<TourInfo> tourInfos);
+
+                    if (tourInfos == null)
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    responseModel.FromErrorCode(ErrorCode.Success);
+                    responseModel.Data = JArray.FromObject(tourInfos);
+
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode = 501;
+                responseModel.ErrorCode = 501;
+                responseModel.Message = ex.Message;
+            }
+
+            return Ok(responseModel.ToString());
+        }
+
+        [HttpGet("me/friends")]
+        public IActionResult GetMyFriends()
+        {
+            ResponseModel responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
+                    var identity = HttpContext.User.Identity as ClaimsIdentity;
+                    if (identity == null)
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    IEnumerable<Claim> claims = identity.Claims;
+                    int.TryParse(claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value, out int userId);
+                    _userService.TryGetFriends(userId, out List<User> friends);
+
+                    if (friends == null)
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    responseModel.FromErrorCode(ErrorCode.Success);
+                    responseModel.Data = JArray.FromObject(friends);
+
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode = 501;
+                responseModel.ErrorCode = 501;
+                responseModel.Message = ex.Message;
+            }
+
+            return Ok(responseModel.ToString());
+        }
         private JObject UserResponseJson(User user)
         {
             JObject jObject = new JObject();
