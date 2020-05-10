@@ -9,12 +9,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    - name: Build the Docker image
-      run: |
-        echo Add other actions to build,
-        echo test, and deploy your project.
-        cd APICore/APICore
-        docker build -t micro-api-core . 
     - name: Login to Heroku Container registry
       env: 
         HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
@@ -22,7 +16,10 @@ jobs:
     - name: Build and push
       env:
         HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-      run: heroku container:push -a micro-api-core web 
+      run: |
+        cd APICore/APICore
+        docker build -t micro-api-core . 
+        heroku container:push -a micro-api-core web 
     - name: Release
       env:
         HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
