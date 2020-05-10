@@ -1,9 +1,7 @@
-name: Release
+name: Test Build
 
 on:
   push:
-    tags:
-    - '*'
 
 jobs:
   build:
@@ -12,18 +10,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    - name: Login to Heroku Container registry
-      env: 
-        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-      run: heroku container:login 
-    - name: Build and push
-      env:
-        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+    - name: Copy dll from module
+      run: |
+        cd WebMvcPluginUser/WebMvcPluginUser/bin/
+        cp WebMvcPluginUser.pdb APICore/APICore/Plugins/
+        cp WebMvcPluginUser.dll APICore/APICore/Plugins/
+        cp WebMvcPluginUser.deps.json APICore/APICore/Plugins/
+    - name: Build container
       run: |
         cd APICore/APICore
         docker build -t micro-api-core . 
         heroku container:push -a micro-api-core web 
-    - name: Release
-      env:
-        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-      run: heroku container:release -a micro-api-core web 
