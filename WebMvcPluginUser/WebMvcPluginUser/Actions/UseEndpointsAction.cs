@@ -1,12 +1,11 @@
-﻿using ExtCore.Infrastructure.Actions;
-using ExtCore.Mvc.Infrastructure.Actions;
+﻿using ExtCore.Mvc.Infrastructure.Actions;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using WebMvcPluginUser.DBContext;
-using WebMvcPluginUser.Services;
+using WebMvcPluginUser.Entities;
 
 namespace WebMvcPluginUser.Actions
 {
@@ -19,29 +18,6 @@ namespace WebMvcPluginUser.Actions
             endpointRouteBuilder.MapControllerRoute(
                 name: "Default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
-        }
-    }
-
-    public class UseConfigureAction : IConfigureAction
-    {
-        public int Priority => 1000;
-
-        public void Execute(IApplicationBuilder app, IServiceProvider serviceProvider)
-        {
-
-        }
-    }
-
-    public class UseConfigureServices : IConfigureServicesAction
-    {
-        public int Priority => 1000;
-
-        public void Execute(IServiceCollection services, IServiceProvider serviceProvider)
-        {
-            services.AddDbContext<UserContext>(
-                options => options.UseNpgsql(Vars.CONNECTION_STRING));
-
-            services.AddSingleton<IUserService, UserService>();
         }
     }
 }
