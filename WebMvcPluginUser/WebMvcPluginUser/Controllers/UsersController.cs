@@ -31,7 +31,7 @@ namespace WebMvcPluginUser.Controllers
 
         [AllowAnonymous]
         [HttpPost("authenticate")]
-        public IActionResult Authenticate([FromBody]AuthenticateModel model)
+        public object Authenticate([FromBody]AuthenticateModel model)
         {
             ResponseModel responseModel = new ResponseModel();
             JArray data = new JArray();
@@ -63,12 +63,12 @@ namespace WebMvcPluginUser.Controllers
                 responseModel.Message = ex.Message;
             }
 
-            return Content(responseModel.ToString());
+            return responseModel.ToJson();
         }
 
         [AllowAnonymous]
         [HttpPost("register")]
-        public IActionResult Register([FromBody]object requestBody)
+        public object Register([FromBody]object requestBody)
         {
             ResponseModel response = new ResponseModel();
             User user = null;
@@ -116,12 +116,13 @@ namespace WebMvcPluginUser.Controllers
                 response.ErrorCode = 501;
                 response.Message = ex.Message;
             }
-            return Ok(response.ToString());
+
+            return response;
         }
 
         [AllowAnonymous]
         [HttpPost("social-provider")]
-        public IActionResult SocialProvider([FromBody]object requestBody)
+        public object SocialProvider([FromBody]object requestBody)
         {
             ResponseModel responseModel = new ResponseModel();
 
@@ -182,7 +183,7 @@ namespace WebMvcPluginUser.Controllers
                 responseModel.Message = ex.Message;
             }
 
-            return Ok(responseModel.ToString());
+            return responseModel.ToJson();
         }
 
         //[Authorize(Roles = RoleType.Admin)]
@@ -228,11 +229,11 @@ namespace WebMvcPluginUser.Controllers
         //        responseModel.Message = ex.Message;
         //    }
 
-        //    return Ok(responseModel.ToString());
+        //    return responseModel.ToJson();
         //}
 
         [HttpGet("{userId}")]
-        public IActionResult GetUserById(int userId)
+        public object GetUserById(int userId)
         {
             ResponseModel responseModel = new ResponseModel();
 
@@ -269,11 +270,11 @@ namespace WebMvcPluginUser.Controllers
                 responseModel.Message = ex.Message;
             }
 
-            return Ok(responseModel.ToString());
+            return responseModel.ToJson();
         }
 
         [HttpDelete("{userId}")]
-        public IActionResult DeleteUser(int userId)
+        public object DeleteUser(int userId)
         {
             ResponseModel responseModel = new ResponseModel();
 
@@ -298,11 +299,11 @@ namespace WebMvcPluginUser.Controllers
                 responseModel.Message = ex.Message;
             }
 
-            return Ok(responseModel.ToString());
+            return responseModel.ToJson();
         }
 
         [HttpPut("{userId}")]
-        public IActionResult UpdateUser(int userId, [FromBody]object requestBody)
+        public object UpdateUser(int userId, [FromBody]object requestBody)
         {
             ResponseModel responseModel = new ResponseModel();
 
@@ -370,7 +371,7 @@ namespace WebMvcPluginUser.Controllers
                 responseModel.Message = ex.Message;
             }
 
-            return Ok(responseModel.ToString());
+            return responseModel.ToJson();
         }
 
         [HttpGet("me")]
@@ -414,11 +415,11 @@ namespace WebMvcPluginUser.Controllers
                 responseModel.Message = ex.Message;
             }
 
-            return responseModel;
+            return responseModel.ToJson();
         }
 
         [HttpGet("me/tours")]
-        public IActionResult GetMyTours()
+        public object GetMyTours()
         {
             ResponseModel responseModel = new ResponseModel();
 
@@ -455,11 +456,11 @@ namespace WebMvcPluginUser.Controllers
                 responseModel.Message = ex.Message;
             }
 
-            return Ok(responseModel.ToString());
+            return responseModel.ToJson();
         }
 
         [HttpGet("me/friends")]
-        public IActionResult GetMyFriends()
+        public object GetMyFriends()
         {
             ResponseModel responseModel = new ResponseModel();
 
@@ -496,7 +497,7 @@ namespace WebMvcPluginUser.Controllers
                 responseModel.Message = ex.Message;
             }
 
-            return Ok(responseModel.ToString());
+            return responseModel.ToJson();
         }
         private JObject UserResponseJson(User user)
         {
@@ -524,7 +525,7 @@ namespace WebMvcPluginUser.Controllers
         //        responseModel.Message = ex.Message;
         //    }
 
-        //    return Ok(responseModel.ToString());
+        //    return responseModel.ToJson();
         //}
     }
 }

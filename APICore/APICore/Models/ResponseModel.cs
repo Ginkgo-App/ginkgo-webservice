@@ -25,6 +25,11 @@ namespace APICore.Models
             return JsonConvert.SerializeObject(this, Formatting.None);
         }
 
+        public object ToJson()
+        {
+            return JsonConvert.DeserializeObject(this.ToString());
+        }
+
         public void FromErrorCode(ErrorList.ErrorCode errorCode)
         {
             ErrorCode = (int)errorCode;

@@ -153,9 +153,10 @@ namespace WebMvcPluginUser.Services
             return statusCode;
         }
 
-        public bool TryGetUsers(int page, int pageSize, out List<User> users)
+        public bool TryGetUsers(int page, int pageSize, out List<User> users, out Pagination pagination)
         {
             users = null;
+            pagination = null;
             bool isSuccess = false;
 
             try
@@ -178,6 +179,8 @@ namespace WebMvcPluginUser.Services
                             .Skip(skip)
                             .Take(pageSize)
                             .ToList();
+
+                    pagination = new Pagination(total, page, pageSize);
 
                     isSuccess = true;
                 }

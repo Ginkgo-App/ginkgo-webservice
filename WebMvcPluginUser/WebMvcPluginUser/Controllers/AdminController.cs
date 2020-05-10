@@ -27,8 +27,8 @@ namespace WebMvcPluginUser.Controllers
             _userService = userService;
         }
 
-        [HttpGet]
-        public IActionResult GetAllUser(int userId, [FromQuery]int page, [FromQuery]int pageSize)
+        [HttpGet("users")]
+        public object GetAllUser([FromQuery]int page, [FromQuery]int pageSize)
         {
             ResponseModel responseModel = new ResponseModel();
 
@@ -37,14 +37,15 @@ namespace WebMvcPluginUser.Controllers
                 do
                 {
                     List<User> users = null;
+                    Pagination pagination = null;
                     JArray data = new JArray();
 
-                    if (!_userService.TryGetUsers(page, pageSize, out users))
+                    if (!_userService.TryGetUsers(page, pageSize, out users, out pagination))
                     {
                         break;
                     }
 
-                    if (users == null || users.Count == 0)
+                    if (users == null || users.Count == 0 || pagination == null)
                     {
                         responseModel.ErrorCode = (int)ErrorList.ErrorCode.UserNotFound;
                         responseModel.Message = ErrorList.Description(responseModel.ErrorCode);
@@ -59,9 +60,7 @@ namespace WebMvcPluginUser.Controllers
                     responseModel.ErrorCode = (int)ErrorList.ErrorCode.Success;
                     responseModel.Message = ErrorList.Description(responseModel.ErrorCode);
                     responseModel.Data = data;
-                    responseModel.AdditionalProperties["Pagination"] = new JObject {
-                        new JProperty("test", 123)
-                    };
+                    responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
 
                 } while (false);
             }
@@ -72,11 +71,11 @@ namespace WebMvcPluginUser.Controllers
                 responseModel.Message = ex.Message;
             }
 
-            return Ok(responseModel.ToString());
+            return responseModel.ToJson();
         }
 
         [HttpGet("users/{userId}")]
-        public IActionResult GetUserById(int userId)
+        public object GetUserById(int userId)
         {
             ResponseModel responseModel = new ResponseModel();
 
@@ -113,11 +112,11 @@ namespace WebMvcPluginUser.Controllers
                 responseModel.Message = ex.Message;
             }
 
-            return Ok(responseModel.ToString());
+            return responseModel.ToJson();
         }
 
         [HttpDelete("users/{userId}")]
-        public IActionResult DeleteUser(int userId)
+        public object DeleteUser(int userId)
         {
             ResponseModel responseModel = new ResponseModel();
 
@@ -142,11 +141,11 @@ namespace WebMvcPluginUser.Controllers
                 responseModel.Message = ex.Message;
             }
 
-            return Ok(responseModel.ToString());
+            return responseModel.ToJson();
         }
 
         [HttpPost("users")]
-        public IActionResult AddUser([FromBody]object requestBody)
+        public object AddUser([FromBody]object requestBody)
         {
             ResponseModel responseModel = new ResponseModel();
 
@@ -210,11 +209,11 @@ namespace WebMvcPluginUser.Controllers
                 responseModel.Message = ex.Message;
             }
 
-            return Ok(responseModel.ToString());
+            return responseModel.ToJson();
         }
 
         [HttpPut("users/{userId}")]
-        public IActionResult UpdateUser(int userId, [FromBody]object requestBody)
+        public object UpdateUser(int userId, [FromBody]object requestBody)
         {
             ResponseModel responseModel = new ResponseModel();
 
@@ -301,11 +300,11 @@ namespace WebMvcPluginUser.Controllers
                 responseModel.Message = ex.Message;
             }
 
-            return Ok(responseModel.ToString());
+            return responseModel.ToJson();
         }
 
         [HttpGet("tour-infos/{id}")]
-        public IActionResult GetTourInfo(int id)
+        public object GetTourInfo(int id)
         {
             ResponseModel responseModel = new ResponseModel();
 
@@ -336,12 +335,12 @@ namespace WebMvcPluginUser.Controllers
                 responseModel.Message = ex.Message;
             }
 
-            return Ok(responseModel.ToString());
+            return responseModel.ToJson();
         }
 
 
         [HttpPut("tour-infos/{id}")]
-        public IActionResult UpdateTourInfo(int id, [FromBody]object requestBody)
+        public object UpdateTourInfo(int id, [FromBody]object requestBody)
         {
             ResponseModel responseModel = new ResponseModel();
 
@@ -399,12 +398,12 @@ namespace WebMvcPluginUser.Controllers
                 responseModel.Message = ex.Message;
             }
 
-            return Ok(responseModel.ToString());
+            return responseModel.ToJson();
         }
 
 
         [HttpDelete("tour-infos/{id}")]
-        public IActionResult DeleteTourInfo(int id)
+        public object DeleteTourInfo(int id)
         {
             ResponseModel responseModel = new ResponseModel();
 
@@ -429,7 +428,7 @@ namespace WebMvcPluginUser.Controllers
                 responseModel.Message = ex.Message;
             }
 
-            return Ok(responseModel.ToString());
+            return responseModel.ToJson();
         }
 
         private JObject UserResponseJson(User user)
@@ -458,7 +457,7 @@ namespace WebMvcPluginUser.Controllers
         //        responseModel.Message = ex.Message;
         //    }
 
-        //    return Ok(responseModel.ToString());
+        //    return responseModel.ToJson();
         //}
     }
 }
