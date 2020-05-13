@@ -160,6 +160,8 @@ namespace WebMvcPluginUser.Controllers
                     JArray data = new JArray();
 
                     if (!CoreHelper.GetParameter(out JToken jsonPassword, body, "password", JTokenType.String, ref responseModel, true)
+                        || !CoreHelper.GetParameter(out JToken jsonEmail, body, "email", JTokenType.String, ref responseModel)
+                        || !CoreHelper.GetParameter(out JToken jsonName, body, "name", JTokenType.String, ref responseModel, true)
                         || !CoreHelper.GetParameter(out JToken jsonPhonenumber, body, "phonenumber", JTokenType.String, ref responseModel, true)
                         || !CoreHelper.GetParameter(out JToken jsonAddress, body, "address", JTokenType.String, ref responseModel, true)
                         || !CoreHelper.GetParameter(out JToken jsonAvatar, body, "avatar", JTokenType.String, ref responseModel, true)
@@ -173,7 +175,9 @@ namespace WebMvcPluginUser.Controllers
                         break;
                     }
 
-                    string password = jsonPassword?.ToString();
+                    string name = jsonName?.ToString();
+                    string email = jsonEmail.ToString();
+                    string password = UserHelper.HashPassword(jsonPassword?.ToString());
                     string phoneNumber = jsonPhonenumber?.ToString();
                     string address = jsonAddress?.ToString();
                     string avatar = jsonAvatar?.ToString();
@@ -181,16 +185,21 @@ namespace WebMvcPluginUser.Controllers
                     string bio = jsonBio?.ToString();
                     string job = jsonJob?.ToString();
                     string gender = jsonGender?.ToString();
-                    DateTime.TryParse(jsonBirthday?.ToString(), out DateTime birthday);
+                    bool isParsed = DateTime.TryParse(jsonBirthday?.ToString(), out DateTime birthday);
                     string roleType = RoleType.TryParse(jsonRole?.ToString());
 
                     User user = new User();
+                    user.Name  = name ?? user.Name;
+                    user.Email  = email ?? user.Email;
                     user.Password = password ?? user.Password;
                     user.PhoneNumber = phoneNumber ?? user.Password;
                     user.Address = address ?? user.Password;
                     user.Avatar = avatar ?? user.Password;
                     user.Slogan = slogan ?? user.Password;
-                    user.Password = password ?? user.Password;
+                    user.Bio = bio ?? user.Bio;
+                    user.Job = job ?? user.Job;
+                    user.Gender = GenderType.TryParse(gender) ?? user.Gender;
+                    user.Birthday = isParsed ? birthday : user.Birthday;
                     user.Role = roleType ?? user.Role;
 
                     if (!_userService.TryAddUser(user))
@@ -228,6 +237,8 @@ namespace WebMvcPluginUser.Controllers
                     JArray data = new JArray();
 
                     if (!CoreHelper.GetParameter(out JToken jsonPassword, body, "password", JTokenType.String, ref responseModel, true)
+                        || !CoreHelper.GetParameter(out JToken jsonEmail, body, "email", JTokenType.String, ref responseModel)
+                        || !CoreHelper.GetParameter(out JToken jsonName, body, "name", JTokenType.String, ref responseModel, true)
                         || !CoreHelper.GetParameter(out JToken jsonPhonenumber, body, "phonenumber", JTokenType.String, ref responseModel, true)
                         || !CoreHelper.GetParameter(out JToken jsonAddress, body, "address", JTokenType.String, ref responseModel, true)
                         || !CoreHelper.GetParameter(out JToken jsonAvatar, body, "avatar", JTokenType.String, ref responseModel, true)
@@ -241,7 +252,9 @@ namespace WebMvcPluginUser.Controllers
                         break;
                     }
 
-                    string password = jsonPassword?.ToString();
+                    string name = jsonName?.ToString();
+                    string email = jsonEmail.ToString();
+                    string password = UserHelper.HashPassword(jsonPassword?.ToString());
                     string phoneNumber = jsonPhonenumber?.ToString();
                     string address = jsonAddress?.ToString();
                     string avatar = jsonAvatar?.ToString();
@@ -249,8 +262,9 @@ namespace WebMvcPluginUser.Controllers
                     string bio = jsonBio?.ToString();
                     string job = jsonJob?.ToString();
                     string gender = jsonGender?.ToString();
-                    DateTime.TryParse(jsonBirthday?.ToString(), out DateTime birthday);
+                    bool isParsed = DateTime.TryParse(jsonBirthday?.ToString(), out DateTime birthday);
                     string roleType = RoleType.TryParse(jsonRole?.ToString());
+
 
                     if (!_userService.TryGetUsers(userId, out User user))
                     {
@@ -261,24 +275,34 @@ namespace WebMvcPluginUser.Controllers
                     if (user == null)
                     {
                         user = new User();
+                        user.Name = name ?? user.Name;
+                        user.Email = email ?? user.Email;
                         user.Password = password ?? user.Password;
                         user.PhoneNumber = phoneNumber ?? user.Password;
                         user.Address = address ?? user.Password;
                         user.Avatar = avatar ?? user.Password;
                         user.Slogan = slogan ?? user.Password;
-                        user.Password = password ?? user.Password;
+                        user.Bio = bio ?? user.Bio;
+                        user.Job = job ?? user.Job;
+                        user.Gender = GenderType.TryParse(gender) ?? user.Gender;
+                        user.Birthday = isParsed ? birthday : user.Birthday;
                         user.Role = roleType ?? user.Role;
 
                         isSuccess = _userService.TryAddUser(user);
                     }
                     else
                     {
+                        user.Name = name ?? user.Name;
+                        user.Email = email ?? user.Email;
                         user.Password = password ?? user.Password;
                         user.PhoneNumber = phoneNumber ?? user.Password;
                         user.Address = address ?? user.Password;
                         user.Avatar = avatar ?? user.Password;
                         user.Slogan = slogan ?? user.Password;
-                        user.Password = password ?? user.Password;
+                        user.Bio = bio ?? user.Bio;
+                        user.Job = job ?? user.Job;
+                        user.Gender = GenderType.TryParse(gender) ?? user.Gender;
+                        user.Birthday = isParsed ? birthday : user.Birthday;
                         user.Role = roleType ?? user.Role;
 
                         isSuccess = _userService.TryUpdateUser(user);
