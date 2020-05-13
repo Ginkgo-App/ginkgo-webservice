@@ -5,19 +5,11 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v1
-    - name: Copy dll from module
-      run: |
-        cd WebMvcPluginUser/WebMvcPluginUser/bin/
-        cp WebMvcPluginUser.pdb APICore/APICore/Plugins/
-        cp WebMvcPluginUser.dll APICore/APICore/Plugins/
-        cp WebMvcPluginUser.deps.json APICore/APICore/Plugins/
-    - name: Build container
-      run: |
-        cd APICore/APICore
-        docker build -t micro-api-core . 
-        heroku container:push -a micro-api-core web 
+      - uses: actions/checkout@v1
+      - name: Build container
+        run: |
+          docker build -t micro-api-core . 
+          heroku container:push -a micro-api-core web
