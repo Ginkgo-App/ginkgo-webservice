@@ -48,6 +48,8 @@ namespace WebMvcPluginTour.Services
                     pagination = new Pagination(total, page, pageSize);
                     errorCode = ErrorCode.Success;
                 }
+
+                DisconnectDB();
             }
             catch (Exception ex)
             {
@@ -84,6 +86,7 @@ namespace WebMvcPluginTour.Services
                     pagination = new Pagination(total, page, pageSize);
                     errorCode = ErrorCode.Success;
                 }
+                DisconnectDB();
             }
             catch (Exception ex)
             {
@@ -104,6 +107,7 @@ namespace WebMvcPluginTour.Services
                 ConnectDB();
                 tourInfos = _context.TourInfos.Where(a => a.Id == tourId).FirstOrDefault();
                 errorCode = ErrorCode.Success;
+                DisconnectDB();
             }
             catch (Exception ex)
             {
@@ -123,6 +127,7 @@ namespace WebMvcPluginTour.Services
                 _context.TourInfos.Add(tourInfo);
                 _context.SaveChanges();
                 isSuccess = true;
+                DisconnectDB();
             }
             catch (Exception ex)
             {
@@ -142,6 +147,7 @@ namespace WebMvcPluginTour.Services
                 _context.TourInfos.Update(tourInfo);
                 _context.SaveChanges();
                 isSuccess = true;
+                DisconnectDB();
             }
             catch (Exception ex)
             {
@@ -165,6 +171,7 @@ namespace WebMvcPluginTour.Services
                     _context.SaveChanges();
                     isSuccess = true;
                 }
+                DisconnectDB();
             }
             catch (Exception ex)
             {
@@ -183,8 +190,9 @@ namespace WebMvcPluginTour.Services
             try
             {
                 ConnectDB();
-                place = _context.Places.Where(a => a.Id == placeId).FirstOrDefault();
+                place = _context.Places.Where(a => a.Id == placeId)?.FirstOrDefault();
                 errorCode = ErrorCode.Success;
+                DisconnectDB();
             }
             catch (Exception ex)
             {
@@ -205,6 +213,28 @@ namespace WebMvcPluginTour.Services
                 ConnectDB();
                 user = _context.Users.Where(a => a.Id == userId).FirstOrDefault();
                 errorCode = ErrorCode.Success;
+                DisconnectDB();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                DisconnectDB();
+            }
+
+            return errorCode;
+        }
+
+        public ErrorCode TryGetServiceById(int serviceId, out Service service)
+        {
+            service = null;
+            ErrorCode errorCode = ErrorCode.Fail;
+
+            try
+            {
+                ConnectDB();
+                service = _context.Services.Where(a => a.Id == serviceId).FirstOrDefault();
+                errorCode = ErrorCode.Success;
+                DisconnectDB();
             }
             catch (Exception ex)
             {

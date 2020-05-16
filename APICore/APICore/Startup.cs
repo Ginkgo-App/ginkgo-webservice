@@ -88,7 +88,7 @@ namespace APICore
 
             services.AddDbContext<PostgreSQLContext>(options =>
             {
-                options.UseNpgsql(Vars.CONNECTION_STRING);
+                options.UseNpgsql(Vars.CONNECTION_STRING, options => options.EnableRetryOnFailure());
             });
         }
 
