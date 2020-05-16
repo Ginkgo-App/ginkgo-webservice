@@ -12,10 +12,16 @@
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
-          "Host": "micro-api-core.herokuapp.com",
-          "Port": 443
+          "Host": "localhost",
+          "Port": 5001
         }
       ],
+      //"DownstreamHostAndPorts": [
+      //  {
+      //    "Host": "micro-api-core.herokuapp.com",
+      //    "Port": 443
+      //  }
+      //],
       "DangerousAcceptAnyServerCertificateValidator": true
     }
   ],

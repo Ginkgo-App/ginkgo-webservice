@@ -38,6 +38,9 @@
     <Content Update="Plugins\TestAPI.deps.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Update="Plugins\WebMvcPluginTour.deps.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Update="Plugins\WebMvcPluginUser.deps.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -48,6 +51,12 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Plugins\TestAPI.pdb">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Plugins\WebMvcPluginTour.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Plugins\WebMvcPluginTour.pdb">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Plugins\WebMvcPluginUser.dll">
@@ -62,8 +71,8 @@
     <ItemGroup>
 	    <!--
         <PluginProject Include="..\..\WebMvcPluginHello\ApiPluginHello\ApiPluginHello.csproj" />
-   	    <PluginProject Include="..\..\WebMvcPluginUser\WebMvcPluginUser\WebMvcPluginUser.csproj" />
    	    <PluginProject Include="..\..\WebMvcPluginTour\WebMvcPluginTour\WebMvcPluginTour.csproj" />
+   	    <PluginProject Include="..\..\WebMvcPluginUser\WebMvcPluginUser\WebMvcPluginUser.csproj" />
         -->
 	 
     </ItemGroup>
