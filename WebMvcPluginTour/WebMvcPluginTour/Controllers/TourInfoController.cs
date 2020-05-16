@@ -9,7 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using WebMvcPluginTour.Services;
 using static APICore.Helpers.ErrorList;
 
@@ -27,8 +26,8 @@ namespace WebMvcPluginTour.Controllers
             _tourInfoService = tourInfoService;
         }
 
-        [HttpGet("{id}/tours")]
         [AllowAnonymous]
+        [HttpGet("{id}/tours")]
         public object GetAllTours(string id, [FromQuery]int page, [FromQuery]int pageSize)
         {
             ResponseModel responseModel = new ResponseModel();
@@ -52,7 +51,7 @@ namespace WebMvcPluginTour.Controllers
                     //    responseModel.Message = ErrorList.Description(responseModel.ErrorCode);
                     //    break;
                     //}
-                    
+
 
 
                     // Add data to Respone
@@ -91,7 +90,7 @@ namespace WebMvcPluginTour.Controllers
                     List<TourInfo> tourInfos = null;
                     Pagination pagination = null;
                     JArray data = new JArray();
-                        
+
                     if (_tourInfoService.TryGetTours(page, pageSize, out tourInfos, out pagination) != ErrorCode.Success)
                     {
                         break;
@@ -181,7 +180,7 @@ namespace WebMvcPluginTour.Controllers
                     }
 
                     IEnumerable<Claim> claims = identity.Claims;
-                    
+
                     int userId = int.Parse(
                         claims.Where(x => x.Type == ClaimTypes.NameIdentifier)
                         .FirstOrDefault().Value);
