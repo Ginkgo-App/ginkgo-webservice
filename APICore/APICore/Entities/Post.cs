@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace WebMvcPluginUser.Entities
+namespace APICore.Entities
 {
     public class Post
     {

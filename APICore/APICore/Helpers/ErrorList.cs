@@ -16,6 +16,8 @@
             FeatureIsBeingImplemented = 8,
             AuthProviderMissingEmail = 9,
             UserNotFound = 10,
+            TourNotFound = 11,
+            TourAlreadyExist = 12,
         }
 
         public static string Description(int errorCode)
@@ -36,6 +38,8 @@
                 ErrorCode.FeatureIsBeingImplemented => "Feature is being implemented",
                 ErrorCode.AuthProviderMissingEmail => "Authenticate provider is lack off emails",
                 ErrorCode.UserNotFound => "User not found",
+                ErrorCode.TourNotFound => "Tour not found",
+                ErrorCode.TourAlreadyExist => "Tour already exist",
                 _ => "Error code is invalid",
             };
         }

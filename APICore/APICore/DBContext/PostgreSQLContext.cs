@@ -1,9 +1,9 @@
 ﻿using APICore;
 using APICore.Entities;
 using Microsoft.EntityFrameworkCore;
-using WebMvcPluginUser.Entities;
+using APICore.Entities;
 
-namespace WebMvcPluginUser.DBContext
+namespace APICore.DBContext
 {
     public class PostgreSQLContext : DbContext
     {

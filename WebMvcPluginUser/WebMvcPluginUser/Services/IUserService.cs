@@ -1,10 +1,8 @@
 ﻿using APICore.Entities;
 using APICore.Helpers;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using System.Collections.Generic;
-using WebMvcPluginUser.Entities;
 
-namespace WebMvcPluginUser.Services
+namespace APICore.Services
 {
     public interface IUserService
     {

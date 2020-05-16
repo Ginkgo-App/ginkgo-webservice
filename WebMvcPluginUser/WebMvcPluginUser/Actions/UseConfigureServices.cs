@@ -1,9 +1,9 @@
 ﻿using ExtCore.Infrastructure.Actions;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using WebMvcPluginUser.Services;
+using APICore.Services;
 
-namespace WebMvcPluginUser.Actions
+namespace APICore.Actions
 {
     public class UseConfigureServices : IConfigureServicesAction
     {

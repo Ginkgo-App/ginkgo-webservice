@@ -4,6 +4,15 @@ namespace APICore.Entities
 {
     public class TourInfo
     {
+        public TourInfo(int createById, string name, string[] images, int startPlaceId, int destinatePlaceId)
+        {
+            CreateById = createById;
+            Name = name;
+            Images = images;
+            StartPlaceId = startPlaceId;
+            DestinatePlaceId = destinatePlaceId;
+        }
+
         public int Id { get; set; }
         public int CreateById { get; set; }
         public string Name { get; set; }

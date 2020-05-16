@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Builder;
 using System;
 
-namespace WebMvcPluginUser.Actions
+namespace APICore.Actions
 {
     public class UseConfigureAction : IConfigureAction
     {

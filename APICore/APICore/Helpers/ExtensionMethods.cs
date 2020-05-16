@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using WebMvcPluginUser.Entities;
+using APICore.Entities;
 
-namespace WebMvcPluginUser.Helpers
+namespace APICore.Helpers
 {
     public static class ExtensionMethods
     {   

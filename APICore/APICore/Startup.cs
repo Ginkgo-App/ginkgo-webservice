@@ -12,7 +12,8 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using Toycloud.AspNetCore.Mvc.ModelBinding;
-using WebMvcPluginUser.DBContext;
+using APICore.DBContext;
+using APICore.Middlewares;
 
 namespace APICore
 {
@@ -43,10 +44,10 @@ namespace APICore
             services.AddExtCore(this.pluginsPath);
 
             services.AddControllers();
-     //.AddNewtonsoftJson(options =>
-     //{
-     //    options.SerializerSettings.ContractResolver = new DefaultContractResolver();
-     //});
+            //.AddNewtonsoftJson(options =>
+            //{
+            //    options.SerializerSettings.ContractResolver = new DefaultContractResolver();
+            //});
 
             services.AddCors();
 
@@ -100,9 +101,9 @@ namespace APICore
                 app.UseDeveloperExceptionPage();
             }
             app.UseAuthentication();
+            app.UseCorsMiddleware();
 
             app.UseHttpsRedirection();
-            app.UseMvc();
             app.UseRouting();
 
             // global cors policy
@@ -111,6 +112,7 @@ namespace APICore
                 .AllowAnyMethod()
                 .AllowAnyHeader());
 
+            app.UseMvc();
 
             app.UseEndpoints(endpoints =>
             {

@@ -1,6 +1,6 @@
 ﻿using ExtCore.Infrastructure;
 
-namespace WebMvcPluginUser.Actions
+namespace APICore.Actions
 {
     class Extension : ExtensionBase
     {

@@ -7,13 +7,13 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using WebMvcPluginUser.Entities;
-using WebMvcPluginUser.Helpers;
-using WebMvcPluginUser.Models;
-using WebMvcPluginUser.Services;
+using APICore.Entities;
+using APICore.Helpers;
+using APICore.Models;
+using APICore.Services;
 using static APICore.Helpers.ErrorList;
 
-namespace WebMvcPluginUser.Controllers
+namespace APICore.Controllers
 {
     [Authorize(Roles = RoleType.Admin)]
     [ApiController]
@@ -362,7 +362,6 @@ namespace WebMvcPluginUser.Controllers
             return responseModel.ToJson();
         }
 
-
         [HttpPut("tour-infos/{id}")]
         public object UpdateTourInfo(int id, [FromBody]object requestBody)
         {
@@ -424,7 +423,6 @@ namespace WebMvcPluginUser.Controllers
 
             return responseModel.ToJson();
         }
-
 
         [HttpDelete("tour-infos/{id}")]
         public object DeleteTourInfo(int id)

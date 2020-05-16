@@ -1,5 +1,6 @@
-﻿using APICore;
+﻿using APICore.DBContext;
 using APICore.Entities;
+using APICore.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -12,12 +13,9 @@ using System.Linq;
 using System.Net.Http;
 using System.Security.Claims;
 using System.Text;
-using WebMvcPluginUser.DBContext;
-using WebMvcPluginUser.Entities;
-using WebMvcPluginUser.Helpers;
 using static APICore.Helpers.ErrorList;
 
-namespace WebMvcPluginUser.Services
+namespace APICore.Services
 {
     public class UserService : IUserService
     {

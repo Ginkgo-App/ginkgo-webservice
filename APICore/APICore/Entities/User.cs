@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace WebMvcPluginUser.Entities
+namespace APICore.Entities
 {
     public class User
     {

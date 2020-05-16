@@ -1,4 +1,4 @@
-﻿namespace WebMvcPluginUser.Entities
+﻿namespace APICore.Entities
 {
     public enum Gender
     {

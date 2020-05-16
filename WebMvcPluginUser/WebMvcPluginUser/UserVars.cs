@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace WebMvcPluginUser
+namespace APICore
 {
     class UserVars
     {

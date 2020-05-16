@@ -3,9 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using WebMvcPluginUser.Entities;
+using APICore.Entities;
 
-namespace WebMvcPluginUser.Helpers
+namespace APICore.Helpers
 {
     class UserHelper
     {

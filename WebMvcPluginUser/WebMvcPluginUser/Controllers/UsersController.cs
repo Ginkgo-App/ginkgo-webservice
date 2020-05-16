@@ -1,21 +1,17 @@
 ﻿using APICore.Entities;
 using APICore.Helpers;
 using APICore.Models;
+using APICore.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
-using WebMvcPluginUser.Entities;
-using WebMvcPluginUser.Helpers;
-using WebMvcPluginUser.Models;
-using WebMvcPluginUser.Services;
 using static APICore.Helpers.ErrorList;
 
-namespace WebMvcPluginUser.Controllers
+namespace APICore.Controllers
 {
     [Authorize]
     [ApiController]

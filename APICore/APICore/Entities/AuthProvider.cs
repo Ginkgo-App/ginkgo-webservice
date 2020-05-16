@@ -1,4 +1,4 @@
-﻿using WebMvcPluginUser.Entities;
+﻿using APICore.Entities;
 
 namespace APICore.Entities
 {

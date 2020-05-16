@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace WebMvcPluginUser.Models
+namespace APICore.Models
 {
     class UserToken
     {

@@ -4,10 +4,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using System;
-using WebMvcPluginUser.DBContext;
-using WebMvcPluginUser.Entities;
+using APICore.DBContext;
+using APICore.Entities;
 
-namespace WebMvcPluginUser.Actions
+namespace APICore.Actions
 {
     class UseEndpointsAction : IUseEndpointsAction
     {
