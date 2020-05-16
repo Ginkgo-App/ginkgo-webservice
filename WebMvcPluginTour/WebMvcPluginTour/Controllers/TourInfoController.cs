@@ -28,6 +28,7 @@ namespace WebMvcPluginTour.Controllers
         }
 
         [HttpGet("{id}/tours")]
+        [AllowAnonymous]
         public object GetAllTours(string id, [FromQuery]int page, [FromQuery]int pageSize)
         {
             ResponseModel responseModel = new ResponseModel();
@@ -52,6 +53,8 @@ namespace WebMvcPluginTour.Controllers
                     //    break;
                     //}
                     
+
+
                     // Add data to Respone
                     foreach (var tourFullInfo in tourFullInfos)
                     {
@@ -76,6 +79,7 @@ namespace WebMvcPluginTour.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public object GetAllTourInfos([FromQuery]int page, [FromQuery]int pageSize)
         {
             ResponseModel responseModel = new ResponseModel();

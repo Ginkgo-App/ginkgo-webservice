@@ -57,7 +57,7 @@ namespace WebMvcPluginTour.Services
 
             return errorCode;
         }
-        
+
         public ErrorCode TryGetTours(int page, int pageSize, out List<TourInfo> tourInfos, out Pagination pagination)
         {
             tourInfos = null;
