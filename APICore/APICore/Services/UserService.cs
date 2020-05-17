@@ -132,11 +132,13 @@ namespace APICore.Services
                     Role = RoleType.User
                 };
 
-                if (!TryAddUser(user)) {
+                if (!TryAddUser(user))
+                {
                     break;
                 }
 
-                if (Authenticate(email, password, out user) != ErrorCode.Success) {
+                if (Authenticate(email, password, out user) != ErrorCode.Success)
+                {
                     break;
                 }
 

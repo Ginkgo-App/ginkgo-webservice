@@ -18,11 +18,15 @@
             UserNotFound = 10,
             TourNotFound = 11,
             TourAlreadyExist = 12,
+
+            FriendRequestAlreadySent = 13,
+            AlreadyFriend = 14,
+            CanNotAcceptFriendRequest = 15,
         }
 
         public static string Description(int errorCode)
         {
-            ErrorCode code = (ErrorCode)errorCode;
+            ErrorCode code = (ErrorCode) errorCode;
 
             return code switch
             {
@@ -40,9 +44,11 @@
                 ErrorCode.UserNotFound => "User not found",
                 ErrorCode.TourNotFound => "Tour not found",
                 ErrorCode.TourAlreadyExist => "Tour already exist",
+                ErrorCode.FriendRequestAlreadySent => "Request have already sent.",
+                ErrorCode.AlreadyFriend => "You both were friend already.",
+                ErrorCode.CanNotAcceptFriendRequest => "Can not accept friend request.",
                 _ => "Error code is invalid",
             };
         }
     }
-
 }
