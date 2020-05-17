@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 
 namespace APICore.Entities
 {
@@ -21,5 +22,18 @@ namespace APICore.Entities
         public int DestinatePlaceId { get; set; }
         public DateTime DeleteAt { get; set; }
         public double Rating { get; set; }
+
+        public JObject ToJson(Place startPlace, Place destinatePlace)
+        {
+            JObject json = JObject.FromObject(this);
+
+            json.Remove("StartPlaceId");
+            json.Remove("DestinatePlaceId");
+            json.Remove("CreateById");
+
+            json.Add("StartPlace", startPlace == null ? null : JObject.FromObject(startPlace));
+            json.Add("DestinatePlace", destinatePlace == null ? null : JObject.FromObject(destinatePlace));
+            return json;
+        }
     }
 }

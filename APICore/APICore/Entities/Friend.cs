@@ -11,6 +11,7 @@ namespace APICore.Entities
         [Key]
         public int UserId { get; set; }
         [Key]
-        public int UserOtherId { get; set; }
+        public int RequestedUserId { get; set; }
+        public bool IsAccepted { get; set; }
     }
 }

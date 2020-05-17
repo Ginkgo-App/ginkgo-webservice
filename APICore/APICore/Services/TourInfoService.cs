@@ -7,9 +7,10 @@ using NLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static APICore.Helpers.CoreHelper;
 using static APICore.Helpers.ErrorList;
 
-namespace WebMvcPluginTour.Services
+namespace APICore.Services
 {
     public class TourInfoService : ITourInfoService
     {
@@ -30,6 +31,8 @@ namespace WebMvcPluginTour.Services
 
             try
             {
+                ValidatePageSize(ref page, ref pageSize);
+
                 ConnectDB();
                 var listtourInfos = _context.TourInfos.Where(a => a.CreateById == userId).ToList<TourInfo>();
 
@@ -60,7 +63,7 @@ namespace WebMvcPluginTour.Services
             return errorCode;
         }
 
-        public ErrorCode TryGetTours(int page, int pageSize, out List<TourInfo> tourInfos, out Pagination pagination)
+        public ErrorCode TryGetTourInfos(int page, int pageSize, out List<TourInfo> tourInfos, out Pagination pagination)
         {
             tourInfos = null;
             pagination = null;
@@ -68,6 +71,8 @@ namespace WebMvcPluginTour.Services
 
             try
             {
+                ValidatePageSize(ref page, ref pageSize);
+
                 ConnectDB();
                 var listtourInfos = _context.TourInfos.ToList<TourInfo>();
 
@@ -79,6 +84,45 @@ namespace WebMvcPluginTour.Services
                 if (canPage)
                 {
                     tourInfos = listtourInfos.Select(u => u)
+                            .Skip(skip)
+                            .Take(pageSize)
+                            .ToList();
+
+                    pagination = new Pagination(total, page, pageSize);
+                    errorCode = ErrorCode.Success;
+                }
+                DisconnectDB();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                DisconnectDB();
+            }
+
+            return errorCode;
+        }
+
+        public ErrorCode TryGetTours(int tourInfoId, int page, int pageSize, out List<Tour> tourInfos, out Pagination pagination)
+        {
+            tourInfos = null;
+            pagination = null;
+            ErrorCode errorCode = ErrorCode.Fail;
+
+            try
+            {
+                ValidatePageSize(ref page, ref pageSize);
+
+                ConnectDB();
+                var listTours = _context.Tours.ToList<Tour>();
+
+                var total = listTours.Select(p => p.TourInfoId).Count();
+                var skip = pageSize * (page - 1);
+
+                var canPage = skip < total;
+
+                if (canPage)
+                {
+                    tourInfos = listTours.Where(u => u.TourInfoId == tourInfoId)
                             .Skip(skip)
                             .Take(pageSize)
                             .ToList();

@@ -1,15 +1,14 @@
 ﻿using APICore.Entities;
 using APICore.Helpers;
 using APICore.Models;
+using APICore.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
-using WebMvcPluginTour.Services;
 using static APICore.Helpers.ErrorList;
 
 namespace WebMvcPluginTour.Controllers
@@ -19,52 +18,65 @@ namespace WebMvcPluginTour.Controllers
     [Route("api/" + TourVars.Version + "/tour-infos")]
     public class TourInfoController : ControllerBase
     {
-        private ITourInfoService _tourInfoService;
+        private readonly ITourInfoService _tourInfoService;
+        private readonly IUserService _userService;
 
-        public TourInfoController(ITourInfoService tourInfoService)
+        public TourInfoController(ITourInfoService tourInfoService, IUserService userService)
         {
             _tourInfoService = tourInfoService;
+            _userService = userService;
         }
 
         [AllowAnonymous]
         [HttpGet("{id}/tours")]
-        public object GetAllTours(string id, [FromQuery]int page, [FromQuery]int pageSize)
+        public object GetAllTours(int id, [FromQuery] int page, [FromQuery] int pageSize)
         {
             ResponseModel responseModel = new ResponseModel();
 
             try
             {
+                JArray data = new JArray();
                 do
                 {
-                    List<JObject> tourFullInfos = null;
-                    Pagination pagination = null;
-                    JArray data = new JArray();
+                    var errorCode = _tourInfoService.TryGetTours(id, page, pageSize, out var tours, out var pagination);
 
-                    //if (!_tourInfoService.TryGetTours(page, pageSize, out tourInfos, out pagination))
-                    //{
-                    //    break;
-                    //}
-
-                    //if (users == null || users.Count == 0 || pagination == null)
-                    //{
-                    //    responseModel.ErrorCode = (int)ErrorList.ErrorCode.UserNotFound;
-                    //    responseModel.Message = ErrorList.Description(responseModel.ErrorCode);
-                    //    break;
-                    //}
-
-
-
-                    // Add data to Respone
-                    foreach (var tourFullInfo in tourFullInfos)
+                    if (errorCode != ErrorCode.Success)
                     {
-                        data.Add(JObject.FromObject(tourFullInfo));
+                        responseModel.FromErrorCode(errorCode);
+                        break;
                     }
 
-                    responseModel.ErrorCode = (int)ErrorList.ErrorCode.Success;
-                    responseModel.Message = ErrorList.Description(responseModel.ErrorCode);
+                    errorCode = _tourInfoService.TryGetTourInfoById(id, out var tourInfo);
+
+                    if (errorCode != ErrorCode.Success)
+                    {
+                        responseModel.FromErrorCode(errorCode);
+                        break;
+                    }
+
+                    if (tourInfo == null)
+                    {
+                        responseModel.FromErrorCode(ErrorCode.TourNotFound);
+                        break;
+                    }
+
+                    if (_userService.TryGetUsers(tourInfo.CreateById, out var host))
+                    {
+                        responseModel.FromErrorCode(ErrorCode.UserNotFound);
+                        break;
+                    }
+
+                    // Add data to Response
+                    foreach (var tour in tours)
+                    {
+                        data.Add(tour.ToSimpleJson(host, 0, 0, null));
+                        //data.Add(AddTourFullInfo(tourInfo));
+                    }
+
+                    responseModel.ErrorCode = (int) ErrorCode.Success;
+                    responseModel.Message = Description(responseModel.ErrorCode);
                     responseModel.Data = data;
                     responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
-
                 } while (false);
             }
             catch (Exception ex)
@@ -79,42 +91,39 @@ namespace WebMvcPluginTour.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public object GetAllTourInfos([FromQuery]int page, [FromQuery]int pageSize)
+        public object GetAllTourInfos([FromQuery] int page, [FromQuery] int pageSize)
         {
-            ResponseModel responseModel = new ResponseModel();
+            var responseModel = new ResponseModel();
 
             try
             {
                 do
                 {
-                    List<TourInfo> tourInfos = null;
-                    Pagination pagination = null;
-                    JArray data = new JArray();
+                    var data = new JArray();
 
-                    if (_tourInfoService.TryGetTours(page, pageSize, out tourInfos, out pagination) != ErrorCode.Success)
+                    if (_tourInfoService.TryGetTourInfos(page, pageSize, out var tourInfos, out var pagination) !=
+                        ErrorCode.Success)
                     {
                         break;
                     }
 
                     if (tourInfos == null || tourInfos.Count == 0 || pagination == null)
                     {
-                        responseModel.ErrorCode = (int)ErrorList.ErrorCode.UserNotFound;
-                        responseModel.Message = ErrorList.Description(responseModel.ErrorCode);
+                        responseModel.ErrorCode = (int) ErrorCode.UserNotFound;
+                        responseModel.Message = Description(responseModel.ErrorCode);
                         break;
                     }
 
-
-                    // Add data to Respone
+                    // Add data to Response
                     foreach (var tourInfo in tourInfos)
                     {
                         data.Add(AddTourFullInfo(tourInfo));
                     }
 
-                    responseModel.ErrorCode = (int)ErrorList.ErrorCode.Success;
-                    responseModel.Message = ErrorList.Description(responseModel.ErrorCode);
+                    responseModel.ErrorCode = (int) ErrorCode.Success;
+                    responseModel.Message = Description(responseModel.ErrorCode);
                     responseModel.Data = data;
                     responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
-
                 } while (false);
             }
             catch (Exception ex)
@@ -131,13 +140,12 @@ namespace WebMvcPluginTour.Controllers
         public object GetTourInfo(int id)
         {
             ResponseModel responseModel = new ResponseModel();
-            ErrorCode errorCode;
 
             try
             {
                 do
                 {
-                    errorCode = _tourInfoService.TryGetTourInfoById(id, out TourInfo tourInfo);
+                    var errorCode = _tourInfoService.TryGetTourInfoById(id, out TourInfo tourInfo);
                     if (errorCode != ErrorCode.Success)
                     {
                         responseModel.FromErrorCode(errorCode);
@@ -151,7 +159,7 @@ namespace WebMvcPluginTour.Controllers
                     }
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data = new JArray { AddTourFullInfo(tourInfo) };
+                    responseModel.Data = new JArray {AddTourFullInfo(tourInfo)};
                 } while (false);
             }
             catch (Exception ex)
@@ -165,9 +173,9 @@ namespace WebMvcPluginTour.Controllers
         }
 
         [HttpPost]
-        public object CreateTourInfo([FromBody]object requestBody)
+        public object CreateTourInfo([FromBody] object requestBody)
         {
-            ResponseModel responseModel = new ResponseModel();
+            var responseModel = new ResponseModel();
 
             try
             {
@@ -179,30 +187,41 @@ namespace WebMvcPluginTour.Controllers
                         break;
                     }
 
-                    IEnumerable<Claim> claims = identity.Claims;
+                    var claims = identity.Claims;
 
-                    int userId = int.Parse(
-                        claims.Where(x => x.Type == ClaimTypes.NameIdentifier)
-                        .FirstOrDefault().Value);
+                    var userId = int.Parse(
+                        claims
+                            .FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)
+                            ?.Value ?? "0");
 
-                    JObject body = requestBody != null
-                        ? JObject.Parse(requestBody.ToString())
+                    var body = requestBody != null
+                        ? JObject.Parse(requestBody.ToString() ?? "{}")
                         : null;
 
-                    JArray data = new JArray();
-
-                    if (!CoreHelper.GetParameter(out JToken jsonDestinatePlaceId, body, "DestinatePlaceId", JTokenType.Integer, ref responseModel, true)
-                        || !CoreHelper.GetParameter(out JToken jsonStartPlaceId, body, "StartPlaceId", JTokenType.Integer, ref responseModel, true)
-                        || !CoreHelper.GetParameter(out JToken jsonImages, body, "Images", JTokenType.Array, ref responseModel, true)
-                        || !CoreHelper.GetParameter(out JToken jsonName, body, "Name", JTokenType.String, ref responseModel, true))
+                    if (!CoreHelper.GetParameter(out var jsonDestinationPlaceId, body, "DestinationPlaceId",
+                            JTokenType.Integer, ref responseModel, true)
+                        || !CoreHelper.GetParameter(out var jsonStartPlaceId, body, "StartPlaceId",
+                            JTokenType.Integer, ref responseModel, true)
+                        || !CoreHelper.GetParameter(out var jsonImages, body, "Images", JTokenType.Array,
+                            ref responseModel, true)
+                        || !CoreHelper.GetParameter(out var jsonName, body, "Name", JTokenType.String,
+                            ref responseModel, true))
                     {
                         break;
                     }
 
-                    bool isDestinatePlaceId = int.TryParse(jsonDestinatePlaceId?.ToString(), out int destinatePlaceId);
-                    bool isStartPlaceId = int.TryParse(jsonStartPlaceId?.ToString(), out int startPlaceId);
-                    string name = jsonName?.ToString();
-                    string[] images = jsonImages != null
+                    var isDestinationParsed =
+                        int.TryParse(jsonDestinationPlaceId?.ToString(), out var destinationPlaceId);
+                    var isStartPlaced = int.TryParse(jsonStartPlaceId?.ToString(), out var startPlaceId);
+
+                    if (!isDestinationParsed || !isStartPlaced)
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    var name = jsonName?.ToString();
+                    var images = jsonImages != null
                         ? JsonConvert.DeserializeObject<string[]>(jsonImages.ToString())
                         : null;
 
@@ -211,8 +230,8 @@ namespace WebMvcPluginTour.Controllers
                         name: name,
                         images: images,
                         startPlaceId: startPlaceId,
-                        destinatePlaceId: destinatePlaceId
-                        );
+                        destinatePlaceId: destinationPlaceId
+                    );
 
                     if (_tourInfoService.TryAddTourInfo(tourInfo))
                     {
@@ -221,8 +240,7 @@ namespace WebMvcPluginTour.Controllers
                     }
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data = new JArray { AddTourFullInfo(tourInfo) };
-
+                    responseModel.Data = new JArray {AddTourFullInfo(tourInfo)};
                 } while (false);
             }
             catch (Exception ex)
@@ -236,16 +254,15 @@ namespace WebMvcPluginTour.Controllers
         }
 
         [HttpPut("{id}")]
-        public object UpdateTourInfo(int id, [FromBody]object requestBody)
+        public object UpdateTourInfo(int id, [FromBody] object requestBody)
         {
-            ResponseModel responseModel = new ResponseModel();
-            ErrorCode errorCode;
+            var responseModel = new ResponseModel();
 
             try
             {
                 do
                 {
-                    errorCode = _tourInfoService.TryGetTourInfoById(id, out TourInfo tourInfo);
+                    var errorCode = _tourInfoService.TryGetTourInfoById(id, out var tourInfo);
                     if (errorCode != ErrorCode.Success)
                     {
                         responseModel.FromErrorCode(errorCode);
@@ -258,31 +275,34 @@ namespace WebMvcPluginTour.Controllers
                         break;
                     }
 
-                    JObject body = requestBody != null
-                        ? JObject.Parse(requestBody.ToString())
+                    var body = requestBody != null
+                        ? JObject.Parse(requestBody.ToString() ?? "{}")
                         : null;
 
-                    JArray data = new JArray();
-
-                    if (!CoreHelper.GetParameter(out JToken jsonDestinatePlaceId, body, "DestinatePlaceId", JTokenType.Integer, ref responseModel, true)
-                        || !CoreHelper.GetParameter(out JToken jsonStartPlaceId, body, "StartPlaceId", JTokenType.Integer, ref responseModel, true)
-                        || !CoreHelper.GetParameter(out JToken jsonImages, body, "Images", JTokenType.Array, ref responseModel, true)
-                        || !CoreHelper.GetParameter(out JToken jsonName, body, "Name", JTokenType.String, ref responseModel, true))
+                    if (!CoreHelper.GetParameter(out var jsonDestinationPlaceId, body, "DestinationPlaceId",
+                            JTokenType.Integer, ref responseModel, true)
+                        || !CoreHelper.GetParameter(out var jsonStartPlaceId, body, "StartPlaceId",
+                            JTokenType.Integer, ref responseModel, true)
+                        || !CoreHelper.GetParameter(out var jsonImages, body, "Images", JTokenType.Array,
+                            ref responseModel, true)
+                        || !CoreHelper.GetParameter(out var jsonName, body, "Name", JTokenType.String,
+                            ref responseModel, true))
                     {
                         break;
                     }
 
-                    bool isDestinatePlaceId = int.TryParse(jsonDestinatePlaceId?.ToString(), out int destinatePlaceId);
-                    bool isStartPlaceId = int.TryParse(jsonStartPlaceId?.ToString(), out int startPlaceId);
-                    string name = jsonName?.ToString();
-                    string[] images = jsonImages != null
+                    var isDestinationPlaceId =
+                        int.TryParse(jsonDestinationPlaceId?.ToString(), out var destinationPlaceId);
+                    var isStartPlaceId = int.TryParse(jsonStartPlaceId?.ToString(), out var startPlaceId);
+                    var name = jsonName?.ToString();
+                    var images = jsonImages != null
                         ? JsonConvert.DeserializeObject<string[]>(jsonImages.ToString())
                         : null;
 
                     tourInfo.Images = images ?? tourInfo.Images;
                     tourInfo.Name = name ?? tourInfo.Name;
                     tourInfo.StartPlaceId = isStartPlaceId ? startPlaceId : tourInfo.StartPlaceId;
-                    tourInfo.DestinatePlaceId = isDestinatePlaceId ? destinatePlaceId : tourInfo.StartPlaceId;
+                    tourInfo.DestinatePlaceId = isDestinationPlaceId ? destinationPlaceId : tourInfo.DestinatePlaceId;
 
                     if (!_tourInfoService.TryUpdateTourInfo(tourInfo))
                     {
@@ -291,8 +311,7 @@ namespace WebMvcPluginTour.Controllers
                     }
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data = new JArray { AddTourFullInfo(tourInfo) };
-
+                    responseModel.Data = new JArray {AddTourFullInfo(tourInfo)};
                 } while (false);
             }
             catch (Exception ex)
@@ -308,7 +327,7 @@ namespace WebMvcPluginTour.Controllers
         [HttpDelete("{id}")]
         public object DeleteTourInfo(int id)
         {
-            ResponseModel responseModel = new ResponseModel();
+            var responseModel = new ResponseModel();
 
             try
             {
@@ -316,11 +335,12 @@ namespace WebMvcPluginTour.Controllers
                 {
                     if (!_tourInfoService.TryRemoveTourInfo(id))
                     {
-                        responseModel.ErrorCode = (int)ErrorCode.Fail;
+                        responseModel.ErrorCode = (int) ErrorCode.Fail;
                         responseModel.Message = "Remove tour fail";
                         break;
                     }
-                    responseModel.ErrorCode = (int)ErrorCode.Success;
+
+                    responseModel.ErrorCode = (int) ErrorCode.Success;
                     responseModel.Message = ErrorList.Description(responseModel.ErrorCode);
                 } while (false);
             }
@@ -344,18 +364,12 @@ namespace WebMvcPluginTour.Controllers
                     break;
                 }
 
-                result = JObject.FromObject(tourInfo);
+                _tourInfoService.TryGetPlaceById(tourInfo.StartPlaceId, out var starPlace);
+                _tourInfoService.TryGetPlaceById(tourInfo.DestinatePlaceId, out var destinationPlace);
 
-                _tourInfoService.TryGetPlaceById(tourInfo.StartPlaceId, out Place starPlace);
-                _tourInfoService.TryGetPlaceById(tourInfo.DestinatePlaceId, out Place destinationPlace);
-
-                result.Remove("StartPlaceId");
-                result.Remove("DestinatePlaceId");
-                result.Remove("CreateById");
-
-                result.Add("StartPlace", starPlace == null ? null : JObject.FromObject(starPlace));
-                result.Add("DestinatePlaceId", destinationPlace == null ? null : JObject.FromObject(destinationPlace));
+                result = tourInfo.ToJson(starPlace, destinationPlace);
             } while (false);
+
             return result;
         }
     }

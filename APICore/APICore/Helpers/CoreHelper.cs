@@ -68,5 +68,11 @@ namespace APICore.Helpers
 
             return isSuccess;
         }
+
+        public static void ValidatePageSize(ref int page, ref int pageSize)
+        {
+            page = page <= 0 ? Vars.DefaultPage : page;
+            pageSize = pageSize <= 0 ? Vars.DefaultPageSize : pageSize;
+        }
     }
 } 

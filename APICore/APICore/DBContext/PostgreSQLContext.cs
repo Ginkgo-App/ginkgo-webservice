@@ -51,7 +51,7 @@ namespace APICore.DBContext
             modelBuilder.Entity<TourMember>().HasKey(fb => new { fb.TourId, fb.UserId });
             modelBuilder.Entity<FeedbackLike>().HasKey(fb => new { fb.UserId, fb.TourInfoId, fb.AuthorId });
             modelBuilder.Entity<PostLike>().HasKey(fb => new { fb.UserId, fb.PostId});
-            modelBuilder.Entity<Friend>().HasKey(fb => new { fb.UserId, fb.UserOtherId});
+            modelBuilder.Entity<Friend>().HasKey(fb => new { fb.UserId, fb.RequestedUserId});
         }
     }
 }

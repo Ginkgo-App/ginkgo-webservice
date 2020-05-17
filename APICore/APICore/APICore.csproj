@@ -30,9 +30,9 @@
     <PackageReference Include="Toycloud.AspNetCore.Mvc.ModelBinding.BodyOrDefaultBinding" Version="1.0.12" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Plugins\" />
-  </ItemGroup>
+	<ItemGroup>
+		<Folder Include="Plugins\" />
+	</ItemGroup>
 
   <ItemGroup>
     <Content Update="Plugins\TestAPI.deps.json">

@@ -3,15 +3,17 @@ using System;
 using APICore.DBContext;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace APICore.Migrations
 {
     [DbContext(typeof(PostgreSQLContext))]
-    partial class PostgreSQLContextModelSnapshot : ModelSnapshot
+    [Migration("20200516082225_UpdateIsFriendProperty")]
+    partial class UpdateIsFriendProperty
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -120,7 +122,7 @@ namespace APICore.Migrations
                     b.Property<int>("UserOtherId")
                         .HasColumnType("integer");
 
-                    b.Property<bool>("IsAccepted")
+                    b.Property<bool>("IsFriend")
                         .HasColumnType("boolean");
 
                     b.HasKey("UserId", "UserOtherId");

@@ -7,5 +7,7 @@
         public static string CONNECTION_STRING { get; set; }
         public static string PASSWORD_SALT { get; set; }
         public static readonly NLog.Logger LOGGER = NLog.Web.NLogBuilder.ConfigureNLog("Nlog.config").GetCurrentClassLogger();
+        public const int DefaultPageSize = 10;
+        public const int DefaultPage = 1;
     }
 }

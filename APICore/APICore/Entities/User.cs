@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace APICore.Entities
@@ -42,7 +43,24 @@ namespace APICore.Entities
         public string Gender { get; set; }
         public string Address { get; set; }
         public string Role { get; set; }
+
+
+
+        public JObject ToSimpleJson(int isFriend)
+        {
+            JObject result = new JObject
+            {
+                ["Id"] = this.Id,
+                ["Name"] = this.Name,
+                ["Avatar"] = this.Avatar,
+                ["Job"] = this.Job,
+                ["IsFriend"] = isFriend
+            };
+
+            return result;
+        }
     }
+}
 
     public static class RoleType
     {
@@ -99,4 +117,3 @@ namespace APICore.Entities
             return null;
         }
     }
-}

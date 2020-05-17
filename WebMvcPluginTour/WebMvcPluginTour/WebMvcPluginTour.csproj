@@ -14,4 +14,8 @@
     <ProjectReference Include="..\..\APICore\APICore\APICore.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Services\" />
+  </ItemGroup>
+
 </Project>
