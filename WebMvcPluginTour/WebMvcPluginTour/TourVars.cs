@@ -7,3 +7,4 @@ namespace WebMvcPluginTour
         public const string Version = "v1";
     }
 }
+    

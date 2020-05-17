@@ -219,7 +219,6 @@ namespace APICore.Services
         public bool TryGetUsers(int userId, out User user)
         {
             user = null;
-            var isSuccess = false;
 
             try
             {
@@ -231,50 +230,45 @@ namespace APICore.Services
                         select u)
                     .FirstOrDefaultAsync()
                     .Result; // Lấy  Product có  ID  chỉ  ra
-                isSuccess = true;
             }
             finally
             {
                 DisconnectDb();
             }
 
-            return isSuccess;
+            return true;
         }
 
         public bool TryAddUser(User user)
         {
-            var isSuccess = false;
             try
             {
                 ConnectDb();
                 _context.Users.Update(user);
                 _context.SaveChanges();
-                isSuccess = true;
             }
             finally
             {
                 DisconnectDb();
             }
 
-            return isSuccess;
+            return true;
         }
 
         public bool TryUpdateUser(User user)
         {
-            var isSuccess = false;
             try
             {
                 ConnectDb();
                 _context.Users.Update(user);
                 _context.SaveChanges();
-                isSuccess = true;
             }
             finally
             {
                 DisconnectDb();
             }
 
-            return isSuccess;
+            return true;
         }
 
         public bool TryRemoveUser(int userId)
@@ -301,7 +295,6 @@ namespace APICore.Services
 
         public bool TryAddAuthProvider(AuthProvider authProvider, User user)
         {
-            var isSuccess = false;
             try
             {
                 ConnectDb();
@@ -324,14 +317,13 @@ namespace APICore.Services
 
 
                 _context.SaveChanges();
-                isSuccess = true;
             }
             finally
             {
                 DisconnectDb();
             }
 
-            return isSuccess;
+            return true;
         }
 
         public bool TryGetFacebookInfo(string accessToken, out AuthProvider authProvider)
@@ -382,77 +374,68 @@ namespace APICore.Services
         private bool TryGetAuthProvider(string id, out AuthProvider authProvider)
         {
             authProvider = null;
-            var isSuccess = false;
 
             try
             {
                 ConnectDb();
                 authProvider = _context.AuthProviders.Single(a => a.Id == id);
-
-                isSuccess = true;
             }
             finally
             {
                 DisconnectDb();
             }
 
-            return isSuccess;
+            return true;
         }
 
         public bool TryGetTours(int userId, out List<TourInfo> tourInfos)
         {
             tourInfos = null;
-            var isSuccess = false;
 
             try
             {
                 ConnectDb();
                 tourInfos = _context.TourInfos.Where(a => a.CreateById == userId).ToList();
-                isSuccess = true;
             }
             finally
             {
                 DisconnectDb();
             }
 
-            return isSuccess;
+            return true;
         }
 
         public bool TryGetTourInfoById(int tourId, out TourInfo tourInfos)
         {
             tourInfos = null;
-            var isSuccess = false;
 
             try
             {
                 ConnectDb();
                 tourInfos = _context.TourInfos.FirstOrDefault(a => a.Id == tourId);
-                isSuccess = true;
             }
             finally
             {
                 DisconnectDb();
             }
 
-            return isSuccess;
+            return true;
         }
 
         public bool TryUpdateTourInfo(TourInfo tourInfo)
         {
-            var isSuccess = false;
             try
             {
                 ConnectDb();
                 _context.TourInfos.Update(tourInfo);
                 _context.SaveChanges();
-                isSuccess = true;
             }
             finally
             {
                 DisconnectDb();
             }
 
-            return isSuccess;
+            return true;
         }
 
         public bool TryRemoveTourInfo(int tourInfoId)
@@ -480,7 +463,6 @@ namespace APICore.Services
         public bool TryGetFriends(int userId, out List<User> friends)
         {
             friends = new List<User>();
-            var isSuccess = false;
 
             try
             {
@@ -495,14 +477,13 @@ namespace APICore.Services
                 }
 
                 friends = friends.Distinct().ToList();
-                isSuccess = true;
             }
             finally
             {
                 DisconnectDb();
             }
 
-            return isSuccess;
+            return true;
         }
 
         private void GenerateToken(User user)
