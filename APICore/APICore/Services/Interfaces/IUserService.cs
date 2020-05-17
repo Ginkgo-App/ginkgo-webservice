@@ -1,8 +1,9 @@
-﻿using APICore.Entities;
+﻿using System.Collections.Generic;
+using APICore.Entities;
 using APICore.Helpers;
-using System.Collections.Generic;
+using APICore.Models;
 
-namespace APICore.Services
+namespace APICore.Services.Interfaces
 {
     public interface IUserService
     {
@@ -11,8 +12,7 @@ namespace APICore.Services
         ErrorList.ErrorCode Register(string name, string email, string phoneNumber, string password, out User user);
         bool TryAddAuthProvider(AuthProvider authProvider, User user);
         bool TryAddUser(User user);
-        bool TryGetAuthProvider(string id, out AuthProvider authProvider);
-        bool TryGetFacbookInfo(string accessToken, out AuthProvider authProvider);
+        bool TryGetFacebookInfo(string accessToken, out AuthProvider authProvider);
         bool TryGetFriends(int userId, out List<User> friends);
         bool TryGetTourInfoById(int tourId, out TourInfo tourInfos);
         bool TryGetTours(int userId, out List<TourInfo> tourInfos);

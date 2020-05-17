@@ -1,6 +1,7 @@
 ﻿using APICore.Entities;
 using APICore.Helpers;
 using System.Collections.Generic;
+using APICore.Models;
 
 namespace APICore.Services
 {

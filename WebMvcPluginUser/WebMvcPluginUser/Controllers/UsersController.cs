@@ -6,10 +6,12 @@ using APICore;
 using APICore.Entities;
 using APICore.Helpers;
 using APICore.Models;
-using APICore.Services;
+using APICore.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
+using WebMvcPluginUser.Helpers;
+using WebMvcPluginUser.Models;
 using static APICore.Helpers.ErrorList;
 
 namespace WebMvcPluginUser.Controllers
@@ -19,7 +21,7 @@ namespace WebMvcPluginUser.Controllers
     [Route("api/" + UserVars.Version + "/users")]
     public class UsersController : ControllerBase
     {
-        private IUserService _userService;
+        private readonly IUserService _userService;
 
         public UsersController(IUserService userService)
         {
@@ -28,7 +30,7 @@ namespace WebMvcPluginUser.Controllers
 
         [AllowAnonymous]
         [HttpPost("authenticate")]
-        public object Authenticate([FromBody]AuthenticateModel model)
+        public object Authenticate([FromBody] AuthenticateModel model)
         {
             ResponseModel responseModel = new ResponseModel();
             JArray data = new JArray();
@@ -41,14 +43,14 @@ namespace WebMvcPluginUser.Controllers
                 //data.Add(JObject.Parse(JsonConvert.SerializeObject(userHelper.WithoutPassword(user))));
                 if (user == null || errorCode != ErrorCode.Success)
                 {
-                    responseModel.ErrorCode = (int)ErrorCode.UsernamePasswordIncorrect;
+                    responseModel.ErrorCode = (int) ErrorCode.UsernamePasswordIncorrect;
                     responseModel.Message = Description(responseModel.ErrorCode);
                 }
                 else
                 {
                     data.Add(UserResponseJson(user));
 
-                    responseModel.ErrorCode = (int)ErrorCode.Success;
+                    responseModel.ErrorCode = (int) ErrorCode.Success;
                     responseModel.Message = Description(responseModel.ErrorCode);
                     responseModel.Data = data;
                 }
@@ -65,46 +67,47 @@ namespace WebMvcPluginUser.Controllers
 
         [AllowAnonymous]
         [HttpPost("register")]
-        public object Register([FromBody]object requestBody)
+        public object Register([FromBody] object requestBody)
         {
-            ResponseModel response = new ResponseModel();
-            User user = null;
+            var response = new ResponseModel();
             try
             {
                 do
                 {
-                    JArray data = new JArray();
+                    var data = new JArray();
 
                     // Parse request body to json
-                    JObject reqBody = requestBody != null
-                        ? JObject.Parse(requestBody.ToString())
+                    var reqBody = requestBody != null
+                        ? JObject.Parse(requestBody.ToString()!)
                         : null;
 
-                    if (!CoreHelper.GetParameter(out JToken jsonName, reqBody, "Name", JTokenType.String, ref response)
-                        || !CoreHelper.GetParameter(out JToken jsonPhonenumber, reqBody, "PhoneNumber", JTokenType.String, ref response)
-                        || !CoreHelper.GetParameter(out JToken jsonEmail, reqBody, "Email", JTokenType.String, ref response)
-                        || !CoreHelper.GetParameter(out JToken jsonPassword, reqBody, "Password", JTokenType.String, ref response)
-                        )
+                    if (!CoreHelper.GetParameter(out var jsonName, reqBody, "Name", JTokenType.String, ref response)
+                        || !CoreHelper.GetParameter(out var jsonPhoneNumber, reqBody, "PhoneNumber", JTokenType.String,
+                            ref response)
+                        || !CoreHelper.GetParameter(out var jsonEmail, reqBody, "Email", JTokenType.String,
+                            ref response)
+                        || !CoreHelper.GetParameter(out var jsonPassword, reqBody, "Password", JTokenType.String,
+                            ref response)
+                    )
                     {
                         break;
                     }
 
-                    string name = jsonName.ToString();
-                    string email = jsonEmail.ToString();
-                    string phonenumber = jsonPhonenumber.ToString();
-                    string hashedPassword = UserHelper.HashPassword(jsonPassword.ToString());
+                    var name = jsonName.ToString();
+                    var email = jsonEmail.ToString();
+                    var phoneNumber = jsonPhoneNumber.ToString();
+                    var hashedPassword = UserHelper.HashPassword(jsonPassword.ToString());
 
-                    var statusCode = _userService.Register(name, email, phonenumber, hashedPassword, out user);
+                    var statusCode = _userService.Register(name, email, phoneNumber, hashedPassword, out var user);
 
                     if (statusCode == ErrorCode.Success)
                     {
                         data.Add(UserResponseJson(user));
                     }
 
-                    response.ErrorCode = (int)statusCode;
-                    response.Message = ErrorList.Description(response.ErrorCode);
+                    response.ErrorCode = (int) statusCode;
+                    response.Message = Description(response.ErrorCode);
                     response.Data = data;
-
                 } while (false);
             }
             catch (Exception ex)
@@ -119,7 +122,7 @@ namespace WebMvcPluginUser.Controllers
 
         [AllowAnonymous]
         [HttpPost("social-provider")]
-        public object SocialProvider([FromBody]object requestBody)
+        public object SocialProvider([FromBody] object requestBody)
         {
             ResponseModel responseModel = new ResponseModel();
 
@@ -127,14 +130,16 @@ namespace WebMvcPluginUser.Controllers
             {
                 do
                 {
-
-                    JObject body = requestBody != null
-                        ? JObject.Parse(requestBody.ToString())
+                    var body = requestBody != null
+                        ? JObject.Parse(requestBody.ToString()!)
                         : null;
 
-                    if (!CoreHelper.GetParameter(out JToken jsonAccessToken, body, "AccessToken", JTokenType.String, ref responseModel)
-                        || !CoreHelper.GetParameter(out JToken jsonType, body, "Type", JTokenType.String, ref responseModel)
-                        || !CoreHelper.GetParameter(out JToken jsonEmail, body, "Email", JTokenType.String, ref responseModel, isNullable: true))
+                    if (!CoreHelper.GetParameter(out var jsonAccessToken, body, "AccessToken", JTokenType.String,
+                            ref responseModel)
+                        || !CoreHelper.GetParameter(out var jsonType, body, "Type", JTokenType.String,
+                            ref responseModel)
+                        || !CoreHelper.GetParameter(out var jsonEmail, body, "Email", JTokenType.String,
+                            ref responseModel, isNullable: true))
                     {
                         break;
                     }
@@ -145,7 +150,7 @@ namespace WebMvcPluginUser.Controllers
 
                     if (type.Equals("facebook", StringComparison.OrdinalIgnoreCase))
                     {
-                        if (!_userService.TryGetFacbookInfo(accessToken, out AuthProvider authProvider))
+                        if (!_userService.TryGetFacebookInfo(accessToken, out AuthProvider authProvider))
                         {
                             break;
                         }
@@ -157,7 +162,7 @@ namespace WebMvcPluginUser.Controllers
                         if (errorCode == ErrorCode.Success)
                         {
                             data.Add(UserResponseJson(user));
-                            responseModel.ErrorCode = (int)ErrorCode.Success;
+                            responseModel.ErrorCode = (int) ErrorCode.Success;
                             responseModel.Message = Description(responseModel.ErrorCode);
                             responseModel.Data = data;
                         }
@@ -170,7 +175,6 @@ namespace WebMvcPluginUser.Controllers
                     {
                         responseModel.FromErrorCode(ErrorCode.FeatureIsBeingImplemented);
                     }
-
                 } while (false);
             }
             catch (Exception ex)
@@ -232,32 +236,30 @@ namespace WebMvcPluginUser.Controllers
         [HttpGet("{userId}")]
         public object GetUserById(int userId)
         {
-            ResponseModel responseModel = new ResponseModel();
+            var responseModel = new ResponseModel();
 
             try
             {
                 do
                 {
-                    User user = null;
-                    JArray data = new JArray();
+                    var data = new JArray();
 
-                    if (!_userService.TryGetUsers(userId, out user))
+                    if (!_userService.TryGetUsers(userId, out var user))
                     {
                         break;
                     }
 
                     if (user == null)
                     {
-                        responseModel.ErrorCode = (int)ErrorList.ErrorCode.UserNotFound;
-                        responseModel.Message = ErrorList.Description(responseModel.ErrorCode);
+                        responseModel.ErrorCode = (int) ErrorCode.UserNotFound;
+                        responseModel.Message = Description(responseModel.ErrorCode);
                         break;
                     }
 
                     data.Add(JObject.FromObject(user));
-                    responseModel.ErrorCode = (int)ErrorList.ErrorCode.Success;
-                    responseModel.Message = ErrorList.Description(responseModel.ErrorCode);
+                    responseModel.ErrorCode = (int) ErrorCode.Success;
+                    responseModel.Message = Description(responseModel.ErrorCode);
                     responseModel.Data = data;
-
                 } while (false);
             }
             catch (Exception ex)
@@ -273,7 +275,7 @@ namespace WebMvcPluginUser.Controllers
         [HttpDelete("{userId}")]
         public object DeleteUser(int userId)
         {
-            ResponseModel responseModel = new ResponseModel();
+            var responseModel = new ResponseModel();
 
             try
             {
@@ -281,12 +283,13 @@ namespace WebMvcPluginUser.Controllers
                 {
                     if (!_userService.TryRemoveUser(userId))
                     {
-                        responseModel.ErrorCode = (int)ErrorCode.Fail;
+                        responseModel.ErrorCode = (int) ErrorCode.Fail;
                         responseModel.Message = "Remove user fail";
                         break;
                     }
-                    responseModel.ErrorCode = (int)ErrorCode.Success;
-                    responseModel.Message = ErrorList.Description(responseModel.ErrorCode);
+
+                    responseModel.ErrorCode = (int) ErrorCode.Success;
+                    responseModel.Message = Description(responseModel.ErrorCode);
                 } while (false);
             }
             catch (Exception ex)
@@ -300,44 +303,51 @@ namespace WebMvcPluginUser.Controllers
         }
 
         [HttpPut("{userId}")]
-        public object UpdateUser(int userId, [FromBody]object requestBody)
+        public object UpdateUser(int userId, [FromBody] object requestBody)
         {
-            ResponseModel responseModel = new ResponseModel();
+            var responseModel = new ResponseModel();
 
             try
             {
                 do
                 {
-                    JObject body = requestBody != null
-                        ? JObject.Parse(requestBody.ToString())
+                    var body = requestBody != null
+                        ? JObject.Parse(requestBody.ToString()!)
                         : null;
 
-                    JArray data = new JArray();
-
-                    if (!CoreHelper.GetParameter(out JToken jsonPassword, body, "password", JTokenType.String, ref responseModel, true)
-                        || !CoreHelper.GetParameter(out JToken jsonPhonenumber, body, "phonenumber", JTokenType.String, ref responseModel, true)
-                        || !CoreHelper.GetParameter(out JToken jsonAddress, body, "address", JTokenType.String, ref responseModel, true)
-                        || !CoreHelper.GetParameter(out JToken jsonAvatar, body, "avatar", JTokenType.String, ref responseModel, true)
-                        || !CoreHelper.GetParameter(out JToken jsonSlogan, body, "slogan", JTokenType.String, ref responseModel, true)
-                        || !CoreHelper.GetParameter(out JToken jsonBio, body, "bio", JTokenType.String, ref responseModel, true)
-                        || !CoreHelper.GetParameter(out JToken jsonJob, body, "job", JTokenType.String, ref responseModel, true)
-                        || !CoreHelper.GetParameter(out JToken jsonGender, body, "gender", JTokenType.String, ref responseModel, true)
-                        || !CoreHelper.GetParameter(out JToken jsonBirthday, body, "birthday", JTokenType.Date, ref responseModel, true))
+                    if (!CoreHelper.GetParameter(out var jsonPassword, body, "password", JTokenType.String,
+                            ref responseModel, true)
+                        || !CoreHelper.GetParameter(out var jsonPhoneNumber, body, "phoneNumber", JTokenType.String,
+                            ref responseModel, true)
+                        || !CoreHelper.GetParameter(out var jsonAddress, body, "address", JTokenType.String,
+                            ref responseModel, true)
+                        || !CoreHelper.GetParameter(out var jsonAvatar, body, "avatar", JTokenType.String,
+                            ref responseModel, true)
+                        || !CoreHelper.GetParameter(out var jsonSlogan, body, "slogan", JTokenType.String,
+                            ref responseModel, true)
+                        || !CoreHelper.GetParameter(out var jsonBio, body, "bio", JTokenType.String, ref responseModel,
+                            true)
+                        || !CoreHelper.GetParameter(out var jsonJob, body, "job", JTokenType.String, ref responseModel,
+                            true)
+                        || !CoreHelper.GetParameter(out var jsonGender, body, "gender", JTokenType.String,
+                            ref responseModel, true)
+                        || !CoreHelper.GetParameter(out var jsonBirthday, body, "birthday", JTokenType.Date,
+                            ref responseModel, true))
                     {
                         break;
                     }
 
-                    string password = jsonPassword?.ToString();
-                    string phoneNumber = jsonPhonenumber?.ToString();
-                    string address = jsonAddress?.ToString();
-                    string avatar = jsonAvatar?.ToString();
-                    string slogan = jsonSlogan?.ToString();
-                    string bio = jsonBio?.ToString();
-                    string job = jsonJob?.ToString();
-                    string gender = jsonGender?.ToString();
-                    DateTime.TryParse(jsonBirthday?.ToString(), out DateTime birthday);
+                    var password = jsonPassword?.ToString();
+                    var phoneNumber = jsonPhoneNumber?.ToString();
+                    var address = jsonAddress?.ToString();
+                    var avatar = jsonAvatar?.ToString();
+                    var slogan = jsonSlogan?.ToString();
+                    var bio = jsonBio?.ToString();
+                    var job = jsonJob?.ToString();
+                    var gender = jsonGender?.ToString();
+                    DateTime.TryParse(jsonBirthday?.ToString(), out _);
 
-                    if (!_userService.TryGetUsers(userId, out User user))
+                    if (!_userService.TryGetUsers(userId, out var user))
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
                         break;
@@ -349,6 +359,9 @@ namespace WebMvcPluginUser.Controllers
                     user.Avatar = avatar ?? user.Password;
                     user.Slogan = slogan ?? user.Password;
                     user.Password = password ?? user.Password;
+                    user.Bio = bio ?? user.Bio;
+                    user.Job = job ?? user.Job;
+                    user.Gender = gender ?? user.Gender;
 
                     bool isSuccess = _userService.TryUpdateUser(user);
 
@@ -356,9 +369,9 @@ namespace WebMvcPluginUser.Controllers
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
                     }
-                    responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data = new JArray { JObject.FromObject(user) };
 
+                    responseModel.FromErrorCode(ErrorCode.Success);
+                    responseModel.Data = new JArray {JObject.FromObject(user)};
                 } while (false);
             }
             catch (Exception ex)
@@ -387,9 +400,10 @@ namespace WebMvcPluginUser.Controllers
                         break;
                     }
 
-                    IEnumerable<Claim> claims = identity.Claims;
-                    int.TryParse(claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value, out int userId);
-                    _userService.TryGetUsers(userId, out User user);
+                    var claims = identity.Claims;
+                    int.TryParse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value,
+                        out var userId);
+                    _userService.TryGetUsers(userId, out var user);
 
                     if (user == null)
                     {
@@ -402,7 +416,6 @@ namespace WebMvcPluginUser.Controllers
                     {
                         JObject.FromObject(user)
                     };
-
                 } while (false);
             }
             catch (Exception ex)
@@ -431,8 +444,9 @@ namespace WebMvcPluginUser.Controllers
                         break;
                     }
 
-                    IEnumerable<Claim> claims = identity.Claims;
-                    int.TryParse(claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value, out int userId);
+                    var claims = identity.Claims;
+                    int.TryParse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value,
+                        out var userId);
                     _userService.TryGetTours(userId, out List<TourInfo> tourInfos);
 
                     if (tourInfos == null)
@@ -443,7 +457,6 @@ namespace WebMvcPluginUser.Controllers
 
                     responseModel.FromErrorCode(ErrorCode.Success);
                     responseModel.Data = JArray.FromObject(tourInfos);
-
                 } while (false);
             }
             catch (Exception ex)
@@ -459,7 +472,7 @@ namespace WebMvcPluginUser.Controllers
         [HttpGet("me/friends")]
         public object GetMyFriends()
         {
-            ResponseModel responseModel = new ResponseModel();
+            var responseModel = new ResponseModel();
 
             try
             {
@@ -472,11 +485,11 @@ namespace WebMvcPluginUser.Controllers
                         break;
                     }
 
-                    IEnumerable<Claim> claims = identity.Claims;
-                    int.TryParse(claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value, out int userId);
-                    _userService.TryGetFriends(userId, out List<User> friends);
+                    var claims = identity.Claims;
+                    int.TryParse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value,
+                        out var userId);
 
-                    if (friends == null)
+                    if (!_userService.TryGetFriends(userId, out var friends) || friends == null)
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
                         break;
@@ -484,7 +497,6 @@ namespace WebMvcPluginUser.Controllers
 
                     responseModel.FromErrorCode(ErrorCode.Success);
                     responseModel.Data = JArray.FromObject(friends);
-
                 } while (false);
             }
             catch (Exception ex)
@@ -496,11 +508,10 @@ namespace WebMvcPluginUser.Controllers
 
             return responseModel.ToJson();
         }
-        private JObject UserResponseJson(User user)
+
+        private static JObject UserResponseJson(User user)
         {
-            JObject jObject = new JObject();
-            jObject.Add("Id", user.Id);
-            jObject.Add("Token", user.Token);
+            var jObject = new JObject {{"Id", user.Id}, {"Token", user.Token}};
 
             return jObject;
         }

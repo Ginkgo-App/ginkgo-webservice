@@ -9,6 +9,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Linq;
 using System.Security.Claims;
+using APICore.Services.Interfaces;
 using static APICore.Helpers.ErrorList;
 
 namespace WebMvcPluginTour.Controllers
@@ -94,7 +95,6 @@ namespace WebMvcPluginTour.Controllers
         public object GetAllTourInfos([FromQuery] int page, [FromQuery] int pageSize)
         {
             var responseModel = new ResponseModel();
-
             try
             {
                 do

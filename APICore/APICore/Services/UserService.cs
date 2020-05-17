@@ -1,18 +1,19 @@
-﻿using APICore.DBContext;
-using APICore.Entities;
-using APICore.Helpers;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
-using NLog;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net.Http;
 using System.Security.Claims;
 using System.Text;
+using APICore.DBContext;
+using APICore.Entities;
+using APICore.Models;
+using APICore.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
+using NLog;
 using static APICore.Helpers.ErrorList;
 
 namespace APICore.Services
@@ -30,15 +31,15 @@ namespace APICore.Services
 
         public ErrorCode Authenticate(string email, string password, out User user)
         {
-            ErrorCode statusCode = ErrorCode.Default;
+            ErrorCode statusCode;
             user = null;
 
             do
             {
-                bool isGetUserSucess = TryGetUsers(email, out user);
+                var isGetUserSuccess = TryGetUsers(email, out user);
 
                 // Cannot get user
-                if (!isGetUserSucess)
+                if (!isGetUserSuccess)
                 {
                     _logger.Error("Server internal error!");
                     statusCode = ErrorCode.CannotConnectToDatabase;
@@ -62,26 +63,24 @@ namespace APICore.Services
 
         public ErrorCode Authenticate(string email, ref AuthProvider authProvider, out User user)
         {
-            ErrorCode statusCode = ErrorCode.Default;
+            var statusCode = ErrorCode.Default;
             user = null;
 
             do
             {
-                TryGetAuthProvider(authProvider.Id, out AuthProvider dbAuth);
-
-                // Chua dang ky
-                if (dbAuth == null)
+                // No register
+                if (!TryGetAuthProvider(authProvider.Id, out var dbAuth) || dbAuth == null)
                 {
-                    string inputEmail = authProvider.Email ?? email;
+                    var inputEmail = authProvider.Email ?? email;
 
-                    if (!String.IsNullOrWhiteSpace(email))
+                    if (!string.IsNullOrWhiteSpace(inputEmail))
                     {
                         statusCode = ErrorCode.AuthProviderMissingEmail;
                         break;
                     }
                     else
                     {
-                        // Kiem tra email da su dung hay chua
+                        // Check whether email is exist or not
                         if (!TryGetUsers(inputEmail, out user))
                         {
                             statusCode = Register(authProvider.Name, authProvider.Email ?? email, null, null, out user);
@@ -114,7 +113,7 @@ namespace APICore.Services
 
         public ErrorCode Register(string name, string email, string phoneNumber, string password, out User user)
         {
-            ErrorCode statusCode = ErrorCode.Default;
+            var statusCode = ErrorCode.Default;
             user = null;
 
             do
@@ -137,12 +136,12 @@ namespace APICore.Services
                 if (!TryAddUser(user))
                 {
                     break;
-                };
+                }
 
                 if (Authenticate(email, password, out user) != ErrorCode.Success)
                 {
                     break;
-                };
+                }
 
 
                 statusCode = ErrorCode.Success;
@@ -155,17 +154,16 @@ namespace APICore.Services
         {
             users = null;
             pagination = null;
-            bool isSuccess = false;
+            var isSuccess = false;
 
             try
             {
-                APICore.Helpers.CoreHelper.ValidatePageSize(ref page, ref pageSize);
-                ConnectDB();
+                ConnectDb();
                 var usersDb = (from u
-                         in _context.Users
-                               select u)
-                        .ToListAsync()
-                        .Result;
+                            in _context.Users
+                        select u)
+                    .ToListAsync()
+                    .Result;
 
                 var total = usersDb.Select(p => p.Id).Count();
                 var skip = pageSize * (page - 1);
@@ -175,9 +173,9 @@ namespace APICore.Services
                 if (canPage)
                 {
                     users = usersDb.Select(u => u)
-                            .Skip(skip)
-                            .Take(pageSize)
-                            .ToList();
+                        .Skip(skip)
+                        .Take(pageSize)
+                        .ToList();
 
                     pagination = new Pagination(total, page, pageSize);
 
@@ -187,7 +185,7 @@ namespace APICore.Services
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                DisconnectDB();
+                DisconnectDb();
             }
 
             return isSuccess;
@@ -196,16 +194,16 @@ namespace APICore.Services
         public bool TryGetUsers(string email, out User user)
         {
             user = null;
-            bool isSuccess = false;
+            var isSuccess = false;
 
             try
             {
-                ConnectDB();
+                ConnectDb();
                 user =
                     (from u
-                     in _context.Users
-                     where (u.Email == email)
-                     select u)
+                            in _context.Users
+                        where (u.Email == email)
+                        select u)
                     .FirstOrDefaultAsync()
                     .Result; // Lấy  Product có  ID  chỉ  ra
 
@@ -217,7 +215,7 @@ namespace APICore.Services
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                DisconnectDB();
+                DisconnectDb();
             }
 
             return isSuccess;
@@ -226,16 +224,16 @@ namespace APICore.Services
         public bool TryGetUsers(int userId, out User user)
         {
             user = null;
-            bool isSuccess = false;
+            var isSuccess = false;
 
             try
             {
-                ConnectDB();
+                ConnectDb();
                 user =
                     (from u
-                     in _context.Users
-                     where (u.Id == userId)
-                     select u)
+                            in _context.Users
+                        where (u.Id == userId)
+                        select u)
                     .FirstOrDefaultAsync()
                     .Result; // Lấy  Product có  ID  chỉ  ra
                 isSuccess = true;
@@ -243,7 +241,7 @@ namespace APICore.Services
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                DisconnectDB();
+                DisconnectDb();
             }
 
             return isSuccess;
@@ -251,10 +249,10 @@ namespace APICore.Services
 
         public bool TryAddUser(User user)
         {
-            bool isSuccess = false;
+            var isSuccess = false;
             try
             {
-                ConnectDB();
+                ConnectDb();
                 _context.Users.Update(user);
                 _context.SaveChanges();
                 isSuccess = true;
@@ -262,7 +260,7 @@ namespace APICore.Services
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                DisconnectDB();
+                DisconnectDb();
             }
 
             return isSuccess;
@@ -270,10 +268,10 @@ namespace APICore.Services
 
         public bool TryUpdateUser(User user)
         {
-            bool isSuccess = false;
+            var isSuccess = false;
             try
             {
-                ConnectDB();
+                ConnectDb();
                 _context.Users.Update(user);
                 _context.SaveChanges();
                 isSuccess = true;
@@ -281,7 +279,7 @@ namespace APICore.Services
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                DisconnectDB();
+                DisconnectDb();
             }
 
             return isSuccess;
@@ -289,10 +287,10 @@ namespace APICore.Services
 
         public bool TryRemoveUser(int userId)
         {
-            bool isSuccess = false;
+            var isSuccess = false;
             try
             {
-                ConnectDB();
+                ConnectDb();
                 var user = _context.Users.FirstOrDefault(u => u.Id == userId);
                 if (user != null)
                 {
@@ -304,17 +302,18 @@ namespace APICore.Services
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                DisconnectDB();
+                DisconnectDb();
             }
+
             return isSuccess;
         }
 
         public bool TryAddAuthProvider(AuthProvider authProvider, User user)
         {
-            bool isSuccess = false;
+            var isSuccess = false;
             try
             {
-                ConnectDB();
+                ConnectDb();
 
                 var dbAuthProvider = _context.AuthProviders.FirstOrDefault(a => a.Id == authProvider.Id);
                 if (dbAuthProvider != null)
@@ -339,70 +338,73 @@ namespace APICore.Services
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                DisconnectDB();
+                DisconnectDb();
             }
 
             return isSuccess;
         }
 
-        public bool TryGetFacbookInfo(string accessToken, out AuthProvider authProvider)
+        public bool TryGetFacebookInfo(string accessToken, out AuthProvider authProvider)
         {
-            bool isSuccess = false;
+            var isSuccess = false;
 
             do
             {
                 authProvider = null;
-                string _postToPageURL = "https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,email&access_token=" + accessToken;
+                var postToPageUrl =
+                    "https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,email&access_token=" +
+                    accessToken;
                 IEnumerable<KeyValuePair<string, string>> postData = new Dictionary<string, string>();
 
-                using (var http = new HttpClient())
+                using var http = new HttpClient();
+                var httpResponse = http.PostAsync(
+                    postToPageUrl,
+                    new FormUrlEncodedContent(postData)).Result;
+
+                if (!httpResponse.IsSuccessStatusCode)
                 {
-                    var httpResponse = http.PostAsync(
-                        _postToPageURL,
-                        new FormUrlEncodedContent(postData)).Result;
-
-                    if (!httpResponse.IsSuccessStatusCode)
-                    {
-                        break;
-                    }
-
-                    dynamic httpContent = JsonConvert.DeserializeObject(httpResponse.Content.ReadAsStringAsync().Result);
-
-                    if ((int)httpResponse.StatusCode != 200 || httpContent == null)
-                    {
-                        break;
-                    }
-
-
-                    authProvider = new AuthProvider();
-                    authProvider.Id = httpContent.id;
-                    authProvider.Name = httpContent.name;
-                    authProvider.Email = httpContent.email;
-                    authProvider.Provider = ProviderType.facebook.ToString();
-
-                    isSuccess = true;
+                    break;
                 }
+
+                dynamic httpContent =
+                    JsonConvert.DeserializeObject(httpResponse.Content.ReadAsStringAsync().Result);
+
+                if ((int) httpResponse.StatusCode != 200 || httpContent == null)
+                {
+                    break;
+                }
+
+
+                authProvider = new AuthProvider
+                {
+                    Id = httpContent.id,
+                    Name = httpContent.name,
+                    Email = httpContent.email,
+                    Provider = ProviderType.facebook.ToString()
+                };
+
+                isSuccess = true;
             } while (false);
 
             return isSuccess;
         }
 
-        public bool TryGetAuthProvider(string id, out AuthProvider authProvider)
+        private bool TryGetAuthProvider(string id, out AuthProvider authProvider)
         {
             authProvider = null;
-            bool isSuccess = false;
+            var isSuccess = false;
 
             try
             {
-                ConnectDB();
-                authProvider = _context.AuthProviders.Where(a => a.Id == id).Single();
+                ConnectDb();
+                authProvider = _context.AuthProviders.Single(a => a.Id == id);
 
                 isSuccess = true;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                DisconnectDB();
+                DisconnectDb();
             }
 
             return isSuccess;
@@ -411,18 +413,18 @@ namespace APICore.Services
         public bool TryGetTours(int userId, out List<TourInfo> tourInfos)
         {
             tourInfos = null;
-            bool isSuccess = false;
+            var isSuccess = false;
 
             try
             {
-                ConnectDB();
-                tourInfos = _context.TourInfos.Where(a => a.CreateById == userId).ToList<TourInfo>();
+                ConnectDb();
+                tourInfos = _context.TourInfos.Where(a => a.CreateById == userId).ToList();
                 isSuccess = true;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                DisconnectDB();
+                DisconnectDb();
             }
 
             return isSuccess;
@@ -431,18 +433,18 @@ namespace APICore.Services
         public bool TryGetTourInfoById(int tourId, out TourInfo tourInfos)
         {
             tourInfos = null;
-            bool isSuccess = false;
+            var isSuccess = false;
 
             try
             {
-                ConnectDB();
-                tourInfos = _context.TourInfos.Where(a => a.Id == tourId).FirstOrDefault();
+                ConnectDb();
+                tourInfos = _context.TourInfos.FirstOrDefault(a => a.Id == tourId);
                 isSuccess = true;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                DisconnectDB();
+                DisconnectDb();
             }
 
             return isSuccess;
@@ -450,10 +452,10 @@ namespace APICore.Services
 
         public bool TryUpdateTourInfo(TourInfo tourInfo)
         {
-            bool isSuccess = false;
+            var isSuccess = false;
             try
             {
-                ConnectDB();
+                ConnectDb();
                 _context.TourInfos.Update(tourInfo);
                 _context.SaveChanges();
                 isSuccess = true;
@@ -461,7 +463,7 @@ namespace APICore.Services
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                DisconnectDB();
+                DisconnectDb();
             }
 
             return isSuccess;
@@ -469,10 +471,10 @@ namespace APICore.Services
 
         public bool TryRemoveTourInfo(int tourInfoId)
         {
-            bool isSuccess = false;
+            var isSuccess = false;
             try
             {
-                ConnectDB();
+                ConnectDb();
                 var tourInfo = _context.TourInfos.FirstOrDefault(u => u.Id == tourInfoId);
                 if (tourInfo != null)
                 {
@@ -484,7 +486,7 @@ namespace APICore.Services
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                DisconnectDB();
+                DisconnectDb();
             }
 
             return isSuccess;
@@ -493,26 +495,27 @@ namespace APICore.Services
         public bool TryGetFriends(int userId, out List<User> friends)
         {
             friends = new List<User>();
-            bool isSuccess = false;
+            var isSuccess = false;
 
             try
             {
-                ConnectDB();
-                var friendIds = _context.Friends.Where(a => a.UserId == userId || a.RequestedUserId == userId).ToArray();
-                foreach (var friendId in friendIds)
+                ConnectDb();
+                var friendDBs = _context.Friends.Where(a => a.UserId == userId || a.RequestedUserId == userId)
+                    .ToArray();
+                foreach (var friend in friendDBs)
                 {
-                    var id = friendId.UserId != userId ? friendId.UserId : friendId.RequestedUserId;
-                    TryGetUsers(friendId.RequestedUserId, out User user);
+                    var id = friend.UserId != userId ? friend.UserId : friend.RequestedUserId;
+                    TryGetUsers(id, out var user);
                     friends.Add(user);
                 }
 
-                friends.Distinct().ToList();
+                friends = friends.Distinct().ToList();
                 isSuccess = true;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                DisconnectDB();
+                DisconnectDb();
             }
 
             return isSuccess;
@@ -522,41 +525,41 @@ namespace APICore.Services
         {
             // authentication successful so generate jwt token
             var tokenHandler = new JwtSecurityTokenHandler();
-            Console.WriteLine("Key: " + _appSettings.Secret);
             var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new Claim[]
+                Subject = new ClaimsIdentity(new[]
                 {
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                     new Claim(ClaimTypes.Name, user.Email),
                     new Claim(ClaimTypes.Role, user.Role),
                 }),
                 Expires = DateTime.UtcNow.AddDays(7),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),
+                    SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
             user.Token = tokenHandler.WriteToken(token);
         }
 
         #region ConnectDB
-        private void ConnectDB()
+
+        private void ConnectDb()
         {
-            if (_context == null)
-            {
-                DbContextOptions<PostgreSQLContext> options = new DbContextOptions<PostgreSQLContext>();
-                _context = new PostgreSQLContext(options);
-            }
+            if (_context != null) return;
+
+            var options = new DbContextOptions<PostgreSQLContext>();
+            _context = new PostgreSQLContext(options);
         }
 
-        private void DisconnectDB()
+        private void DisconnectDb()
         {
-            if (_context != null)
-            {
-                _context.Dispose();
-                _context = null;
-            }
+            if (_context == null) return;
+
+            _context.Dispose();
+            _context = null;
         }
+
         #endregion
     }
 }

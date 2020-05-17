@@ -10,7 +10,6 @@ namespace WebMvcPluginTour.Actions
 
         public void Execute(IApplicationBuilder app, IServiceProvider serviceProvider)
         {
-
         }
     }
 }

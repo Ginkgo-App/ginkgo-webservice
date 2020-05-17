@@ -1,8 +1,8 @@
-﻿using ExtCore.Infrastructure.Actions;
+﻿using System;
+using ExtCore.Infrastructure.Actions;
 using Microsoft.AspNetCore.Builder;
-using System;
 
-namespace APICore.Actions
+namespace WebMvcPluginUser.Actions
 {
     public class UseConfigureAction : IConfigureAction
     {

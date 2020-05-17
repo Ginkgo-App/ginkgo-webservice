@@ -1,13 +1,9 @@
-﻿using ExtCore.Mvc.Infrastructure.Actions;
+﻿using System;
+using ExtCore.Mvc.Infrastructure.Actions;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
-using System;
-using APICore.DBContext;
-using APICore.Entities;
 
-namespace APICore.Actions
+namespace WebMvcPluginUser.Actions
 {
     class UseEndpointsAction : IUseEndpointsAction
     {

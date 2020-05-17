@@ -1,6 +1,8 @@
 ﻿using ExtCore.Infrastructure.Actions;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using APICore.Services;
+using APICore.Services.Interfaces;
 
 namespace WebMvcPluginTour.Actions
 {
@@ -10,6 +12,8 @@ namespace WebMvcPluginTour.Actions
 
         public void Execute(IServiceCollection services, IServiceProvider serviceProvider)
         {
+            services.AddSingleton<IUserService, UserService>();
+            services.AddSingleton<ITourInfoService, TourInfoService>();
         }
     }
 }

@@ -1,16 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Text;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace APICore.Models
+namespace WebMvcPluginUser.Models
 {
     public class AuthenticateModel
     {
-        [Required]
-        public string Email { get; set; }
+        public AuthenticateModel(string email, string password)
+        {
+            Email = email;
+            Password = password;
+        }
 
-        [Required]
-        public string Password { get; set; }
+        [Required] public string Email { get; }
+
+        [Required] public string Password { get; }
     }
 }

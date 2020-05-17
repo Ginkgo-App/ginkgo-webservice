@@ -71,8 +71,8 @@
     <ItemGroup>
 	    <!--
         <PluginProject Include="..\..\WebMvcPluginHello\ApiPluginHello\ApiPluginHello.csproj" />
-   	    <PluginProject Include="..\..\WebMvcPluginTour\WebMvcPluginTour\WebMvcPluginTour.csproj" />
-   	    <PluginProject Include="..\..\WebMvcPluginUser\WebMvcPluginUser\WebMvcPluginUser.csproj" />
+        <PluginProject Include="..\..\WebMvcPluginTour\WebMvcPluginTour\WebMvcPluginTour.csproj" />
+        <PluginProject Include="..\..\WebMvcPluginUser\WebMvcPluginUser\WebMvcPluginUser.csproj" />
         -->
 	 
     </ItemGroup>

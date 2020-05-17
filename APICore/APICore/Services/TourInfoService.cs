@@ -7,6 +7,7 @@ using NLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using APICore.Models;
 using static APICore.Helpers.CoreHelper;
 using static APICore.Helpers.ErrorList;
 
