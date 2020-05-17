@@ -11,7 +11,7 @@ namespace APICore.Services
     public class FriendService
     {
         private readonly AppSettings _appSettings;
-        private readonly Logger _logger = Vars.LOGGER;
+        private readonly Logger _logger = Vars.Logger;
         private PostgreSQLContext _context;
 
         public FriendService(AppSettings appSettings)
@@ -27,7 +27,7 @@ namespace APICore.Services
             try
             {
                 ConnectDB();
-                total = _context.Friends.Where(u => u.UserId == userId).Count();
+                total = _context.Friends.Count(u => u.UserId == userId);
             }
             catch (Exception ex)
             {

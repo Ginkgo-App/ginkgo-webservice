@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
@@ -8,7 +8,6 @@ using System.Text;
 using APICore.DBContext;
 using APICore.Entities;
 using APICore.Models;
-using APICore.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -21,7 +20,7 @@ namespace APICore.Services
     public class UserService : IUserService
     {
         private readonly AppSettings _appSettings;
-        private readonly Logger _logger = Vars.LOGGER;
+        private readonly Logger _logger = Vars.Logger;
         private PostgreSQLContext _context;
 
         public UserService(IOptions<AppSettings> appSettings)
@@ -133,13 +132,11 @@ namespace APICore.Services
                     Role = RoleType.User
                 };
 
-                if (!TryAddUser(user))
-                {
+                if (!TryAddUser(user)) {
                     break;
                 }
 
-                if (Authenticate(email, password, out user) != ErrorCode.Success)
-                {
+                if (Authenticate(email, password, out user) != ErrorCode.Success) {
                     break;
                 }
 
@@ -555,7 +552,6 @@ namespace APICore.Services
         private void DisconnectDb()
         {
             if (_context == null) return;
-
             _context.Dispose();
             _context = null;
         }

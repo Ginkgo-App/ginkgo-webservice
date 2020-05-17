@@ -83,12 +83,12 @@ namespace APICore
             });
 
             // Add global variables
-            Vars.CONNECTION_STRING = appSettings.ConnectionString; 
-            Vars.PASSWORD_SALT = appSettings.PasswordSalt;
+            Vars.ConnectionString = appSettings.ConnectionString; 
+            Vars.PasswordSalt = appSettings.PasswordSalt;
 
             services.AddDbContext<PostgreSQLContext>(options =>
             {
-                options.UseNpgsql(Vars.CONNECTION_STRING, options => options.EnableRetryOnFailure());
+                options.UseNpgsql(Vars.ConnectionString, options => options.EnableRetryOnFailure());
             });
         }
 

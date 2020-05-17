@@ -23,7 +23,7 @@ namespace APICore.Helpers
                 {
                     response.ErrorCode = (int)ErrorList.ErrorCode.BodyInvalid;
                     response.Message = ErrorList.Description(response.ErrorCode);
-                    Vars.LOGGER.Debug("Body is null");
+                    Vars.Logger.Debug("Body is null");
                     break;
                 }
 
@@ -43,7 +43,7 @@ namespace APICore.Helpers
                 {
                     response.ErrorCode = (int)ErrorList.ErrorCode.InvalidParameter;
                     response.Message = ErrorList.Description(response.ErrorCode);
-                    Vars.LOGGER.Debug("Field '" + fieldName + "' is missing or incorrect");
+                    Vars.Logger.Debug("Field '" + fieldName + "' is missing or incorrect");
                     break;
                 }
 

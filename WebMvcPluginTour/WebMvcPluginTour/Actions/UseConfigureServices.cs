@@ -2,7 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using APICore.Services;
-using APICore.Services.Interfaces;
 
 namespace WebMvcPluginTour.Actions
 {

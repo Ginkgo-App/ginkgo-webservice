@@ -14,7 +14,7 @@ namespace APICore.DBContext
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);
-            optionsBuilder.UseNpgsql(Vars.CONNECTION_STRING);
+            optionsBuilder.UseNpgsql(Vars.ConnectionString);
         }
 
         public DbSet<User> Users { get; set; }

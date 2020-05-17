@@ -4,11 +4,11 @@ using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 
 namespace WebMvcPluginUser.Helpers
 {
-    class UserHelper
+    static class UserHelper
     {
         public static string HashPassword(string password)
         {
-            var salt = Encoding.ASCII.GetBytes(APICore.Vars.PASSWORD_SALT);
+            var salt = Encoding.ASCII.GetBytes(APICore.Vars.PasswordSalt);
 
             var hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
                 password: password,

@@ -1,5 +1,4 @@
-﻿using APICore;
-using APICore.DBContext;
+﻿using APICore.DBContext;
 using APICore.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -16,7 +15,7 @@ namespace APICore.Services
     public class TourInfoService : ITourInfoService
     {
         private readonly AppSettings _appSettings;
-        private readonly Logger _logger = Vars.LOGGER;
+        private readonly Logger _logger = Vars.Logger;
         private PostgreSQLContext _context;
 
         public TourInfoService(IOptions<AppSettings> appSettings)
@@ -24,47 +23,49 @@ namespace APICore.Services
             _appSettings = appSettings.Value;
         }
 
-        public ErrorCode TryGetToursByUserId(int userId, int page, int pageSize, out List<TourInfo> tourInfos, out Pagination pagination)
+        public ErrorCode TryGetToursByUserId(int userId, int page, int pageSize, out List<TourInfo> tourInfos,
+            out Pagination pagination)
         {
             tourInfos = null;
             pagination = null;
-            ErrorCode errorCode = ErrorCode.Fail;
+            var errorCode = ErrorCode.Fail;
 
             try
             {
                 ValidatePageSize(ref page, ref pageSize);
 
-                ConnectDB();
-                var listtourInfos = _context.TourInfos.Where(a => a.CreateById == userId).ToList<TourInfo>();
+                ConnectDb();
+                var listTourInfos = _context.TourInfos.Where(a => a.CreateById == userId).ToList();
 
-                var total = listtourInfos.Select(p => p.Id).Count();
+                var total = listTourInfos.Select(p => p.Id).Count();
                 var skip = pageSize * (page - 1);
 
                 var canPage = skip < total;
 
                 if (canPage)
                 {
-                    tourInfos = listtourInfos.Select(u => u)
-                            .Skip(skip)
-                            .Take(pageSize)
-                            .ToList();
+                    tourInfos = listTourInfos.Select(u => u)
+                        .Skip(skip)
+                        .Take(pageSize)
+                        .ToList();
 
                     pagination = new Pagination(total, page, pageSize);
                     errorCode = ErrorCode.Success;
                 }
 
-                DisconnectDB();
+                DisconnectDb();
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                DisconnectDB();
+                DisconnectDb();
             }
 
             return errorCode;
         }
 
-        public ErrorCode TryGetTourInfos(int page, int pageSize, out List<TourInfo> tourInfos, out Pagination pagination)
+        public ErrorCode TryGetTourInfos(int page, int pageSize, out List<TourInfo> tourInfos,
+            out Pagination pagination)
         {
             tourInfos = null;
             pagination = null;
@@ -74,36 +75,38 @@ namespace APICore.Services
             {
                 ValidatePageSize(ref page, ref pageSize);
 
-                ConnectDB();
-                var listtourInfos = _context.TourInfos.ToList<TourInfo>();
+                ConnectDb();
+                var listTourInfos = _context.TourInfos.ToList<TourInfo>();
 
-                var total = listtourInfos.Select(p => p.Id).Count();
+                var total = listTourInfos.Select(p => p.Id).Count();
                 var skip = pageSize * (page - 1);
 
                 var canPage = skip < total;
 
                 if (canPage)
                 {
-                    tourInfos = listtourInfos.Select(u => u)
-                            .Skip(skip)
-                            .Take(pageSize)
-                            .ToList();
+                    tourInfos = listTourInfos.Select(u => u)
+                        .Skip(skip)
+                        .Take(pageSize)
+                        .ToList();
 
                     pagination = new Pagination(total, page, pageSize);
                     errorCode = ErrorCode.Success;
                 }
-                DisconnectDB();
+
+                DisconnectDb();
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                DisconnectDB();
+                DisconnectDb();
             }
 
             return errorCode;
         }
 
-        public ErrorCode TryGetTours(int tourInfoId, int page, int pageSize, out List<Tour> tourInfos, out Pagination pagination)
+        public ErrorCode TryGetTours(int tourInfoId, int page, int pageSize, out List<Tour> tourInfos,
+            out Pagination pagination)
         {
             tourInfos = null;
             pagination = null;
@@ -113,8 +116,8 @@ namespace APICore.Services
             {
                 ValidatePageSize(ref page, ref pageSize);
 
-                ConnectDB();
-                var listTours = _context.Tours.ToList<Tour>();
+                ConnectDb();
+                var listTours = _context.Tours.ToList();
 
                 var total = listTours.Select(p => p.TourInfoId).Count();
                 var skip = pageSize * (page - 1);
@@ -124,19 +127,20 @@ namespace APICore.Services
                 if (canPage)
                 {
                     tourInfos = listTours.Where(u => u.TourInfoId == tourInfoId)
-                            .Skip(skip)
-                            .Take(pageSize)
-                            .ToList();
+                        .Skip(skip)
+                        .Take(pageSize)
+                        .ToList();
 
                     pagination = new Pagination(total, page, pageSize);
                     errorCode = ErrorCode.Success;
                 }
-                DisconnectDB();
+
+                DisconnectDb();
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                DisconnectDB();
+                DisconnectDb();
             }
 
             return errorCode;
@@ -149,15 +153,15 @@ namespace APICore.Services
 
             try
             {
-                ConnectDB();
-                tourInfos = _context.TourInfos.Where(a => a.Id == tourId).FirstOrDefault();
+                ConnectDb();
+                tourInfos = _context.TourInfos.FirstOrDefault(a => a.Id == tourId);
                 errorCode = ErrorCode.Success;
-                DisconnectDB();
+                DisconnectDb();
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                DisconnectDB();
+                DisconnectDb();
             }
 
             return errorCode;
@@ -168,16 +172,16 @@ namespace APICore.Services
             bool isSuccess = false;
             try
             {
-                ConnectDB();
+                ConnectDb();
                 _context.TourInfos.Add(tourInfo);
                 _context.SaveChanges();
                 isSuccess = true;
-                DisconnectDB();
+                DisconnectDb();
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                DisconnectDB();
+                DisconnectDb();
             }
 
             return isSuccess;
@@ -188,16 +192,16 @@ namespace APICore.Services
             bool isSuccess = false;
             try
             {
-                ConnectDB();
+                ConnectDb();
                 _context.TourInfos.Update(tourInfo);
                 _context.SaveChanges();
                 isSuccess = true;
-                DisconnectDB();
+                DisconnectDb();
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                DisconnectDB();
+                DisconnectDb();
             }
 
             return isSuccess;
@@ -208,7 +212,7 @@ namespace APICore.Services
             bool isSuccess = false;
             try
             {
-                ConnectDB();
+                ConnectDb();
                 var tourInfo = _context.TourInfos.FirstOrDefault(u => u.Id == tourInfoId);
                 if (tourInfo != null)
                 {
@@ -216,12 +220,13 @@ namespace APICore.Services
                     _context.SaveChanges();
                     isSuccess = true;
                 }
-                DisconnectDB();
+
+                DisconnectDb();
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                DisconnectDB();
+                DisconnectDb();
             }
 
             return isSuccess;
@@ -234,15 +239,15 @@ namespace APICore.Services
 
             try
             {
-                ConnectDB();
-                place = _context.Places.Where(a => a.Id == placeId)?.FirstOrDefault();
+                ConnectDb();
+                place = _context.Places.FirstOrDefault(a => a.Id == placeId);
                 errorCode = ErrorCode.Success;
-                DisconnectDB();
+                DisconnectDb();
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                DisconnectDB();
+                DisconnectDb();
             }
 
             return errorCode;
@@ -255,15 +260,15 @@ namespace APICore.Services
 
             try
             {
-                ConnectDB();
-                user = _context.Users.Where(a => a.Id == userId).FirstOrDefault();
+                ConnectDb();
+                user = _context.Users.FirstOrDefault(a => a.Id == userId);
                 errorCode = ErrorCode.Success;
-                DisconnectDB();
+                DisconnectDb();
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                DisconnectDB();
+                DisconnectDb();
             }
 
             return errorCode;
@@ -276,38 +281,36 @@ namespace APICore.Services
 
             try
             {
-                ConnectDB();
-                service = _context.Services.Where(a => a.Id == serviceId).FirstOrDefault();
+                ConnectDb();
+                service = _context.Services.FirstOrDefault(a => a.Id == serviceId);
                 errorCode = ErrorCode.Success;
-                DisconnectDB();
+                DisconnectDb();
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                DisconnectDB();
+                DisconnectDb();
             }
 
             return errorCode;
         }
 
         #region ConnectDB
-        private void ConnectDB()
+
+        private void ConnectDb()
         {
-            if (_context == null)
-            {
-                DbContextOptions<PostgreSQLContext> options = new DbContextOptions<PostgreSQLContext>();
-                _context = new PostgreSQLContext(options);
-            }
+            if (_context != null) return;
+            var options = new DbContextOptions<PostgreSQLContext>();
+            _context = new PostgreSQLContext(options);
         }
 
-        private void DisconnectDB()
+        private void DisconnectDb()
         {
-            if (_context != null)
-            {
-                _context.Dispose();
-                _context = null;
-            }
+            if (_context == null) return;
+            _context.Dispose();
+            _context = null;
         }
+
         #endregion
     }
 }

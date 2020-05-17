@@ -9,7 +9,6 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Linq;
 using System.Security.Claims;
-using APICore.Services.Interfaces;
 using static APICore.Helpers.ErrorList;
 
 namespace WebMvcPluginTour.Controllers
@@ -32,11 +31,11 @@ namespace WebMvcPluginTour.Controllers
         [HttpGet("{id}/tours")]
         public object GetAllTours(int id, [FromQuery] int page, [FromQuery] int pageSize)
         {
-            ResponseModel responseModel = new ResponseModel();
+            var responseModel = new ResponseModel();
 
+            var data = new JArray();
             try
             {
-                JArray data = new JArray();
                 do
                 {
                     var errorCode = _tourInfoService.TryGetTours(id, page, pageSize, out var tours, out var pagination);
@@ -101,7 +100,7 @@ namespace WebMvcPluginTour.Controllers
                 {
                     var data = new JArray();
 
-                    if (_tourInfoService.TryGetTourInfos(page, pageSize, out var tourInfos, out var pagination) !=
+                    if ( _tourInfoService.TryGetTourInfos(page, pageSize, out var tourInfos, out var pagination) !=
                         ErrorCode.Success)
                     {
                         break;
@@ -210,8 +209,7 @@ namespace WebMvcPluginTour.Controllers
                         break;
                     }
 
-                    var isDestinationParsed =
-                        int.TryParse(jsonDestinationPlaceId?.ToString(), out var destinationPlaceId);
+                    var isDestinationParsed = int.TryParse(jsonDestinationPlaceId?.ToString(), out var destinationPlaceId);
                     var isStartPlaced = int.TryParse(jsonStartPlaceId?.ToString(), out var startPlaceId);
 
                     if (!isDestinationParsed || !isStartPlaced)
