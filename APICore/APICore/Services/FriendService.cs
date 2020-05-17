@@ -26,35 +26,30 @@ namespace APICore.Services
 
             try
             {
-                ConnectDB();
+                ConnectDb();
                 total = _context.Friends.Count(u => u.UserId == userId);
             }
-            catch (Exception ex)
+            finally
             {
-                Console.WriteLine(ex);
-                DisconnectDB();
+                DisconnectDb();
             }
 
             return errorCode;
         }
 
         #region ConnectDB
-        private void ConnectDB()
+        private void ConnectDb()
         {
-            if (_context == null)
-            {
-                DbContextOptions<PostgreSQLContext> options = new DbContextOptions<PostgreSQLContext>();
-                _context = new PostgreSQLContext(options);
-            }
+            if (_context != null) return;
+            var options = new DbContextOptions<PostgreSQLContext>();
+            _context = new PostgreSQLContext(options);
         }
 
-        private void DisconnectDB()
+        private void DisconnectDb()
         {
-            if (_context != null)
-            {
-                _context.Dispose();
-                _context = null;
-            }
+            if (_context == null) return;
+            _context.Dispose();
+            _context = null;
         }
         #endregion
     }

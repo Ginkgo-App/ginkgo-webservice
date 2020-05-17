@@ -56,9 +56,7 @@ namespace WebMvcPluginUser.Controllers
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 501;
-                responseModel.ErrorCode = 501;
-                responseModel.Message = ex.Message;
+                                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
@@ -111,9 +109,7 @@ namespace WebMvcPluginUser.Controllers
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 501;
-                response.ErrorCode = 501;
-                response.Message = ex.Message;
+                response.FromException(ex);
             }
 
             return response;
@@ -178,9 +174,7 @@ namespace WebMvcPluginUser.Controllers
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 501;
-                responseModel.ErrorCode = 501;
-                responseModel.Message = ex.Message;
+                                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
@@ -263,9 +257,7 @@ namespace WebMvcPluginUser.Controllers
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 501;
-                responseModel.ErrorCode = 501;
-                responseModel.Message = ex.Message;
+                                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
@@ -293,9 +285,7 @@ namespace WebMvcPluginUser.Controllers
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 501;
-                responseModel.ErrorCode = 501;
-                responseModel.Message = ex.Message;
+                                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
@@ -375,9 +365,7 @@ namespace WebMvcPluginUser.Controllers
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 501;
-                responseModel.ErrorCode = 501;
-                responseModel.Message = ex.Message;
+                                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
@@ -419,9 +407,7 @@ namespace WebMvcPluginUser.Controllers
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 501;
-                responseModel.ErrorCode = 501;
-                responseModel.Message = ex.Message;
+                                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
@@ -460,9 +446,7 @@ namespace WebMvcPluginUser.Controllers
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 501;
-                responseModel.ErrorCode = 501;
-                responseModel.Message = ex.Message;
+                                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
@@ -500,9 +484,7 @@ namespace WebMvcPluginUser.Controllers
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 501;
-                responseModel.ErrorCode = 501;
-                responseModel.Message = ex.Message;
+                                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();

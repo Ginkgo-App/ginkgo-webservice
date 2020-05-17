@@ -7,13 +7,17 @@ namespace APICore.Models
     {
         public Pagination(int totalElement, int currentPage, int pageSize)
         {
-            if (int.TryParse(
-                Math.Ceiling((double) totalElement / (pageSize <= 0 ? Vars.DefaultPageSize : pageSize))
-                    .ToString(CultureInfo.CurrentCulture),
-                out var totalPage))
-            {
-                TotalPage = totalPage;
-            }
+            // if (int.TryParse(
+            //     Math.Ceiling((double) totalElement / (pageSize <= 0 ? Vars.DefaultPageSize : pageSize))
+            //         .ToString(CultureInfo.CurrentCulture),
+            //     out var totalPage))
+            // {
+            //     TotalPage = totalPage;
+            // }
+
+            TotalPage = Convert.ToInt32(Math
+                .Ceiling((double) totalElement / (pageSize <= 0 ? Vars.DefaultPageSize : pageSize))
+                .ToString(CultureInfo.CurrentCulture));
 
             TotalElement = totalElement;
             CurrentPage = currentPage;

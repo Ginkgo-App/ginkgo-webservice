@@ -179,9 +179,8 @@ namespace APICore.Services
                     isSuccess = true;
                 }
             }
-            catch (Exception ex)
+            finally
             {
-                Console.WriteLine(ex);
                 DisconnectDb();
             }
 
@@ -209,9 +208,8 @@ namespace APICore.Services
                     isSuccess = true;
                 }
             }
-            catch (Exception ex)
+            finally
             {
-                Console.WriteLine(ex);
                 DisconnectDb();
             }
 
@@ -235,9 +233,8 @@ namespace APICore.Services
                     .Result; // Lấy  Product có  ID  chỉ  ra
                 isSuccess = true;
             }
-            catch (Exception ex)
+            finally
             {
-                Console.WriteLine(ex);
                 DisconnectDb();
             }
 
@@ -254,9 +251,8 @@ namespace APICore.Services
                 _context.SaveChanges();
                 isSuccess = true;
             }
-            catch (Exception ex)
+            finally
             {
-                Console.WriteLine(ex);
                 DisconnectDb();
             }
 
@@ -273,9 +269,8 @@ namespace APICore.Services
                 _context.SaveChanges();
                 isSuccess = true;
             }
-            catch (Exception ex)
+            finally
             {
-                Console.WriteLine(ex);
                 DisconnectDb();
             }
 
@@ -296,9 +291,8 @@ namespace APICore.Services
                     isSuccess = true;
                 }
             }
-            catch (Exception ex)
+            finally
             {
-                Console.WriteLine(ex);
                 DisconnectDb();
             }
 
@@ -332,9 +326,8 @@ namespace APICore.Services
                 _context.SaveChanges();
                 isSuccess = true;
             }
-            catch (Exception ex)
+            finally
             {
-                Console.WriteLine(ex);
                 DisconnectDb();
             }
 
@@ -398,9 +391,8 @@ namespace APICore.Services
 
                 isSuccess = true;
             }
-            catch (Exception ex)
+            finally
             {
-                Console.WriteLine(ex);
                 DisconnectDb();
             }
 
@@ -418,9 +410,8 @@ namespace APICore.Services
                 tourInfos = _context.TourInfos.Where(a => a.CreateById == userId).ToList();
                 isSuccess = true;
             }
-            catch (Exception ex)
+            finally
             {
-                Console.WriteLine(ex);
                 DisconnectDb();
             }
 
@@ -438,9 +429,8 @@ namespace APICore.Services
                 tourInfos = _context.TourInfos.FirstOrDefault(a => a.Id == tourId);
                 isSuccess = true;
             }
-            catch (Exception ex)
+            finally
             {
-                Console.WriteLine(ex);
                 DisconnectDb();
             }
 
@@ -457,9 +447,8 @@ namespace APICore.Services
                 _context.SaveChanges();
                 isSuccess = true;
             }
-            catch (Exception ex)
+            finally
             {
-                Console.WriteLine(ex);
                 DisconnectDb();
             }
 
@@ -480,9 +469,8 @@ namespace APICore.Services
                     isSuccess = true;
                 }
             }
-            catch (Exception ex)
+            finally
             {
-                Console.WriteLine(ex);
                 DisconnectDb();
             }
 
@@ -509,9 +497,8 @@ namespace APICore.Services
                 friends = friends.Distinct().ToList();
                 isSuccess = true;
             }
-            catch (Exception ex)
+            finally
             {
-                Console.WriteLine(ex);
                 DisconnectDb();
             }
 

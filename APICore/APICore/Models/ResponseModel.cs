@@ -1,6 +1,7 @@
 ﻿using APICore.Helpers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 
 namespace APICore.Models
@@ -35,6 +36,22 @@ namespace APICore.Models
             ErrorCode = (int)errorCode;
             Message = ErrorList.Description(ErrorCode);
             Data = null;
+        }
+        
+        public void FromException(Exception ex)
+        {
+            ErrorCode = 501;
+            Message = "An error has occurred";
+            Data = new JArray
+            {
+                JObject.FromObject(new
+                {
+                    Error = ex.Message,
+                    Stack = ex.StackTrace,
+                    Source = ex.Source,
+                    InnnerException = ex.InnerException
+                })
+            };
         }
 
         //public void AddData(JObject jObject)

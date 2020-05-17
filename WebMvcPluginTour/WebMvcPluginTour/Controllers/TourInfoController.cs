@@ -1,4 +1,7 @@
-﻿using APICore.Entities;
+﻿using System;
+using System.Linq;
+using System.Security.Claims;
+using APICore.Entities;
 using APICore.Helpers;
 using APICore.Models;
 using APICore.Services;
@@ -6,9 +9,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Linq;
-using System.Security.Claims;
 using static APICore.Helpers.ErrorList;
 
 namespace WebMvcPluginTour.Controllers
@@ -81,9 +81,7 @@ namespace WebMvcPluginTour.Controllers
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 501;
-                responseModel.ErrorCode = 501;
-                responseModel.Message = ex.Message;
+                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
@@ -100,7 +98,7 @@ namespace WebMvcPluginTour.Controllers
                 {
                     var data = new JArray();
 
-                    if ( _tourInfoService.TryGetTourInfos(page, pageSize, out var tourInfos, out var pagination) !=
+                    if (_tourInfoService.TryGetTourInfos(page, pageSize, out var tourInfos, out var pagination) !=
                         ErrorCode.Success)
                     {
                         break;
@@ -127,9 +125,7 @@ namespace WebMvcPluginTour.Controllers
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 501;
-                responseModel.ErrorCode = 501;
-                responseModel.Message = ex.Message;
+                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
@@ -163,9 +159,7 @@ namespace WebMvcPluginTour.Controllers
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 501;
-                responseModel.ErrorCode = 501;
-                responseModel.Message = ex.Message;
+                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
@@ -209,7 +203,8 @@ namespace WebMvcPluginTour.Controllers
                         break;
                     }
 
-                    var isDestinationParsed = int.TryParse(jsonDestinationPlaceId?.ToString(), out var destinationPlaceId);
+                    var isDestinationParsed =
+                        int.TryParse(jsonDestinationPlaceId?.ToString(), out var destinationPlaceId);
                     var isStartPlaced = int.TryParse(jsonStartPlaceId?.ToString(), out var startPlaceId);
 
                     if (!isDestinationParsed || !isStartPlaced)
@@ -243,9 +238,7 @@ namespace WebMvcPluginTour.Controllers
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 501;
-                responseModel.ErrorCode = 501;
-                responseModel.Message = ex.Message;
+                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
@@ -314,9 +307,7 @@ namespace WebMvcPluginTour.Controllers
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 501;
-                responseModel.ErrorCode = 501;
-                responseModel.Message = ex.Message;
+                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
@@ -339,14 +330,12 @@ namespace WebMvcPluginTour.Controllers
                     }
 
                     responseModel.ErrorCode = (int) ErrorCode.Success;
-                    responseModel.Message = ErrorList.Description(responseModel.ErrorCode);
+                    responseModel.Message = Description(responseModel.ErrorCode);
                 } while (false);
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 501;
-                responseModel.ErrorCode = 501;
-                responseModel.Message = ex.Message;
+                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();

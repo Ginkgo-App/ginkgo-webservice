@@ -55,9 +55,8 @@ namespace APICore.Services
 
                 DisconnectDb();
             }
-            catch (Exception ex)
+            finally
             {
-                Console.WriteLine(ex);
                 DisconnectDb();
             }
 
@@ -96,9 +95,8 @@ namespace APICore.Services
 
                 DisconnectDb();
             }
-            catch (Exception ex)
+            finally
             {
-                Console.WriteLine(ex);
                 DisconnectDb();
             }
 
@@ -137,9 +135,8 @@ namespace APICore.Services
 
                 DisconnectDb();
             }
-            catch (Exception ex)
+            finally
             {
-                Console.WriteLine(ex);
                 DisconnectDb();
             }
 
@@ -158,9 +155,8 @@ namespace APICore.Services
                 errorCode = ErrorCode.Success;
                 DisconnectDb();
             }
-            catch (Exception ex)
+            finally
             {
-                Console.WriteLine(ex);
                 DisconnectDb();
             }
 
@@ -178,9 +174,8 @@ namespace APICore.Services
                 isSuccess = true;
                 DisconnectDb();
             }
-            catch (Exception ex)
+            finally
             {
-                Console.WriteLine(ex);
                 DisconnectDb();
             }
 
@@ -198,9 +193,8 @@ namespace APICore.Services
                 isSuccess = true;
                 DisconnectDb();
             }
-            catch (Exception ex)
+            finally
             {
-                Console.WriteLine(ex);
                 DisconnectDb();
             }
 
@@ -223,9 +217,8 @@ namespace APICore.Services
 
                 DisconnectDb();
             }
-            catch (Exception ex)
+            finally
             {
-                Console.WriteLine(ex);
                 DisconnectDb();
             }
 
@@ -244,9 +237,8 @@ namespace APICore.Services
                 errorCode = ErrorCode.Success;
                 DisconnectDb();
             }
-            catch (Exception ex)
+            finally
             {
-                Console.WriteLine(ex);
                 DisconnectDb();
             }
 
@@ -265,9 +257,8 @@ namespace APICore.Services
                 errorCode = ErrorCode.Success;
                 DisconnectDb();
             }
-            catch (Exception ex)
+            finally
             {
-                Console.WriteLine(ex);
                 DisconnectDb();
             }
 
@@ -286,9 +277,8 @@ namespace APICore.Services
                 errorCode = ErrorCode.Success;
                 DisconnectDb();
             }
-            catch (Exception ex)
+            finally
             {
-                Console.WriteLine(ex);
                 DisconnectDb();
             }
 
