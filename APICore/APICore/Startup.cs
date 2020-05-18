@@ -14,6 +14,8 @@ using System.Text;
 using Toycloud.AspNetCore.Mvc.ModelBinding;
 using APICore.DBContext;
 using APICore.Middlewares;
+using APICore.Services;
+using APICore.Services.Interfaces;
 
 namespace APICore
 {
@@ -41,6 +43,10 @@ namespace APICore
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<IUserService, UserService>();
+            services.AddSingleton<IFriendService, FriendService>();
+            services.AddSingleton<ITourInfoService, TourInfoService>();
+            
             services.AddExtCore(this.pluginsPath);
 
             services.AddControllers();

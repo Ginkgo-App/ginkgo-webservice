@@ -11,8 +11,7 @@ namespace WebMvcPluginTour.Actions
 
         public void Execute(IServiceCollection services, IServiceProvider serviceProvider)
         {
-            services.AddSingleton<IUserService, UserService>();
-            services.AddSingleton<ITourInfoService, TourInfoService>();
+            
         }
     }
 }

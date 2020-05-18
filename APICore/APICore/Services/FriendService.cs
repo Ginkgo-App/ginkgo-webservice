@@ -4,6 +4,7 @@ using APICore.DBContext;
 using APICore.Entities;
 using APICore.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using NLog;
 using static APICore.Helpers.ErrorList;
 
@@ -15,9 +16,9 @@ namespace APICore.Services
         private readonly AppSettings _appSettings;
         private readonly Logger _logger = Vars.Logger;
         
-        public FriendService(AppSettings appSettings)
+        public FriendService(IOptions<AppSettings> appSettings)
         {
-            _appSettings = appSettings;
+            _appSettings = appSettings.Value;
         }
 
         public ErrorCode CountTotalFriend(int userId, out int total)
