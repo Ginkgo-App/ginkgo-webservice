@@ -20,7 +20,7 @@ namespace APICore.Services
 
         public ErrorCode CountTotalFriend(int userId, out int total)
         {
-            ErrorCode errorCode = ErrorCode.Default;
+            var errorCode = ErrorCode.Default;
             total = 0;
 
             try
@@ -86,21 +86,35 @@ namespace APICore.Services
 
             do
             {
-                TryGetFriendRequest(userId, userRequestId, out var friendDb);
-                if (friendDb == null)
+                try
                 {
-                    errorCode = ErrorCode.CanNotAcceptFriendRequest;
-                    break;
+                    ConnectDb();
+                    var friendDBs = _context.Friends.Where(f =>
+                            f.UserId == userId && f.RequestedUserId == userRequestId)
+                        .ToArray();
+
+                    var friendDb = friendDBs.Length > 0 ? friendDBs[0] : null;
+                    if (friendDb == null)
+                    {
+                        errorCode = ErrorCode.FriendRequestNotFound;
+                        break;
+                    }
+
+                    if (friendDb.IsAccepted)
+                    {
+                        errorCode = ErrorCode.AlreadyFriend;
+                        break;
+                    }
+
+                    friendDb.IsAccepted = true;
+                    _context.Friends.Update(friendDb);
+                    _context.SaveChanges();
+                }
+                finally
+                {
+                    DisconnectDb();
                 }
 
-                if (friendDb.IsAccepted)
-                {
-                    errorCode = ErrorCode.AlreadyFriend;
-                    break;
-                }
-
-                friendDb.IsAccepted = true;
-                _context.Friends.Update(friendDb);
                 errorCode = ErrorCode.Success;
             } while (false);
 

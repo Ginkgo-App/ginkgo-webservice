@@ -531,6 +531,44 @@ namespace WebMvcPluginUser.Controllers
             return responseModel.ToJson();
         }
 
+        [HttpPost("me/accept-friend/{userRequestId}")]
+        public object AcceptFriendRequest(int userRequestId)
+        {
+            var responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
+                    var identity = HttpContext.User.Identity as ClaimsIdentity;
+                    if (identity == null)
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    var claims = identity.Claims;
+                    int.TryParse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value,
+                        out var userId);
+
+                    var errorCode = _friendService.TryAcceptFriend(userId, userRequestId);
+                    if (errorCode != ErrorCode.Success)
+                    {
+                        responseModel.FromErrorCode(errorCode);
+                        break;
+                    }
+
+                    responseModel.FromErrorCode(errorCode);
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
+
         private static JObject UserResponseJson(User user)
         {
             var jObject = new JObject {{"Id", user.Id}, {"Token", user.Token}};
