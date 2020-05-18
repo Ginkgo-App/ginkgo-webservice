@@ -8,7 +8,7 @@ namespace WebMvcPluginUser.Actions
         {
             get
             {
-                return "Test name";
+                return "WebMvcPluginUser";
             }
         }
     }

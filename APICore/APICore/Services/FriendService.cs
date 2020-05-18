@@ -1,13 +1,13 @@
 ﻿using System.Linq;
 using APICore.DBContext;
 using APICore.Entities;
+using APICore.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using NLog;
 using static APICore.Helpers.ErrorList;
 
 namespace APICore.Services
 {
-    public class FriendService
+    public class FriendService : IFriendService
     {
         private PostgreSQLContext _context;
         // private readonly AppSettings _appSettings;
@@ -61,7 +61,18 @@ namespace APICore.Services
                     RequestedUserId = userRequestId,
                     IsAccepted = false,
                 };
-                _context.Friends.Add(friend);
+
+                try
+                {
+                    ConnectDb();
+                    _context.Friends.Add(friend);
+                    _context.SaveChanges();
+                }
+                finally
+                {
+                    DisconnectDb();
+                }
+
                 errorCode = ErrorCode.Success;
             } while (false);
 
@@ -105,7 +116,6 @@ namespace APICore.Services
                 {
                     _context.Friends.Remove(friendDb);
                 }
-
             } while (false);
 
             return ErrorCode.Success;

@@ -1,5 +1,6 @@
 ﻿using System;
 using APICore.Services;
+using APICore.Services.Interfaces;
 using ExtCore.Infrastructure.Actions;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,6 +13,7 @@ namespace WebMvcPluginUser.Actions
         public void Execute(IServiceCollection services, IServiceProvider serviceProvider)
         {
             services.AddSingleton<IUserService, UserService>();
+            services.AddSingleton<IFriendService, FriendService>();
         }
     }
 }

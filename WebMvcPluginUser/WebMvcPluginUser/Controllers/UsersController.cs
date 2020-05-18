@@ -6,6 +6,7 @@ using APICore.Entities;
 using APICore.Helpers;
 using APICore.Models;
 using APICore.Services;
+using APICore.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
@@ -21,10 +22,12 @@ namespace WebMvcPluginUser.Controllers
     public class UsersController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly IFriendService _friendService;
 
-        public UsersController(IUserService userService)
+        public UsersController(IUserService userService, IFriendService friendService)
         {
             _userService = userService;
+            _friendService = friendService;
         }
 
         [AllowAnonymous]
@@ -56,7 +59,7 @@ namespace WebMvcPluginUser.Controllers
             }
             catch (Exception ex)
             {
-                                responseModel.FromException(ex);
+                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
@@ -174,7 +177,7 @@ namespace WebMvcPluginUser.Controllers
             }
             catch (Exception ex)
             {
-                                responseModel.FromException(ex);
+                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
@@ -257,7 +260,7 @@ namespace WebMvcPluginUser.Controllers
             }
             catch (Exception ex)
             {
-                                responseModel.FromException(ex);
+                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
@@ -285,7 +288,7 @@ namespace WebMvcPluginUser.Controllers
             }
             catch (Exception ex)
             {
-                                responseModel.FromException(ex);
+                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
@@ -365,7 +368,7 @@ namespace WebMvcPluginUser.Controllers
             }
             catch (Exception ex)
             {
-                                responseModel.FromException(ex);
+                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
@@ -407,7 +410,7 @@ namespace WebMvcPluginUser.Controllers
             }
             catch (Exception ex)
             {
-                                responseModel.FromException(ex);
+                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
@@ -446,7 +449,7 @@ namespace WebMvcPluginUser.Controllers
             }
             catch (Exception ex)
             {
-                                responseModel.FromException(ex);
+                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
@@ -484,7 +487,45 @@ namespace WebMvcPluginUser.Controllers
             }
             catch (Exception ex)
             {
-                                responseModel.FromException(ex);
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
+
+        [HttpPost("me/add-friend/{userToRequestId}")]
+        public object AddFriend(int userToRequestId)
+        {
+            var responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
+                    var identity = HttpContext.User.Identity as ClaimsIdentity;
+                    if (identity == null)
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    var claims = identity.Claims;
+                    int.TryParse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value,
+                        out var userId);
+
+                    var errorCode = _friendService.TryAddFriend(userToRequestId, userId);
+                    if (errorCode != ErrorCode.Success)
+                    {
+                        responseModel.FromErrorCode(errorCode);
+                        break;
+                    }
+
+                    responseModel.FromErrorCode(errorCode);
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
