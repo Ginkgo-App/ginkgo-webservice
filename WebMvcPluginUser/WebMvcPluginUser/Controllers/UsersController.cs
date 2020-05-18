@@ -569,6 +569,44 @@ namespace WebMvcPluginUser.Controllers
             return responseModel.ToJson();
         }
 
+        [HttpDelete("me/friends/{friendId}")]
+        public object RemoveFriend(int friendId)
+        {
+            var responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
+                    var identity = HttpContext.User.Identity as ClaimsIdentity;
+                    if (identity == null)
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    var claims = identity.Claims;
+                    int.TryParse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value,
+                        out var userId);
+
+                    var errorCode = _friendService.TryRemoveFriend(userId, friendId);
+                    if (errorCode != ErrorCode.Success)
+                    {
+                        responseModel.FromErrorCode(errorCode);
+                        break;
+                    }
+
+                    responseModel.FromErrorCode(errorCode);
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
+
         private static JObject UserResponseJson(User user)
         {
             var jObject = new JObject {{"Id", user.Id}, {"Token", user.Token}};

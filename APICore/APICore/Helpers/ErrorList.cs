@@ -22,6 +22,7 @@
             FriendRequestAlreadySent = 13,
             AlreadyFriend = 14,
             FriendRequestNotFound = 15,
+            FriendNotFound = 16,
         }
 
         public static string Description(int errorCode)
@@ -47,6 +48,7 @@
                 ErrorCode.FriendRequestAlreadySent => "Request have already sent.",
                 ErrorCode.AlreadyFriend => "You both were friend already.",
                 ErrorCode.FriendRequestNotFound => "Friend request not found.",
+                ErrorCode.FriendNotFound => "Friend not found.",
                 _ => "Error code is invalid",
             };
         }

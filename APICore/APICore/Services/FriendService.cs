@@ -1,8 +1,10 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using APICore.DBContext;
 using APICore.Entities;
 using APICore.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using NLog;
 using static APICore.Helpers.ErrorList;
 
 namespace APICore.Services
@@ -10,13 +12,13 @@ namespace APICore.Services
     public class FriendService : IFriendService
     {
         private PostgreSQLContext _context;
-        // private readonly AppSettings _appSettings;
-        // private readonly Logger _logger = Vars.Logger;
-        //
-        // public FriendService(AppSettings appSettings)
-        // {
-        //     _appSettings = appSettings;
-        // }
+        private readonly AppSettings _appSettings;
+        private readonly Logger _logger = Vars.Logger;
+        
+        public FriendService(AppSettings appSettings)
+        {
+            _appSettings = appSettings;
+        }
 
         public ErrorCode CountTotalFriend(int userId, out int total)
         {
@@ -123,16 +125,32 @@ namespace APICore.Services
 
         public ErrorCode TryRemoveFriend(int userId, int userRequestId)
         {
+            ErrorCode errorCode;
             do
             {
                 TryGetFriendRequest(userId, userRequestId, out var friendDb);
                 if (friendDb != null)
                 {
-                    _context.Friends.Remove(friendDb);
+                    try
+                    {
+                        ConnectDb();
+                        _context.Friends.Remove(friendDb);
+                        _context.SaveChanges();
+
+                        errorCode = ErrorCode.Success;
+                    }
+                    finally
+                    {
+                        DisconnectDb();
+                    }
+                }
+                else
+                {
+                    errorCode = ErrorCode.FriendNotFound;
                 }
             } while (false);
 
-            return ErrorCode.Success;
+            return errorCode;
         }
 
         private void TryGetFriendRequest(int userId, int userOtherId, out Friend friendDb)
