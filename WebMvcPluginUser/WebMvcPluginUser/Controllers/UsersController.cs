@@ -493,7 +493,7 @@ namespace WebMvcPluginUser.Controllers
             return responseModel.ToJson();
         }
 
-        [HttpPost("me/add-friend/{userToRequestId}")]
+        [HttpPost("me/friends/{userToRequestId}")]
         public object AddFriend(int userToRequestId)
         {
             var responseModel = new ResponseModel();
