@@ -22,6 +22,6 @@ namespace APICore.Services
         bool TryGetTourInfoById(int tourId, out TourInfo tourInfos);
         bool TryUpdateTourInfo(TourInfo tourInfo);
         bool TryRemoveTourInfo(int tourInfoId);
-        bool TryGetFriends(int userId, out List<User> friends);
+        bool TryGetFriends(int userId, string type, out List<User> friends);
     }
 }

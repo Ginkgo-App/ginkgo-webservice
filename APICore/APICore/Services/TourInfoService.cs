@@ -14,14 +14,7 @@ namespace APICore.Services
 {
     public class TourInfoService : ITourInfoService
     {
-        private readonly AppSettings _appSettings;
-        private readonly Logger _logger = Vars.Logger;
         private PostgreSQLContext _context;
-
-        public TourInfoService(IOptions<AppSettings> appSettings)
-        {
-            _appSettings = appSettings.Value;
-        }
 
         public ErrorCode TryGetToursByUserId(int userId, int page, int pageSize, out List<TourInfo> tourInfos,
             out Pagination pagination)
@@ -68,14 +61,14 @@ namespace APICore.Services
         {
             tourInfos = null;
             pagination = null;
-            ErrorCode errorCode = ErrorCode.Fail;
+            var errorCode = ErrorCode.Fail;
 
             try
             {
                 ValidatePageSize(ref page, ref pageSize);
 
                 ConnectDb();
-                var listTourInfos = _context.TourInfos.ToList<TourInfo>();
+                var listTourInfos = _context.TourInfos.ToList();
 
                 var total = listTourInfos.Select(p => p.Id).Count();
                 var skip = pageSize * (page - 1);
@@ -146,7 +139,7 @@ namespace APICore.Services
         public ErrorCode TryGetTourInfoById(int tourId, out TourInfo tourInfos)
         {
             tourInfos = null;
-            ErrorCode errorCode = ErrorCode.Fail;
+            ErrorCode errorCode;
 
             try
             {
@@ -165,13 +158,11 @@ namespace APICore.Services
 
         public bool TryAddTourInfo(TourInfo tourInfo)
         {
-            bool isSuccess = false;
             try
             {
                 ConnectDb();
                 _context.TourInfos.Add(tourInfo);
                 _context.SaveChanges();
-                isSuccess = true;
                 DisconnectDb();
             }
             finally
@@ -179,18 +170,16 @@ namespace APICore.Services
                 DisconnectDb();
             }
 
-            return isSuccess;
+            return true;
         }
 
         public bool TryUpdateTourInfo(TourInfo tourInfo)
         {
-            bool isSuccess = false;
             try
             {
                 ConnectDb();
                 _context.TourInfos.Update(tourInfo);
                 _context.SaveChanges();
-                isSuccess = true;
                 DisconnectDb();
             }
             finally
@@ -198,7 +187,7 @@ namespace APICore.Services
                 DisconnectDb();
             }
 
-            return isSuccess;
+            return true;
         }
 
         public bool TryRemoveTourInfo(int tourInfoId)
@@ -228,7 +217,7 @@ namespace APICore.Services
         public ErrorCode TryGetPlaceById(int placeId, out Place place)
         {
             place = null;
-            ErrorCode errorCode = ErrorCode.Fail;
+            var errorCode = ErrorCode.Fail;
 
             try
             {

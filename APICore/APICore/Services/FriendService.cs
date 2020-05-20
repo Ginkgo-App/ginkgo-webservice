@@ -1,11 +1,10 @@
-﻿using System;
-using System.Linq;
-using APICore.DBContext;
+﻿using APICore.DBContext;
 using APICore.Entities;
 using APICore.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using NLog;
+using System.Linq;
 using static APICore.Helpers.ErrorList;
 
 namespace APICore.Services
@@ -15,7 +14,7 @@ namespace APICore.Services
         private PostgreSQLContext _context;
         private readonly AppSettings _appSettings;
         private readonly Logger _logger = Vars.Logger;
-        
+
         public FriendService(IOptions<AppSettings> appSettings)
         {
             _appSettings = appSettings.Value;
@@ -23,13 +22,14 @@ namespace APICore.Services
 
         public ErrorCode CountTotalFriend(int userId, out int total)
         {
-            var errorCode = ErrorCode.Default;
+            ErrorCode errorCode;
             total = 0;
 
             try
             {
                 ConnectDb();
                 total = _context.Friends.Count(u => u.UserId == userId);
+                errorCode = ErrorCode.Success;
             }
             finally
             {
@@ -37,6 +37,32 @@ namespace APICore.Services
             }
 
             return errorCode;
+        }
+
+        public int CalculateIsFriend(int userId, int userRequestId)
+        {
+            TryGetFriendRequest(userId, userRequestId, out var friendDb);
+            if (friendDb == null)
+            {
+                return 0;
+            }
+
+            if (friendDb.IsAccepted)
+            {
+                return 3;
+            }
+
+            if (userId == friendDb.UserId)
+            {
+                return 1;
+            }
+
+            if (userId == friendDb.RequestedUserId)
+            {
+                return 2;
+            }
+
+            return -1;
         }
 
         public ErrorCode TryAddFriend(int userId, int userRequestId)

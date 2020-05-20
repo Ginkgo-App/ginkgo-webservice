@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿#nullable enable
+using Newtonsoft.Json.Linq;
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -10,7 +11,9 @@ namespace APICore.Entities
         {
         }
 
-        public User(string name, string hashPassword, string email, string? phoneNumber, string? fullName, string? avatar, string? bio, string? slogan, string? job, DateTime? birthday, string? gender, string? address, string role)
+        public User(string name, string hashPassword, string email, string? phoneNumber, string? fullName,
+            string? avatar, string? bio, string? slogan, string? job, DateTime? birthday, string? gender,
+            string? address, string role)
         {
             Name = name;
             Password = hashPassword;
@@ -30,8 +33,7 @@ namespace APICore.Entities
         public int Id { get; set; }
         public string Name { get; set; }
         public string Password { get; set; }
-        [NotMapped]
-        public string Token { get; set; }
+        [NotMapped] public string Token { get; set; }
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
         public string FullName { get; set; }
@@ -43,7 +45,6 @@ namespace APICore.Entities
         public string Gender { get; set; }
         public string Address { get; set; }
         public string Role { get; set; }
-
 
 
         public JObject ToSimpleJson(int isFriend)
@@ -62,58 +63,50 @@ namespace APICore.Entities
     }
 }
 
-    public static class RoleType
-    {
-        public const string Creator = "creator";
-        public const string User = "user";
-        public const string Admin = "admin";
+public static class RoleType
+{
+    public const string Creator = "creator";
+    public const string User = "user";
+    public const string Admin = "admin";
 
-        public static string  TryParse(string text)
+    public static string TryParse(string text)
+    {
+        return text?.ToLower() switch
         {
-            if (text == null)
-            {
-                return null;
-            }
-            if (text.Equals(Creator, StringComparison.OrdinalIgnoreCase))
-            {
-                return Creator;
-            }
-            else if(text.Equals(Admin, StringComparison.OrdinalIgnoreCase))
-            {
-                return Admin;
-            }
-            else if(text.Equals(User, StringComparison.OrdinalIgnoreCase))
-            {
-                return User;
-            }
+            Creator => Creator,
+            Admin => Admin,
+            User => User,
+            _ => null
+        };
+    }
+}
+
+public static class GenderType
+{
+    public const string Male = "male";
+    public const string Female = "female";
+    public const string Other = "other";
+
+    public static string TryParse(string text)
+    {
+        if (text == null)
+        {
             return null;
         }
-    }
 
-    public static class GenderType
-    {
-        public const string Male = "male";
-        public const string Female = "female";
-        public const string Other = "other";
-
-        public static string  TryParse(string text)
+        if (text.Equals(Male, StringComparison.OrdinalIgnoreCase))
         {
-            if (text == null)
-            {
-                return null;
-            }
-            if (text.Equals(Male, StringComparison.OrdinalIgnoreCase))
-            {
-                return Male;
-            }
-            else if(text.Equals(Female, StringComparison.OrdinalIgnoreCase))
-            {
-                return Female;
-            }
-            else if(text.Equals(Other, StringComparison.OrdinalIgnoreCase))
-            {
-                return Other;
-            }
-            return null;
+            return Male;
         }
+        else if (text.Equals(Female, StringComparison.OrdinalIgnoreCase))
+        {
+            return Female;
+        }
+        else if (text.Equals(Other, StringComparison.OrdinalIgnoreCase))
+        {
+            return Other;
+        }
+
+        return null;
     }
+}

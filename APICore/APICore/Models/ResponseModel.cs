@@ -18,6 +18,7 @@ namespace APICore.Models
         public int ErrorCode { get; set; }
         public string Message { get; set; }
         public JArray Data { get; set; }
+
         [JsonExtensionData]
         public Dictionary<string, JToken> AdditionalProperties { get; set; } = new Dictionary<string, JToken>();
 
@@ -35,7 +36,6 @@ namespace APICore.Models
         {
             ErrorCode = (int)errorCode;
             Message = ErrorList.Description(ErrorCode);
-            Data = null;
         }
         
         public void FromException(Exception ex)

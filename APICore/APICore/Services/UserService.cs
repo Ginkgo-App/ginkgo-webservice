@@ -462,15 +462,21 @@ namespace APICore.Services
             return isSuccess;
         }
 
-        public bool TryGetFriends(int userId, out List<User> friends)
+        public bool TryGetFriends(int userId, string type, out List<User> friends)
         {
             friends = new List<User>();
 
             try
             {
                 ConnectDb();
-                var friendDBs = _context.Friends.Where(a => a.UserId == userId || a.RequestedUserId == userId)
-                    .ToArray();
+                var friendDBs = type?.ToLower() switch
+                {
+                    "accepted" => _context.Friends.Where(a =>
+                            a.IsAccepted && (a.UserId == userId || a.RequestedUserId == userId)).ToArray(),
+                    "requesting" => _context.Friends.Where(a => a.IsAccepted == false && (a.UserId == userId)).ToArray(),
+                    "waiting" => _context.Friends.Where(a => a.IsAccepted == false && (a.UserId == userId)).ToArray(),
+                    _ => _context.Friends.Where(a => a.UserId == userId || a.RequestedUserId == userId).ToArray()
+                };
                 foreach (var friend in friendDBs)
                 {
                     var id = friend.UserId != userId ? friend.UserId : friend.RequestedUserId;
@@ -499,7 +505,7 @@ namespace APICore.Services
                 {
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                     new Claim(ClaimTypes.Name, user.Email),
-                    new Claim(ClaimTypes.Role, user.Role),
+                    new Claim(ClaimTypes.Role, user.Role), 
                 }),
                 Expires = DateTime.UtcNow.AddDays(7),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),

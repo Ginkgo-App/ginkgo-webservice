@@ -23,11 +23,13 @@
             AlreadyFriend = 14,
             FriendRequestNotFound = 15,
             FriendNotFound = 16,
+            
+            ServiceNotFound = 17,
         }
 
         public static string Description(int errorCode)
         {
-            ErrorCode code = (ErrorCode) errorCode;
+            var code = (ErrorCode) errorCode;
 
             return code switch
             {
@@ -49,7 +51,8 @@
                 ErrorCode.AlreadyFriend => "You both were friend already.",
                 ErrorCode.FriendRequestNotFound => "Friend request not found.",
                 ErrorCode.FriendNotFound => "Friend not found.",
-                _ => "Error code is invalid",
+                ErrorCode.ServiceNotFound => "Service not found",
+                _ => "Error code is invalid"
             };
         }
     }

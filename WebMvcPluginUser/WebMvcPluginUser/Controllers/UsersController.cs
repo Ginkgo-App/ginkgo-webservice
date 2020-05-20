@@ -355,7 +355,7 @@ namespace WebMvcPluginUser.Controllers
                     user.Job = job ?? user.Job;
                     user.Gender = gender ?? user.Gender;
 
-                    bool isSuccess = _userService.TryUpdateUser(user);
+                    var isSuccess = _userService.TryUpdateUser(user);
 
                     if (!isSuccess)
                     {
@@ -377,7 +377,7 @@ namespace WebMvcPluginUser.Controllers
         [HttpGet("me")]
         public object GetMyInfo()
         {
-            ResponseModel responseModel = new ResponseModel();
+            var responseModel = new ResponseModel();
 
             try
             {
@@ -419,7 +419,7 @@ namespace WebMvcPluginUser.Controllers
         [HttpGet("me/tours")]
         public object GetMyTours()
         {
-            ResponseModel responseModel = new ResponseModel();
+            var responseModel = new ResponseModel();
 
             try
             {
@@ -456,7 +456,7 @@ namespace WebMvcPluginUser.Controllers
         }
 
         [HttpGet("me/friends")]
-        public object GetMyFriends()
+        public object GetMyFriends([FromQuery] string type)
         {
             var responseModel = new ResponseModel();
 
@@ -475,7 +475,7 @@ namespace WebMvcPluginUser.Controllers
                     int.TryParse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value,
                         out var userId);
 
-                    if (!_userService.TryGetFriends(userId, out var friends) || friends == null)
+                    if (!_userService.TryGetFriends(userId, type, out var friends) || friends == null)
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
                         break;

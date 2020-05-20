@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using APICore.Entities;
 using APICore.Helpers;
 using APICore.Models;
 using APICore.Services;
+using APICore.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -20,11 +22,15 @@ namespace WebMvcPluginTour.Controllers
     {
         private readonly ITourInfoService _tourInfoService;
         private readonly IUserService _userService;
+        private readonly IFriendService _friendService;
+        private readonly ITourService _tourService;
 
-        public TourInfoController(ITourInfoService tourInfoService, IUserService userService)
+        public TourInfoController(ITourInfoService tourInfoService, IUserService userService, IFriendService friendService, ITourService tourService)
         {
             _tourInfoService = tourInfoService;
             _userService = userService;
+            _friendService = friendService;
+            _tourService = tourService;
         }
 
         [AllowAnonymous]
@@ -60,17 +66,34 @@ namespace WebMvcPluginTour.Controllers
                         break;
                     }
 
-                    if (_userService.TryGetUsers(tourInfo.CreateById, out var host))
+                    if (!_userService.TryGetUsers(tourInfo.CreateById, out var host))
                     {
                         responseModel.FromErrorCode(ErrorCode.UserNotFound);
                         break;
                     }
 
+                    // Cast to ClaimsIdentity.
+                    var identity = HttpContext.User.Identity as ClaimsIdentity;
+
+                    // Gets list of claims.
+                    IEnumerable<Claim> claim = identity?.Claims;
+
+                    // Gets userId from claims. Generally it's an email address.
+                    var userIdString = claim
+                        ?.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)
+                        ?.Value;
+
+                    // Convert userId to int
+                    var userId = int.Parse(userIdString);
+
+                    var eIsFriend = string.IsNullOrEmpty(userIdString) ? 0 : _friendService.CalculateIsFriend(userId, host.Id);
+
                     // Add data to Response
                     foreach (var tour in tours)
                     {
-                        data.Add(tour.ToSimpleJson(host, 0, 0, null));
-                        //data.Add(AddTourFullInfo(tourInfo));
+                        errorCode = _tourService.TryGetTotalMember(tour.id, out var totalMember);
+
+                        data.Add(tour.ToSimpleJson(host, eIsFriend, totalMember, null));
                     }
 
                     responseModel.ErrorCode = (int) ErrorCode.Success;
