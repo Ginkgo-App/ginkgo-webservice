@@ -47,7 +47,6 @@
     </ItemGroup>
 
     <ItemGroup>
-	 
         <None Update="Plugins\TestAPI.dll">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
@@ -75,6 +74,7 @@
                     -->
             <PluginProject Include="..\..\WebMvcPluginTour\WebMvcPluginTour\WebMvcPluginTour.csproj" />
             <PluginProject Include="..\..\WebMvcPluginUser\WebMvcPluginUser\WebMvcPluginUser.csproj" />
+            <PluginProject Include="..\..\WebMvcPluginPlace\WebMvcPluginPlace\WebMvcPluginPlace.csproj" />
 
         </ItemGroup>
 

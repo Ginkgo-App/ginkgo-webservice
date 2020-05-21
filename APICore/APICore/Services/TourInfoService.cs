@@ -45,8 +45,6 @@ namespace APICore.Services
                     pagination = new Pagination(total, page, pageSize);
                     errorCode = ErrorCode.Success;
                 }
-
-                DisconnectDb();
             }
             finally
             {
