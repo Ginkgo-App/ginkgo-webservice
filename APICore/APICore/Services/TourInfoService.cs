@@ -18,9 +18,10 @@ namespace APICore.Services
         private readonly AppSettings _appSettings;
         private readonly Logger _logger = Vars.Logger;
 
-        public TourInfoService(IOptions<AppSettings> appSettings)
+        public TourInfoService(IOptions<AppSettings> appSettings, PostgreSQLContext context)
         {
             _appSettings = appSettings.Value;
+            _context = context;
         }
 
         public ErrorCode TryGetToursByUserId(int userId, int page, int pageSize, out List<TourInfo> tourInfos,
@@ -278,22 +279,5 @@ namespace APICore.Services
 
             return errorCode;
         }
-
-        #region ConnectDB
-
-        private void ConnectDb()
-        {
-            if (_context != null) return;
-            _context = PostgreSQLContext.Instance;
-        }
-
-        private void DisconnectDb()
-        {
-            if (_context == null) return;
-            _context.Dispose();
-            _context = null;
-        }
-
-        #endregion
     }
 }

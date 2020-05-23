@@ -15,9 +15,10 @@ namespace APICore.Services
         private readonly AppSettings _appSettings;
         private readonly Logger _logger = Vars.Logger;
 
-        public FriendService(IOptions<AppSettings> appSettings)
+        public FriendService(IOptions<AppSettings> appSettings, PostgreSQLContext context)
         {
             _appSettings = appSettings.Value;
+            _context = context;
         }
 
         public ErrorCode CountTotalFriend(int userId, out int total)
@@ -197,22 +198,5 @@ namespace APICore.Services
                 DbService.DisconnectDb(ref _context);
             }
         }
-
-        #region ConnectDB
-
-        private void ConnectDb()
-        {
-            if (_context != null) return;
-            _context = PostgreSQLContext.Instance;
-        }
-
-        private void DisconnectDb()
-        {
-            if (_context == null) return;
-            _context.Dispose();
-            _context = null;
-        }
-
-        #endregion
     }
 }

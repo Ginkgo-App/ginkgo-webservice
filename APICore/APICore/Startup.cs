@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -11,8 +10,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.IO;
 using System.Reflection;
 using System.Text;
-using Toycloud.AspNetCore.Mvc.ModelBinding;
 using APICore.DBContext;
+using Toycloud.AspNetCore.Mvc.ModelBinding;
 using APICore.Middlewares;
 using APICore.Services;
 using APICore.Services.Interfaces;
@@ -21,35 +20,35 @@ namespace APICore
 {
     public class Startup
     {
-        private readonly string pluginsPath;
+        private readonly string _pluginsPath;
 
         public Startup(IConfiguration configuration, IWebHostEnvironment webHostEnvironment)
         {
             Configuration = configuration;
 
-            string contentRootPath = webHostEnvironment.ContentRootPath;
+            var contentRootPath = webHostEnvironment.ContentRootPath;
             if (webHostEnvironment.IsDevelopment())
             {
                 // development
                 contentRootPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             }
 
-            this.pluginsPath = Path.Combine(contentRootPath, "Plugins");
-            //this.pluginsPath = Path.Combine("D:\\Documents\\Code\\Ginko\\APICore\\APICore", "Plugins");
+            _pluginsPath = Path.Combine(contentRootPath, "Plugins");
         }
 
-        public IConfiguration Configuration { get; }
+        private IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton(PostgreSQLContext.Instance);
             services.AddSingleton<IUserService, UserService>();
             services.AddSingleton<IFriendService, FriendService>();
             services.AddSingleton<ITourInfoService, TourInfoService>();
             services.AddSingleton<ITourService, TourService>();
             services.AddSingleton<IPlaceService, PlaceService>();
             
-            services.AddExtCore(this.pluginsPath);
+            services.AddExtCore(this._pluginsPath);
 
             services.AddControllers();
 

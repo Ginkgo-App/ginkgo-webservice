@@ -24,9 +24,10 @@ namespace APICore.Services
         private readonly AppSettings _appSettings;
         private readonly Logger _logger = Vars.Logger;
 
-        public PlaceService(IOptions<AppSettings> appSettings)
+        public PlaceService(IOptions<AppSettings> appSettings, PostgreSQLContext context)
         {
             _appSettings = appSettings.Value;
+            _context = context;
         }
 
         public bool TryGetAllPlaces(int page, int pageSize, out List<Place> places, out Pagination pagination)

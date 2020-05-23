@@ -2,6 +2,7 @@
 using APICore.Entities;
 using Microsoft.EntityFrameworkCore;
 using APICore.Entities;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace APICore.DBContext
 {
@@ -33,6 +34,7 @@ namespace APICore.DBContext
         {
             base.OnConfiguring(optionsBuilder);
             optionsBuilder.UseNpgsql(Vars.ConnectionString);
+            
         }
 
         public DbSet<User> Users { get; set; }
