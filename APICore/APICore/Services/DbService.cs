@@ -5,19 +5,19 @@ namespace APICore.Services
 {
     public class DbService
     {
-        public static void ConnectDb(ref PostgreSQLContext context)
+        public static void ConnectDb(out PostgreSQLContext context)
         {
-            if (context != null) return;
+            // if (context != null) return;
             // context = PostgreSQLContext.Instance;
             context = new PostgreSQLContext(new DbContextOptions<PostgreSQLContext>());
         }
 
-        public static void DisconnectDb(ref PostgreSQLContext context)
+        public static void DisconnectDb(out PostgreSQLContext context)
         {
-            if (context != null)
-            {
-                context.Dispose();
-            }
+            // if (context != null)
+            // {
+            //     context.Dispose();
+            // }
             context = null;
         }
     }

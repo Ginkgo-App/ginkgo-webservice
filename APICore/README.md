@@ -4,6 +4,10 @@
 ```
 dotnet ef migrations add InitWebDB
 ```
+## Remove data
+```
+dotnet ef database update 0
+```
 ## Remove migrations
 ```
 dotnet ef migrations remove

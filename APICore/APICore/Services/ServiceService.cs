@@ -28,7 +28,7 @@ namespace APICore.Services
             {
                     try
                     {
-                        DbService.ConnectDb(ref _context);
+                        DbService.ConnectDb(out _context);
                         tourServices = _context.TourServices.Where(s => s.TourId == tourId).ToList();
 
                         if (!tourServices.Any())
@@ -40,7 +40,7 @@ namespace APICore.Services
                     }
                     finally
                     {
-                        DbService.DisconnectDb(ref _context);
+                        DbService.DisconnectDb(out _context);
                     }
             } while (false);
 

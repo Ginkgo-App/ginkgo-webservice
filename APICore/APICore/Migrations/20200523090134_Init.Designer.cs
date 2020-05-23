@@ -10,8 +10,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace APICore.Migrations
 {
     [DbContext(typeof(PostgreSQLContext))]
-    [Migration("20200516084401_UpdateIsAcceptedProperty")]
-    partial class UpdateIsAcceptedProperty
+    [Migration("20200523090134_Init")]
+    partial class Init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -60,7 +60,7 @@ namespace APICore.Migrations
                     b.Property<DateTime>("CreateAt")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<int>("Rating")
+                    b.Property<int?>("Rating")
                         .HasColumnType("integer");
 
                     b.HasKey("AuthorId", "TourId");
@@ -119,13 +119,13 @@ namespace APICore.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("UserOtherId")
+                    b.Property<int>("RequestedUserId")
                         .HasColumnType("integer");
 
                     b.Property<bool>("IsAccepted")
                         .HasColumnType("boolean");
 
-                    b.HasKey("UserId", "UserOtherId");
+                    b.HasKey("UserId", "RequestedUserId");
 
                     b.ToTable("Friends");
                 });
@@ -349,7 +349,7 @@ namespace APICore.Migrations
                     b.Property<int>("CreateById")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("DeleteAt")
+                    b.Property<DateTime?>("DeleteAt")
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<int>("DestinatePlaceId")
@@ -361,7 +361,7 @@ namespace APICore.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
-                    b.Property<double>("Rating")
+                    b.Property<double?>("Rating")
                         .HasColumnType("double precision");
 
                     b.Property<int>("StartPlaceId")
@@ -420,10 +420,11 @@ namespace APICore.Migrations
                     b.Property<string>("Bio")
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("Birthday")
+                    b.Property<DateTime?>("Birthday")
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Email")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("FullName")
@@ -445,6 +446,7 @@ namespace APICore.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Role")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Slogan")

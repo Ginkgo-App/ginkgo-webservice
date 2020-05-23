@@ -58,7 +58,7 @@ namespace APICore.Migrations
                     b.Property<DateTime>("CreateAt")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<int>("Rating")
+                    b.Property<int?>("Rating")
                         .HasColumnType("integer");
 
                     b.HasKey("AuthorId", "TourId");
@@ -347,7 +347,7 @@ namespace APICore.Migrations
                     b.Property<int>("CreateById")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("DeleteAt")
+                    b.Property<DateTime?>("DeleteAt")
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<int>("DestinatePlaceId")
@@ -359,7 +359,7 @@ namespace APICore.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
-                    b.Property<double>("Rating")
+                    b.Property<double?>("Rating")
                         .HasColumnType("double precision");
 
                     b.Property<int>("StartPlaceId")
@@ -418,10 +418,11 @@ namespace APICore.Migrations
                     b.Property<string>("Bio")
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("Birthday")
+                    b.Property<DateTime?>("Birthday")
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Email")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("FullName")
@@ -443,6 +444,7 @@ namespace APICore.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Role")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Slogan")

@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace APICore.Migrations
 {
-    public partial class InitTable : Migration
+    public partial class Init : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -62,7 +62,7 @@ namespace APICore.Migrations
                     AuthorId = table.Column<int>(nullable: false),
                     TourId = table.Column<int>(nullable: false),
                     Content = table.Column<string>(nullable: true),
-                    Rating = table.Column<int>(nullable: false),
+                    Rating = table.Column<int>(nullable: true),
                     CreateAt = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
@@ -75,11 +75,12 @@ namespace APICore.Migrations
                 columns: table => new
                 {
                     UserId = table.Column<int>(nullable: false),
-                    UserOtherId = table.Column<int>(nullable: false)
+                    RequestedUserId = table.Column<int>(nullable: false),
+                    IsAccepted = table.Column<bool>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Friends", x => new { x.UserId, x.UserOtherId });
+                    table.PrimaryKey("PK_Friends", x => new { x.UserId, x.RequestedUserId });
                 });
 
             migrationBuilder.CreateTable(
@@ -225,8 +226,8 @@ namespace APICore.Migrations
                     Images = table.Column<string[]>(nullable: true),
                     StartPlaceId = table.Column<int>(nullable: false),
                     DestinatePlaceId = table.Column<int>(nullable: false),
-                    DeleteAt = table.Column<DateTime>(nullable: false),
-                    Rating = table.Column<double>(nullable: false)
+                    DeleteAt = table.Column<DateTime>(nullable: true),
+                    Rating = table.Column<double>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -251,7 +252,7 @@ namespace APICore.Migrations
                 name: "Tours",
                 columns: table => new
                 {
-                    id = table.Column<int>(nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(nullable: true),
                     StartDay = table.Column<DateTime>(nullable: false),
@@ -261,7 +262,7 @@ namespace APICore.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Tours", x => x.id);
+                    table.PrimaryKey("PK_Tours", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -284,18 +285,17 @@ namespace APICore.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(nullable: true),
                     Password = table.Column<string>(nullable: true),
-                    Token = table.Column<string>(nullable: true),
-                    Email = table.Column<string>(nullable: true),
+                    Email = table.Column<string>(nullable: false),
                     PhoneNumber = table.Column<string>(nullable: true),
                     FullName = table.Column<string>(nullable: true),
                     Avatar = table.Column<string>(nullable: true),
                     Bio = table.Column<string>(nullable: true),
                     Slogan = table.Column<string>(nullable: true),
                     Job = table.Column<string>(nullable: true),
-                    Birthday = table.Column<DateTime>(nullable: false),
-                    Gender = table.Column<int>(nullable: false),
+                    Birthday = table.Column<DateTime>(nullable: true),
+                    Gender = table.Column<string>(nullable: true),
                     Address = table.Column<string>(nullable: true),
-                    Role = table.Column<string>(nullable: true)
+                    Role = table.Column<string>(nullable: false)
                 },
                 constraints: table =>
                 {

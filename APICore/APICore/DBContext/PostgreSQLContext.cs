@@ -1,8 +1,5 @@
-﻿using APICore;
-using APICore.Entities;
+﻿using APICore.Entities;
 using Microsoft.EntityFrameworkCore;
-using APICore.Entities;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace APICore.DBContext
 {

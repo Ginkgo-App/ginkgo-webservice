@@ -34,7 +34,7 @@ namespace APICore.Services
             {
                 ValidatePageSize(ref page, ref pageSize);
 
-                DbService.ConnectDb(ref _context);
+                DbService.ConnectDb(out _context);
                 var listTourInfos = _context.TourInfos.Where(a => a.CreateById == userId).ToList();
 
                 var total = listTourInfos.Select(p => p.Id).Count();
@@ -55,7 +55,7 @@ namespace APICore.Services
             }
             finally
             {
-                DbService.DisconnectDb(ref _context);
+                DbService.DisconnectDb(out _context);
             }
 
             return errorCode;
@@ -72,7 +72,7 @@ namespace APICore.Services
             {
                 ValidatePageSize(ref page, ref pageSize);
 
-                DbService.ConnectDb(ref _context);
+                DbService.ConnectDb(out _context);
                 var listTourInfos = _context.TourInfos.ToList();
 
                 var total = listTourInfos.Select(p => p.Id).Count();
@@ -91,11 +91,11 @@ namespace APICore.Services
                     errorCode = ErrorCode.Success;
                 }
 
-                DbService.DisconnectDb(ref _context);
+                DbService.DisconnectDb(out _context);
             }
             finally
             {
-                DbService.DisconnectDb(ref _context);
+                DbService.DisconnectDb(out _context);
             }
 
             return errorCode;
@@ -112,7 +112,7 @@ namespace APICore.Services
             {
                 ValidatePageSize(ref page, ref pageSize);
 
-                DbService.ConnectDb(ref _context);
+                DbService.ConnectDb(out _context);
                 var listTours = _context.Tours.ToList();
 
                 var total = listTours.Select(p => p.TourInfoId).Count();
@@ -131,11 +131,11 @@ namespace APICore.Services
                     errorCode = ErrorCode.Success;
                 }
 
-                DbService.DisconnectDb(ref _context);
+                DbService.DisconnectDb(out _context);
             }
             finally
             {
-                DbService.DisconnectDb(ref _context);
+                DbService.DisconnectDb(out _context);
             }
 
             return errorCode;
@@ -148,14 +148,14 @@ namespace APICore.Services
 
             try
             {
-                DbService.ConnectDb(ref _context);
+                DbService.ConnectDb(out _context);
                 tourInfos = _context.TourInfos.FirstOrDefault(a => a.Id == tourId);
                 errorCode = ErrorCode.Success;
-                DbService.DisconnectDb(ref _context);
+                DbService.DisconnectDb(out _context);
             }
             finally
             {
-                DbService.DisconnectDb(ref _context);
+                DbService.DisconnectDb(out _context);
             }
 
             return errorCode;
@@ -165,14 +165,14 @@ namespace APICore.Services
         {
             try
             {
-                DbService.ConnectDb(ref _context);
+                DbService.ConnectDb(out _context);
                 _context.TourInfos.Add(tourInfo);
                 _context.SaveChanges();
-                DbService.DisconnectDb(ref _context);
+                DbService.DisconnectDb(out _context);
             }
             finally
             {
-                DbService.DisconnectDb(ref _context);
+                DbService.DisconnectDb(out _context);
             }
 
             return true;
@@ -182,14 +182,14 @@ namespace APICore.Services
         {
             try
             {
-                DbService.ConnectDb(ref _context);
+                DbService.ConnectDb(out _context);
                 _context.TourInfos.Update(tourInfo);
                 _context.SaveChanges();
-                DbService.DisconnectDb(ref _context);
+                DbService.DisconnectDb(out _context);
             }
             finally
             {
-                DbService.DisconnectDb(ref _context);
+                DbService.DisconnectDb(out _context);
             }
 
             return true;
@@ -200,7 +200,7 @@ namespace APICore.Services
             bool isSuccess = false;
             try
             {
-                DbService.ConnectDb(ref _context);
+                DbService.ConnectDb(out _context);
                 var tourInfo = _context.TourInfos.FirstOrDefault(u => u.Id == tourInfoId);
                 if (tourInfo != null)
                 {
@@ -209,11 +209,11 @@ namespace APICore.Services
                     isSuccess = true;
                 }
 
-                DbService.DisconnectDb(ref _context);
+                DbService.DisconnectDb(out _context);
             }
             finally
             {
-                DbService.DisconnectDb(ref _context);
+                DbService.DisconnectDb(out _context);
             }
 
             return isSuccess;
@@ -226,14 +226,14 @@ namespace APICore.Services
 
             try
             {
-                DbService.ConnectDb(ref _context);
+                DbService.ConnectDb(out _context);
                 place = _context.Places.FirstOrDefault(a => a.Id == placeId);
                 errorCode = ErrorCode.Success;
-                DbService.DisconnectDb(ref _context);
+                DbService.DisconnectDb(out _context);
             }
             finally
             {
-                DbService.DisconnectDb(ref _context);
+                DbService.DisconnectDb(out _context);
             }
 
             return errorCode;
@@ -246,14 +246,14 @@ namespace APICore.Services
 
             try
             {
-                DbService.ConnectDb(ref _context);
+                DbService.ConnectDb(out _context);
                 user = _context.Users.FirstOrDefault(a => a.Id == userId);
                 errorCode = ErrorCode.Success;
-                DbService.DisconnectDb(ref _context);
+                DbService.DisconnectDb(out _context);
             }
             finally
             {
-                DbService.DisconnectDb(ref _context);
+                DbService.DisconnectDb(out _context);
             }
 
             return errorCode;
@@ -266,14 +266,14 @@ namespace APICore.Services
 
             try
             {
-                DbService.ConnectDb(ref _context);
+                DbService.ConnectDb(out _context);
                 service = _context.Services.FirstOrDefault(a => a.Id == serviceId);
                 errorCode = ErrorCode.Success;
-                DbService.DisconnectDb(ref _context);
+                DbService.DisconnectDb(out _context);
             }
             finally
             {
-                DbService.DisconnectDb(ref _context);
+                DbService.DisconnectDb(out _context);
             }
 
             return errorCode;

@@ -39,7 +39,7 @@ namespace APICore.Services
             {
                 CoreHelper.ValidatePageSize(ref page, ref pageSize);
 
-                DbService.ConnectDb(ref _context);
+                DbService.ConnectDb(out _context);
                 var listTourInfos = _context.Places.ToList();
 
                 var total = listTourInfos.Select(p => p.Id).Count();
@@ -60,7 +60,7 @@ namespace APICore.Services
             }
             finally
             {
-                DbService.DisconnectDb(ref _context);
+                DbService.DisconnectDb(out _context);
             }
 
             return isSuccess;
@@ -72,12 +72,12 @@ namespace APICore.Services
 
             try
             {
-                DbService.ConnectDb(ref _context);
+                DbService.ConnectDb(out _context);
                 place = _context.Places.FirstOrDefault(p => p.Id == placeId);
             }
             finally
             {
-                DbService.DisconnectDb(ref _context);
+                DbService.DisconnectDb(out _context);
             }
 
             return true;
@@ -87,14 +87,14 @@ namespace APICore.Services
         {
             try
             {
-                DbService.ConnectDb(ref _context);
+                DbService.ConnectDb(out _context);
                 _context.Places.Update(place);
                 _context.SaveChanges();
-                DbService.DisconnectDb(ref _context);
+                DbService.DisconnectDb(out _context);
             }
             finally
             {
-                DbService.DisconnectDb(ref _context);
+                DbService.DisconnectDb(out _context);
             }
 
             return true;
@@ -104,14 +104,14 @@ namespace APICore.Services
         {
             try
             {
-                DbService.ConnectDb(ref _context);
+                DbService.ConnectDb(out _context);
                 _context.Places.Add(place);
                 _context.SaveChanges();
-                DbService.DisconnectDb(ref _context);
+                DbService.DisconnectDb(out _context);
             }
             finally
             {
-                DbService.DisconnectDb(ref _context);
+                DbService.DisconnectDb(out _context);
             }
 
             return true;
@@ -122,7 +122,7 @@ namespace APICore.Services
             var isSuccess = false;
             try
             {
-                DbService.ConnectDb(ref _context);
+                DbService.ConnectDb(out _context);
                 var place = _context.Places.FirstOrDefault(p => p.Id == placeId);
                 if (place != null)
                 {
@@ -133,7 +133,7 @@ namespace APICore.Services
             }
             finally
             {
-                DbService.DisconnectDb(ref _context);
+                DbService.DisconnectDb(out _context);
             }
 
             return isSuccess;

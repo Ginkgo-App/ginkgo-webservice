@@ -21,10 +21,12 @@ namespace APICore
 {
     public class Startup
     {
+        private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly string _pluginsPath;
 
         public Startup(IConfiguration configuration, IWebHostEnvironment webHostEnvironment)
         {
+            _webHostEnvironment = webHostEnvironment;
             Configuration = configuration;
 
             var contentRootPath = webHostEnvironment.ContentRootPath;
@@ -93,8 +95,6 @@ namespace APICore
             {
                 options.UseNpgsql(Vars.ConnectionString, options => options.EnableRetryOnFailure());
             }, ServiceLifetime.Transient);
-
-            // services.AddDbContext<PostgreSQLContext>(PostgreSQLContext.Instance);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -108,7 +108,7 @@ namespace APICore
             app.UseAuthentication();
             app.UseCorsMiddleware();
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
             app.UseRouting();
 
             // global cors policy

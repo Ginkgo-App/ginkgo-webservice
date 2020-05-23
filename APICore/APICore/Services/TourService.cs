@@ -26,14 +26,14 @@ namespace APICore.Services
 
             try
             {
-                DbService.ConnectDb(ref _context);
+                DbService.ConnectDb(out _context);
                 totalMember = _context.TourMembers.Count(t => t.TourId == tourId);
                 errorCode = ErrorCode.Success;
-                DbService.DisconnectDb(ref _context);
+                DbService.DisconnectDb(out _context);
             }
             finally
             {
-                DbService.DisconnectDb(ref _context);
+                DbService.DisconnectDb(out _context);
             }
 
             return errorCode;
