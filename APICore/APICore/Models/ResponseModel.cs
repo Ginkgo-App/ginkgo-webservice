@@ -40,6 +40,7 @@ namespace APICore.Models
         
         public void FromException(Exception ex)
         {
+            Console.WriteLine(ex);
             ErrorCode = 501;
             Message = "An error has occurred";
             Data = new JArray
