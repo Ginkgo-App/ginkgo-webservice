@@ -15,6 +15,7 @@ using Toycloud.AspNetCore.Mvc.ModelBinding;
 using APICore.Middlewares;
 using APICore.Services;
 using APICore.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace APICore
 {
@@ -41,7 +42,6 @@ namespace APICore
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton(PostgreSQLContext.Instance);
             services.AddSingleton<IUserService, UserService>();
             services.AddSingleton<IFriendService, FriendService>();
             services.AddSingleton<ITourInfoService, TourInfoService>();
@@ -89,10 +89,10 @@ namespace APICore
             Vars.ConnectionString = appSettings.ConnectionString; 
             Vars.PasswordSalt = appSettings.PasswordSalt;
 
-            // services.AddDbContext<PostgreSQLContext>(options =>
-            // {
-            //     options.UseNpgsql(Vars.ConnectionString, options => options.EnableRetryOnFailure());
-            // });
+            services.AddDbContext<PostgreSQLContext>(options =>
+            {
+                options.UseNpgsql(Vars.ConnectionString, options => options.EnableRetryOnFailure());
+            }, ServiceLifetime.Transient);
 
             // services.AddDbContext<PostgreSQLContext>(PostgreSQLContext.Instance);
         }

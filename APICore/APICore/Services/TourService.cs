@@ -14,10 +14,9 @@ namespace APICore.Services
         private readonly AppSettings _appSettings;
         private readonly Logger _logger = Vars.Logger;
 
-        public TourService(IOptions<AppSettings> appSettings, PostgreSQLContext context)
+        public TourService(IOptions<AppSettings> appSettings)
         {
             _appSettings = appSettings.Value;
-            _context = context;
         }
 
         public ErrorCode TryGetTotalMember(int tourId, out int totalMember)

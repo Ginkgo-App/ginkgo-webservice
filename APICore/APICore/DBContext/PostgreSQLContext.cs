@@ -8,27 +8,27 @@ namespace APICore.DBContext
 {
     public class PostgreSQLContext : DbContext
     {
-        private static PostgreSQLContext instance = null;
-        private static readonly object padlock = new object();
+        // private static PostgreSQLContext instance = null;
+        // private static readonly object padlock = new object();
 
-        private PostgreSQLContext(DbContextOptions<PostgreSQLContext> options) : base(options)
+        public PostgreSQLContext(DbContextOptions<PostgreSQLContext> options) : base(options)
         {
         }
 
-        public static PostgreSQLContext Instance
-        {
-            get
-            {
-                if (instance != null) return instance;
-                lock (padlock)
-                {
-                    if (instance != null) return instance;
-                    var options = new DbContextOptions<PostgreSQLContext>();
-                    instance = new PostgreSQLContext(options);
-                }
-                return instance;
-            }
-        }
+        // public static PostgreSQLContext Instance
+        // {
+        //     get
+        //     {
+        //         if (instance != null) return instance;
+        //         lock (padlock)
+        //         {
+        //             if (instance != null) return instance;
+        //             var options = new DbContextOptions<PostgreSQLContext>();
+        //             instance = new PostgreSQLContext(options);
+        //         }
+        //         return instance;
+        //     }
+        // }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

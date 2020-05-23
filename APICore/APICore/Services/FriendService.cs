@@ -15,10 +15,9 @@ namespace APICore.Services
         private readonly AppSettings _appSettings;
         private readonly Logger _logger = Vars.Logger;
 
-        public FriendService(IOptions<AppSettings> appSettings, PostgreSQLContext context)
+        public FriendService(IOptions<AppSettings> appSettings)
         {
             _appSettings = appSettings.Value;
-            _context = context;
         }
 
         public ErrorCode CountTotalFriend(int userId, out int total)

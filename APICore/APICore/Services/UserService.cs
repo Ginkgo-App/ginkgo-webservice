@@ -23,10 +23,9 @@ namespace APICore.Services
         private readonly Logger _logger = Vars.Logger;
         private PostgreSQLContext _context;
 
-        public UserService(IOptions<AppSettings> appSettings, PostgreSQLContext context)
+        public UserService(IOptions<AppSettings> appSettings)
         {
             _appSettings = appSettings.Value;
-            _context = context;
         }
 
         public ErrorCode Authenticate(string email, string password, out User user)

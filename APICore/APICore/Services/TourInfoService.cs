@@ -18,10 +18,9 @@ namespace APICore.Services
         private readonly AppSettings _appSettings;
         private readonly Logger _logger = Vars.Logger;
 
-        public TourInfoService(IOptions<AppSettings> appSettings, PostgreSQLContext context)
+        public TourInfoService(IOptions<AppSettings> appSettings)
         {
             _appSettings = appSettings.Value;
-            _context = context;
         }
 
         public ErrorCode TryGetToursByUserId(int userId, int page, int pageSize, out List<TourInfo> tourInfos,
