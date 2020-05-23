@@ -47,6 +47,7 @@ namespace APICore
             services.AddSingleton<IFriendService, FriendService>();
             services.AddSingleton<ITourInfoService, TourInfoService>();
             services.AddSingleton<ITourService, TourService>();
+            services.AddSingleton<IPlaceService, PlaceService>();
             
             services.AddExtCore(this.pluginsPath);
 

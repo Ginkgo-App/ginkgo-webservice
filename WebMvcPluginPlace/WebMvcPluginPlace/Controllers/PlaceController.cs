@@ -1,28 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using APICore.Entities;
 using APICore.Helpers;
 using APICore.Models;
 using APICore.Services;
-using APICore.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace WebMvcPluginPlace.Controllers
 {
     [Authorize]
     [ApiController]
-    [Route("api/" + PlaceVars.Version + "/tour-infos")]
-    public class TourInfoController : ControllerBase
+    [Route("api/" + PlaceVars.Version + "/places")]
+    public class PlaceController : ControllerBase
     {
         private readonly IPlaceService _placeService;
 
 
-        public TourInfoController(IPlaceService placeService)
+        public PlaceController(IPlaceService placeService)
         {
             _placeService = placeService;
         }
@@ -33,21 +27,20 @@ namespace WebMvcPluginPlace.Controllers
         {
             var responseModel = new ResponseModel();
 
-            var data = new JArray();
             try
             {
                 do
                 {
                     var errorCode = _placeService.TryGetAllPlaces(page, pageSize, out var places, out var pagination);
 
-                    if (errorCode)
+                    if (!errorCode)
                     {
                         responseModel.FromErrorCode(ErrorList.ErrorCode.Fail);
                         break;
                     }
 
                     responseModel.FromErrorCode(ErrorList.ErrorCode.Success);
-                    responseModel.Data = data;
+                    responseModel.Data = JArray.FromObject(places);
                     responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
                 } while (false);
             }
@@ -61,25 +54,24 @@ namespace WebMvcPluginPlace.Controllers
 
         [AllowAnonymous]
         [HttpGet("{id}")]
-        public object GetAllPlacesById(int id, [FromQuery] int page, [FromQuery] int pageSize)
+        public object GetPlaceById(int id, [FromQuery] int page, [FromQuery] int pageSize)
         {
             var responseModel = new ResponseModel();
 
-            var data = new JArray();
             try
             {
                 do
                 {
-                    var errorCode = _placeService.TryGetPlaceById(id, out var places);
+                    var errorCode = _placeService.TryGetPlaceById(id, out var place);
 
-                    if (errorCode)
+                    if (!errorCode)
                     {
                         responseModel.FromErrorCode(ErrorList.ErrorCode.Fail);
                         break;
                     }
 
                     responseModel.FromErrorCode(ErrorList.ErrorCode.Success);
-                    responseModel.Data = data;
+                    responseModel.Data = new JArray {JToken.FromObject(place)};
                 } while (false);
             }
             catch (Exception ex)

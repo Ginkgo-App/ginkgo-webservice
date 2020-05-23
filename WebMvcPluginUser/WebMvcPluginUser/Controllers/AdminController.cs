@@ -1,6 +1,4 @@
-﻿using System;
-using APICore;
-using APICore.Entities;
+﻿using APICore.Entities;
 using APICore.Helpers;
 using APICore.Models;
 using APICore.Services;
@@ -8,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
 using WebMvcPluginUser.Helpers;
 using static APICore.Helpers.ErrorList;
 
@@ -43,7 +42,7 @@ namespace WebMvcPluginUser.Controllers
 
                     if (users == null || users.Count == 0 || pagination == null)
                     {
-                        responseModel.ErrorCode = (int) ErrorCode.UserNotFound;
+                        responseModel.ErrorCode = (int)ErrorCode.UserNotFound;
                         responseModel.Message = Description(responseModel.ErrorCode);
                         break;
                     }
@@ -53,7 +52,7 @@ namespace WebMvcPluginUser.Controllers
                         data.Add(JObject.FromObject(user));
                     }
 
-                    responseModel.ErrorCode = (int) ErrorCode.Success;
+                    responseModel.ErrorCode = (int)ErrorCode.Success;
                     responseModel.Message = Description(responseModel.ErrorCode);
                     responseModel.Data = data;
                     responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
@@ -61,7 +60,7 @@ namespace WebMvcPluginUser.Controllers
             }
             catch (Exception ex)
             {
-                                responseModel.FromException(ex);
+                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
@@ -85,20 +84,20 @@ namespace WebMvcPluginUser.Controllers
 
                     if (user == null)
                     {
-                        responseModel.ErrorCode = (int) ErrorCode.UserNotFound;
+                        responseModel.ErrorCode = (int)ErrorCode.UserNotFound;
                         responseModel.Message = Description(responseModel.ErrorCode);
                         break;
                     }
 
                     data.Add(JObject.FromObject(user));
-                    responseModel.ErrorCode = (int) ErrorCode.Success;
+                    responseModel.ErrorCode = (int)ErrorCode.Success;
                     responseModel.Message = Description(responseModel.ErrorCode);
                     responseModel.Data = data;
                 } while (false);
             }
             catch (Exception ex)
             {
-                                responseModel.FromException(ex);
+                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
@@ -115,18 +114,18 @@ namespace WebMvcPluginUser.Controllers
                 {
                     if (!_userService.TryRemoveUser(userId))
                     {
-                        responseModel.ErrorCode = (int) ErrorCode.Fail;
+                        responseModel.ErrorCode = (int)ErrorCode.Fail;
                         responseModel.Message = "Remove user fail";
                         break;
                     }
 
-                    responseModel.ErrorCode = (int) ErrorCode.Success;
+                    responseModel.ErrorCode = (int)ErrorCode.Success;
                     responseModel.Message = Description(responseModel.ErrorCode);
                 } while (false);
             }
             catch (Exception ex)
             {
-                                responseModel.FromException(ex);
+                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
@@ -206,12 +205,12 @@ namespace WebMvcPluginUser.Controllers
                     }
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data = new JArray {JObject.FromObject(user)};
+                    responseModel.Data = new JArray { JObject.FromObject(user) };
                 } while (false);
             }
             catch (Exception ex)
             {
-                                responseModel.FromException(ex);
+                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
@@ -320,12 +319,12 @@ namespace WebMvcPluginUser.Controllers
                     }
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data = new JArray {JObject.FromObject(user)};
+                    responseModel.Data = new JArray { JObject.FromObject(user) };
                 } while (false);
             }
             catch (Exception ex)
             {
-                                responseModel.FromException(ex);
+                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
@@ -347,18 +346,18 @@ namespace WebMvcPluginUser.Controllers
 
                     if (tourInfo == null)
                     {
-                        responseModel.ErrorCode = (int) ErrorCode.UserNotFound;
+                        responseModel.ErrorCode = (int)ErrorCode.UserNotFound;
                         responseModel.Message = Description(responseModel.ErrorCode);
                         break;
                     }
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data = new JArray {JObject.FromObject(tourInfo)};
+                    responseModel.Data = new JArray { JObject.FromObject(tourInfo) };
                 } while (false);
             }
             catch (Exception ex)
             {
-                                responseModel.FromException(ex);
+                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
@@ -415,12 +414,12 @@ namespace WebMvcPluginUser.Controllers
                     }
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data = new JArray {JObject.FromObject(tourInfo)};
+                    responseModel.Data = new JArray { JObject.FromObject(tourInfo) };
                 } while (false);
             }
             catch (Exception ex)
             {
-                                responseModel.FromException(ex);
+                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
@@ -437,18 +436,18 @@ namespace WebMvcPluginUser.Controllers
                 {
                     if (!_userService.TryRemoveTourInfo(id))
                     {
-                        responseModel.ErrorCode = (int) ErrorCode.Fail;
+                        responseModel.ErrorCode = (int)ErrorCode.Fail;
                         responseModel.Message = "Remove tour fail";
                         break;
                     }
 
-                    responseModel.ErrorCode = (int) ErrorCode.Success;
+                    responseModel.ErrorCode = (int)ErrorCode.Success;
                     responseModel.Message = Description(responseModel.ErrorCode);
                 } while (false);
             }
             catch (Exception ex)
             {
-                                responseModel.FromException(ex);
+                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();

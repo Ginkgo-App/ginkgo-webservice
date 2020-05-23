@@ -38,6 +38,9 @@
         <Content Update="Plugins\TestAPI.deps.json">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
+        <Content Update="Plugins\WebMvcPluginPlace.deps.json">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
         <Content Update="Plugins\WebMvcPluginTour.deps.json">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
@@ -52,6 +55,9 @@
         </None>
         <None Update="Plugins\TestAPI.pdb">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Plugins\WebMvcPluginPlace.dll">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
         <None Update="Plugins\WebMvcPluginTour.dll">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -71,11 +77,10 @@
         <ItemGroup>
             <!--
             <PluginProject Include="..\..\WebMvcPluginHello\ApiPluginHello\ApiPluginHello.csproj" />
-                    -->
             <PluginProject Include="..\..\WebMvcPluginTour\WebMvcPluginTour\WebMvcPluginTour.csproj" />
             <PluginProject Include="..\..\WebMvcPluginUser\WebMvcPluginUser\WebMvcPluginUser.csproj" />
             <PluginProject Include="..\..\WebMvcPluginPlace\WebMvcPluginPlace\WebMvcPluginPlace.csproj" />
-
+                    -->
         </ItemGroup>
 
         <MSBuild Projects="@(PluginProject)" Targets="Publish" Properties="PublishDir=$(TargetDir)\Plugins" />

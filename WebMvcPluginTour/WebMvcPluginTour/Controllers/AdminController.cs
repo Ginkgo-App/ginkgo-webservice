@@ -15,17 +15,17 @@ using static APICore.Helpers.ErrorList;
 
 namespace WebMvcPluginTour.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = RoleType.Admin)]
     [ApiController]
-    [Route("api/" + TourVars.Version + "/tour-infos")]
-    public class TourInfoController : ControllerBase
+    [Route("api/" + TourVars.Version + "/admin/tour-infos")]
+    public class AdminController : ControllerBase
     {
         private readonly ITourInfoService _tourInfoService;
         private readonly IUserService _userService;
         private readonly IFriendService _friendService;
         private readonly ITourService _tourService;
 
-        public TourInfoController(ITourInfoService tourInfoService, IUserService userService, IFriendService friendService, ITourService tourService)
+        public AdminController(ITourInfoService tourInfoService, IUserService userService, IFriendService friendService, ITourService tourService)
         {
             _tourInfoService = tourInfoService;
             _userService = userService;

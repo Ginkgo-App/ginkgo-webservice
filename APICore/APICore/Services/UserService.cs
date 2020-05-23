@@ -46,7 +46,7 @@ namespace APICore.Services
                 }
 
                 // return null if user not found
-                if (user == null || (user.Password != null && !user.Password.Equals(password)))
+                if (user == null || (!user.Password.Equals(password)))
                 {
                     _logger.Error($"Email: '{email}' or password is incorrect");
                     statusCode = ErrorCode.Fail;
@@ -520,9 +520,7 @@ namespace APICore.Services
         private void ConnectDb()
         {
             if (_context != null) return;
-
-            var options = new DbContextOptions<PostgreSQLContext>();
-            _context = new PostgreSQLContext(options);
+            _context = PostgreSQLContext.Instance;
         }
 
         private void DisconnectDb()

@@ -25,6 +25,9 @@
             FriendNotFound = 16,
             
             ServiceNotFound = 17,
+            PlaceNotFound = 18,
+            
+            
         }
 
         public static string Description(int errorCode)
@@ -52,6 +55,7 @@
                 ErrorCode.FriendRequestNotFound => "Friend request not found.",
                 ErrorCode.FriendNotFound => "Friend not found.",
                 ErrorCode.ServiceNotFound => "Service not found",
+                ErrorCode.PlaceNotFound => "Place not found",
                 _ => "Error code is invalid"
             };
         }

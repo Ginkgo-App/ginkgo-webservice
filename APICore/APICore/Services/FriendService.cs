@@ -203,8 +203,7 @@ namespace APICore.Services
         private void ConnectDb()
         {
             if (_context != null) return;
-            var options = new DbContextOptions<PostgreSQLContext>();
-            _context = new PostgreSQLContext(options);
+            _context = PostgreSQLContext.Instance;
         }
 
         private void DisconnectDb()
