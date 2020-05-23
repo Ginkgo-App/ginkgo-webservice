@@ -376,7 +376,7 @@ namespace APICore.Migrations
 
             modelBuilder.Entity("WebMvcPluginUser.Entities.Tour", b =>
                 {
-                    b.Property<int>("id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
@@ -396,7 +396,7 @@ namespace APICore.Migrations
                     b.Property<int>("TourInfoId")
                         .HasColumnType("integer");
 
-                    b.HasKey("id");
+                    b.HasKey("Id");
 
                     b.ToTable("Tours");
                 });

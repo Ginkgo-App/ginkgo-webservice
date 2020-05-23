@@ -53,7 +53,7 @@ namespace WebMvcPluginPlace.Controllers
             return responseModel.ToJson();
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{Id}")]
         public object GetPlaceById(int id, [FromQuery] int page, [FromQuery] int pageSize)
         {
             var responseModel = new ResponseModel();
@@ -131,7 +131,7 @@ namespace WebMvcPluginPlace.Controllers
             return responseModel.ToJson();
         }
         
-        [HttpPut("{id}")]
+        [HttpPut("{Id}")]
         public object Update(int id,[FromBody] object requestBody)
         {
             var responseModel = new ResponseModel();
@@ -186,7 +186,7 @@ namespace WebMvcPluginPlace.Controllers
             return responseModel.ToJson();
         }
         
-        [HttpDelete("{id}")]
+        [HttpDelete("{Id}")]
         public object UpdatePlace(int id)
         {
             var responseModel = new ResponseModel();

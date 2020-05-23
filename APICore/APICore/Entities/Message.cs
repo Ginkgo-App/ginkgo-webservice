@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 
 namespace APICore.Entities
 {
@@ -7,8 +8,8 @@ namespace APICore.Entities
         public int Id { get; set; }
         public int UserId { get; set; }
         public int TourId { get; set; }
-        public string Content { get; set; }
-        public string[] Images { get; set; }
+        public string? Content { get; set; }
+        public string[]? Images { get; set; }
         public DateTime CreateAt { get; set; }
     }
 }

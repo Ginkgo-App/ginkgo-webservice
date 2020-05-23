@@ -53,7 +53,7 @@ namespace WebMvcPluginPlace.Controllers
         }
 
         [AllowAnonymous]
-        [HttpGet("{id}")]
+        [HttpGet("{Id}")]
         public object GetPlaceById(int id, [FromQuery] int page, [FromQuery] int pageSize)
         {
             var responseModel = new ResponseModel();

@@ -11,6 +11,13 @@ namespace APICore.Services
     public class TourService : ITourService
     {
         private PostgreSQLContext _context;
+        private readonly AppSettings _appSettings;
+        private readonly Logger _logger = Vars.Logger;
+
+        public TourService(IOptions<AppSettings> appSettings)
+        {
+            _appSettings = appSettings.Value;
+        }
 
         public ErrorCode TryGetTotalMember(int tourId, out int totalMember)
         {
@@ -19,14 +26,14 @@ namespace APICore.Services
 
             try
             {
-                ConnectDb();
+                DbService.ConnectDb(ref _context);
                 totalMember = _context.TourMembers.Count(t => t.TourId == tourId);
                 errorCode = ErrorCode.Success;
-                DisconnectDb();
+                DbService.DisconnectDb(ref _context);
             }
             finally
             {
-                DisconnectDb();
+                DbService.DisconnectDb(ref _context);
             }
 
             return errorCode;

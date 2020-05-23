@@ -157,7 +157,7 @@ namespace APICore.Services
 
             try
             {
-                ConnectDb();
+                DbService.ConnectDb(ref _context);
                 var usersDb = (from u
                             in _context.Users
                         select u)
@@ -183,7 +183,7 @@ namespace APICore.Services
             }
             finally
             {
-                DisconnectDb();
+                DbService.DisconnectDb(ref _context);
             }
 
             return isSuccess;
@@ -196,7 +196,7 @@ namespace APICore.Services
 
             try
             {
-                ConnectDb();
+                DbService.ConnectDb(ref _context);
                 user =
                     (from u
                             in _context.Users
@@ -212,7 +212,7 @@ namespace APICore.Services
             }
             finally
             {
-                DisconnectDb();
+                DbService.DisconnectDb(ref _context);
             }
 
             return isSuccess;
@@ -224,7 +224,7 @@ namespace APICore.Services
 
             try
             {
-                ConnectDb();
+                DbService.ConnectDb(ref _context);
                 user =
                     (from u
                             in _context.Users
@@ -235,7 +235,7 @@ namespace APICore.Services
             }
             finally
             {
-                DisconnectDb();
+                DbService.DisconnectDb(ref _context);
             }
 
             return true;
@@ -245,13 +245,13 @@ namespace APICore.Services
         {
             try
             {
-                ConnectDb();
+                DbService.ConnectDb(ref _context);
                 _context.Users.Update(user);
                 _context.SaveChanges();
             }
             finally
             {
-                DisconnectDb();
+                DbService.DisconnectDb(ref _context);
             }
 
             return true;
@@ -261,13 +261,13 @@ namespace APICore.Services
         {
             try
             {
-                ConnectDb();
+                DbService.ConnectDb(ref _context);
                 _context.Users.Update(user);
                 _context.SaveChanges();
             }
             finally
             {
-                DisconnectDb();
+                DbService.DisconnectDb(ref _context);
             }
 
             return true;
@@ -278,7 +278,7 @@ namespace APICore.Services
             var isSuccess = false;
             try
             {
-                ConnectDb();
+                DbService.ConnectDb(ref _context);
                 var user = _context.Users.FirstOrDefault(u => u.Id == userId);
                 if (user != null)
                 {
@@ -289,7 +289,7 @@ namespace APICore.Services
             }
             finally
             {
-                DisconnectDb();
+                DbService.DisconnectDb(ref _context);
             }
 
             return isSuccess;
@@ -299,7 +299,7 @@ namespace APICore.Services
         {
             try
             {
-                ConnectDb();
+                DbService.ConnectDb(ref _context);
 
                 var dbAuthProvider = _context.AuthProviders.FirstOrDefault(a => a.Id == authProvider.Id);
                 if (dbAuthProvider != null)
@@ -317,12 +317,11 @@ namespace APICore.Services
                     _context.AuthProviders.Add(authProvider);
                 }
 
-
                 _context.SaveChanges();
             }
             finally
             {
-                DisconnectDb();
+                DbService.DisconnectDb(ref _context);
             }
 
             return true;
@@ -379,12 +378,12 @@ namespace APICore.Services
 
             try
             {
-                ConnectDb();
+                DbService.ConnectDb(ref _context);
                 authProvider = _context.AuthProviders.Single(a => a.Id == id);
             }
             finally
             {
-                DisconnectDb();
+                DbService.DisconnectDb(ref _context);
             }
 
             return true;
@@ -396,12 +395,12 @@ namespace APICore.Services
 
             try
             {
-                ConnectDb();
+                DbService.ConnectDb(ref _context);
                 tourInfos = _context.TourInfos.Where(a => a.CreateById == userId).ToList();
             }
             finally
             {
-                DisconnectDb();
+                DbService.DisconnectDb(ref _context);
             }
 
             return true;
@@ -413,12 +412,12 @@ namespace APICore.Services
 
             try
             {
-                ConnectDb();
+                DbService.ConnectDb(ref _context);
                 tourInfos = _context.TourInfos.FirstOrDefault(a => a.Id == tourId);
             }
             finally
             {
-                DisconnectDb();
+                DbService.DisconnectDb(ref _context);
             }
 
             return true;
@@ -428,13 +427,13 @@ namespace APICore.Services
         {
             try
             {
-                ConnectDb();
+                DbService.ConnectDb(ref _context);
                 _context.TourInfos.Update(tourInfo);
                 _context.SaveChanges();
             }
             finally
             {
-                DisconnectDb();
+                DbService.DisconnectDb(ref _context);
             }
 
             return true;
@@ -445,7 +444,7 @@ namespace APICore.Services
             var isSuccess = false;
             try
             {
-                ConnectDb();
+                DbService.ConnectDb(ref _context);
                 var tourInfo = _context.TourInfos.FirstOrDefault(u => u.Id == tourInfoId);
                 if (tourInfo != null)
                 {
@@ -456,7 +455,7 @@ namespace APICore.Services
             }
             finally
             {
-                DisconnectDb();
+                DbService.DisconnectDb(ref _context);
             }
 
             return isSuccess;
@@ -468,7 +467,7 @@ namespace APICore.Services
 
             try
             {
-                ConnectDb();
+                DbService.ConnectDb(ref _context);
                 var friendDBs = type?.ToLower() switch
                 {
                     "accepted" => _context.Friends.Where(a =>
@@ -488,7 +487,7 @@ namespace APICore.Services
             }
             finally
             {
-                DisconnectDb();
+                DbService.DisconnectDb(ref _context);
             }
 
             return true;
@@ -514,22 +513,5 @@ namespace APICore.Services
             var token = tokenHandler.CreateToken(tokenDescriptor);
             user.Token = tokenHandler.WriteToken(token);
         }
-
-        #region ConnectDB
-
-        private void ConnectDb()
-        {
-            if (_context != null) return;
-            _context = PostgreSQLContext.Instance;
-        }
-
-        private void DisconnectDb()
-        {
-            if (_context == null) return;
-            _context.Dispose();
-            _context = null;
-        }
-
-        #endregion
     }
 }

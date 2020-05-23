@@ -52,10 +52,6 @@ namespace APICore
             services.AddExtCore(this.pluginsPath);
 
             services.AddControllers();
-            //.AddNewtonsoftJson(options =>
-            //{
-            //    options.SerializerSettings.ContractResolver = new DefaultContractResolver();
-            //});
 
             services.AddCors();
 
@@ -94,10 +90,12 @@ namespace APICore
             Vars.ConnectionString = appSettings.ConnectionString; 
             Vars.PasswordSalt = appSettings.PasswordSalt;
 
-            services.AddDbContext<PostgreSQLContext>(options =>
-            {
-                options.UseNpgsql(Vars.ConnectionString, options => options.EnableRetryOnFailure());
-            });
+            // services.AddDbContext<PostgreSQLContext>(options =>
+            // {
+            //     options.UseNpgsql(Vars.ConnectionString, options => options.EnableRetryOnFailure());
+            // });
+
+            // services.AddDbContext<PostgreSQLContext>(PostgreSQLContext.Instance);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -126,7 +124,7 @@ namespace APICore
             {
                 endpoints.MapControllerRoute(
                     name: "default",
-                    pattern: "{controller=Home}/{action=Index}/{id?}");
+                    pattern: "{controller=Home}/{action=Index}/{Id?}");
             });
         }
     }

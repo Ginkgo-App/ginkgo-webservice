@@ -4,6 +4,8 @@ using APICore.DBContext;
 using APICore.Entities;
 using APICore.Helpers;
 using APICore.Models;
+using Microsoft.Extensions.Options;
+using NLog;
 
 namespace APICore.Services
 {
@@ -19,6 +21,13 @@ namespace APICore.Services
     public class PlaceService : IPlaceService
     {
         private PostgreSQLContext _context;
+        private readonly AppSettings _appSettings;
+        private readonly Logger _logger = Vars.Logger;
+
+        public PlaceService(IOptions<AppSettings> appSettings)
+        {
+            _appSettings = appSettings.Value;
+        }
 
         public bool TryGetAllPlaces(int page, int pageSize, out List<Place> places, out Pagination pagination)
         {
@@ -30,7 +39,7 @@ namespace APICore.Services
             {
                 CoreHelper.ValidatePageSize(ref page, ref pageSize);
 
-                ConnectDb();
+                DbService.ConnectDb(ref _context);
                 var listTourInfos = _context.Places.ToList();
 
                 var total = listTourInfos.Select(p => p.Id).Count();
@@ -51,7 +60,7 @@ namespace APICore.Services
             }
             finally
             {
-                DisconnectDb();
+                DbService.DisconnectDb(ref _context);
             }
 
             return isSuccess;
@@ -63,12 +72,12 @@ namespace APICore.Services
 
             try
             {
-                ConnectDb();
+                DbService.ConnectDb(ref _context);
                 place = _context.Places.FirstOrDefault(p => p.Id == placeId);
             }
             finally
             {
-                DisconnectDb();
+                DbService.DisconnectDb(ref _context);
             }
 
             return true;
@@ -78,14 +87,14 @@ namespace APICore.Services
         {
             try
             {
-                ConnectDb();
+                DbService.ConnectDb(ref _context);
                 _context.Places.Update(place);
                 _context.SaveChanges();
-                DisconnectDb();
+                DbService.DisconnectDb(ref _context);
             }
             finally
             {
-                DisconnectDb();
+                DbService.DisconnectDb(ref _context);
             }
 
             return true;
@@ -95,14 +104,14 @@ namespace APICore.Services
         {
             try
             {
-                ConnectDb();
+                DbService.ConnectDb(ref _context);
                 _context.Places.Add(place);
                 _context.SaveChanges();
-                DisconnectDb();
+                DbService.DisconnectDb(ref _context);
             }
             finally
             {
-                DisconnectDb();
+                DbService.DisconnectDb(ref _context);
             }
 
             return true;
@@ -113,7 +122,7 @@ namespace APICore.Services
             var isSuccess = false;
             try
             {
-                ConnectDb();
+                DbService.ConnectDb(ref _context);
                 var place = _context.Places.FirstOrDefault(p => p.Id == placeId);
                 if (place != null)
                 {
@@ -124,27 +133,10 @@ namespace APICore.Services
             }
             finally
             {
-                DisconnectDb();
+                DbService.DisconnectDb(ref _context);
             }
 
             return isSuccess;
         }
-
-        #region ConnectDB
-
-        private void ConnectDb()
-        {
-            if (_context != null) return;
-            _context = PostgreSQLContext.Instance;
-        }
-
-        private void DisconnectDb()
-        {
-            if (_context == null) return;
-            _context.Dispose();
-            _context = null;
-        }
-
-        #endregion
     }
 }

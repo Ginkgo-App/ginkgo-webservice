@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿#nullable enable
+using Newtonsoft.Json.Linq;
 using System;
 
 namespace APICore.Entities
@@ -16,12 +17,12 @@ namespace APICore.Entities
 
         public int Id { get; set; }
         public int CreateById { get; set; }
-        public string Name { get; set; }
-        public string[] Images { get; set; }
+        public string? Name { get; set; }
+        public string[]? Images { get; set; }
         public int StartPlaceId { get; set; }
         public int DestinatePlaceId { get; set; }
-        public DateTime DeleteAt { get; set; }
-        public double Rating { get; set; }
+        public DateTime? DeleteAt { get; set; }
+        public double? Rating { get; set; }
 
         public JObject ToJson(Place startPlace, Place destinatePlace)
         {

@@ -1,8 +1,9 @@
-﻿namespace APICore.Entities
+﻿#nullable enable
+namespace APICore.Entities
 {
     public class Place
     {
-        public Place(string name, string[] images, string description)
+        public Place(string? name, string[]? images, string? description)
         {
             Name = name;
             Images = images;
@@ -10,8 +11,8 @@
         }
 
         public int Id { get; set; }
-        public string Name { get; set; }
-        public string[] Images { get; set; }
-        public string Description { get; set; }
+        public string? Name { get; set; }
+        public string[]? Images { get; set; }
+        public string? Description { get; set; }
     }
 }

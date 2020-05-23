@@ -330,7 +330,7 @@ namespace WebMvcPluginUser.Controllers
             return responseModel.ToJson();
         }
 
-        [HttpGet("tour-infos/{id}")]
+        [HttpGet("tour-infos/{Id}")]
         public object GetTourInfo(int id)
         {
             var responseModel = new ResponseModel();
@@ -363,7 +363,7 @@ namespace WebMvcPluginUser.Controllers
             return responseModel.ToJson();
         }
 
-        [HttpPut("tour-infos/{id}")]
+        [HttpPut("tour-infos/{Id}")]
         public object UpdateTourInfo(int id, [FromBody] object requestBody)
         {
             var responseModel = new ResponseModel();
@@ -425,7 +425,7 @@ namespace WebMvcPluginUser.Controllers
             return responseModel.ToJson();
         }
 
-        [HttpDelete("tour-infos/{id}")]
+        [HttpDelete("tour-infos/{Id}")]
         public object DeleteTourInfo(int id)
         {
             var responseModel = new ResponseModel();

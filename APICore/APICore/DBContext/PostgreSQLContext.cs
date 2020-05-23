@@ -18,16 +18,12 @@ namespace APICore.DBContext
         {
             get
             {
-                if (instance == null)
+                if (instance != null) return instance;
+                lock (padlock)
                 {
-                    lock (padlock)
-                    {
-                        if (instance == null)
-                        {
-                            var options = new DbContextOptions<PostgreSQLContext>();
-                            instance = new PostgreSQLContext(options);
-                        }
-                    }
+                    if (instance != null) return instance;
+                    var options = new DbContextOptions<PostgreSQLContext>();
+                    instance = new PostgreSQLContext(options);
                 }
                 return instance;
             }

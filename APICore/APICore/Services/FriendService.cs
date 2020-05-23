@@ -27,13 +27,13 @@ namespace APICore.Services
 
             try
             {
-                ConnectDb();
+                DbService.ConnectDb(ref _context);
                 total = _context.Friends.Count(u => u.UserId == userId);
                 errorCode = ErrorCode.Success;
             }
             finally
             {
-                DisconnectDb();
+                DbService.DisconnectDb(ref _context);
             }
 
             return errorCode;
@@ -93,13 +93,13 @@ namespace APICore.Services
 
                 try
                 {
-                    ConnectDb();
+                    DbService.ConnectDb(ref _context);
                     _context.Friends.Add(friend);
                     _context.SaveChanges();
                 }
                 finally
                 {
-                    DisconnectDb();
+                    DbService.DisconnectDb(ref _context);
                 }
 
                 errorCode = ErrorCode.Success;
@@ -117,7 +117,7 @@ namespace APICore.Services
             {
                 try
                 {
-                    ConnectDb();
+                    DbService.ConnectDb(ref _context);
                     var friendDBs = _context.Friends.Where(f =>
                             f.UserId == userId && f.RequestedUserId == userRequestId)
                         .ToArray();
@@ -141,7 +141,7 @@ namespace APICore.Services
                 }
                 finally
                 {
-                    DisconnectDb();
+                    DbService.DisconnectDb(ref _context);
                 }
 
                 errorCode = ErrorCode.Success;
@@ -160,7 +160,7 @@ namespace APICore.Services
                 {
                     try
                     {
-                        ConnectDb();
+                        DbService.ConnectDb(ref _context);
                         _context.Friends.Remove(friendDb);
                         _context.SaveChanges();
 
@@ -168,7 +168,7 @@ namespace APICore.Services
                     }
                     finally
                     {
-                        DisconnectDb();
+                        DbService.DisconnectDb(ref _context);
                     }
                 }
                 else
@@ -184,7 +184,7 @@ namespace APICore.Services
         {
             try
             {
-                ConnectDb();
+                DbService.ConnectDb(ref _context);
                 var friendDBs = _context.Friends.Where(a =>
                         (a.UserId == userId && a.RequestedUserId == userOtherId) ||
                         (a.RequestedUserId == userId && a.UserId == userOtherId))
@@ -194,7 +194,7 @@ namespace APICore.Services
             }
             finally
             {
-                DisconnectDb();
+                DbService.DisconnectDb(ref _context);
             }
         }
 
