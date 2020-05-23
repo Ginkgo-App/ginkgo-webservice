@@ -294,8 +294,8 @@ namespace WebMvcPluginUser.Controllers
             return responseModel.ToJson();
         }
 
-        [HttpPut("{userId}")]
-        public object UpdateUser(int userId, [FromBody] object requestBody)
+        [HttpPut("me")]
+        public object UpdateUser([FromBody] object requestBody)
         {
             var responseModel = new ResponseModel();
 
@@ -303,11 +303,25 @@ namespace WebMvcPluginUser.Controllers
             {
                 do
                 {
+                    var identity = HttpContext.User.Identity as ClaimsIdentity;
+                    if (identity == null)
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    var claims = identity.Claims;
+                    int.TryParse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value,
+                        out var userId);
+                    _userService.TryGetUsers(userId, out var user);
+                    
                     var body = requestBody != null
                         ? JObject.Parse(requestBody.ToString()!)
                         : null;
 
-                    if (!CoreHelper.GetParameter(out var jsonPassword, body, "password", JTokenType.String,
+                    if (!CoreHelper.GetParameter(out var jsonName, body, "name", JTokenType.String,
+                            ref responseModel, true)
+                        || !CoreHelper.GetParameter(out var jsonPassword, body, "password", JTokenType.String,
                             ref responseModel, true)
                         || !CoreHelper.GetParameter(out var jsonPhoneNumber, body, "phoneNumber", JTokenType.String,
                             ref responseModel, true)
@@ -329,6 +343,7 @@ namespace WebMvcPluginUser.Controllers
                         break;
                     }
 
+                    var name = jsonName?.ToString();
                     var password = jsonPassword?.ToString();
                     var phoneNumber = jsonPhoneNumber?.ToString();
                     var address = jsonAddress?.ToString();
@@ -339,18 +354,12 @@ namespace WebMvcPluginUser.Controllers
                     var gender = jsonGender?.ToString();
                     DateTime.TryParse(jsonBirthday?.ToString(), out _);
 
-                    if (!_userService.TryGetUsers(userId, out var user))
-                    {
-                        responseModel.FromErrorCode(ErrorCode.Fail);
-                        break;
-                    }
-
+                    user.Name = name ?? user.Name;
                     user.Password = password ?? user.Password;
-                    user.PhoneNumber = phoneNumber ?? user.Password;
-                    user.Address = address ?? user.Password;
-                    user.Avatar = avatar ?? user.Password;
-                    user.Slogan = slogan ?? user.Password;
-                    user.Password = password ?? user.Password;
+                    user.PhoneNumber = phoneNumber ?? user.PhoneNumber;
+                    user.Address = address ?? user.Address;
+                    user.Avatar = avatar ?? user.Avatar;
+                    user.Slogan = slogan ?? user.Slogan;
                     user.Bio = bio ?? user.Bio;
                     user.Job = job ?? user.Job;
                     user.Gender = gender ?? user.Gender;
