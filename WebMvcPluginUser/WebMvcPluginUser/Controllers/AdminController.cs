@@ -255,43 +255,8 @@ namespace WebMvcPluginUser.Controllers
 
                     if (user == null)
                     {
-<<<<<<< Updated upstream
-                        user = new User();
-                        user.Name = name ?? user.Name;
-                        user.Email = email ?? user.Email;
-                        user.Password = password ?? user.Password;
-                        user.PhoneNumber = phoneNumber ?? user.PhoneNumber;
-                        user.Address = address ?? user.Address;
-                        user.Avatar = avatar ?? user.Avatar;
-                        user.Slogan = slogan ?? user.Slogan;
-                        user.Bio = bio ?? user.Bio;
-                        user.Job = job ?? user.Job;
-                        user.Gender = GenderType.TryParse(gender) ?? user.Gender;
-                        user.Birthday = isParsed ? birthday : user.Birthday;
-                        user.Role = roleType ?? user.Role;
-
-                        isSuccess = _userService.TryAddUser(user);
-                    }
-                    else
-                    {
-                        user.Name = name ?? user.Name;
-                        user.Email = email ?? user.Email;
-                        user.Password = password ?? user.Password;
-                        user.PhoneNumber = phoneNumber ?? user.PhoneNumber;
-                        user.Address = address ?? user.Address;
-                        user.Avatar = avatar ?? user.Avatar;
-                        user.Slogan = slogan ?? user.Slogan;
-                        user.Bio = bio ?? user.Bio;
-                        user.Job = job ?? user.Job;
-                        user.Gender = GenderType.TryParse(gender) ?? user.Gender;
-                        user.Birthday = isParsed ? birthday : user.Birthday;
-                        user.Role = roleType ?? user.Role;
-
-                        isSuccess = _userService.TryUpdateUser(user);
-=======
                         responseModel.FromErrorCode(ErrorCode.UserNotFound);
                         break;
->>>>>>> Stashed changes
                     }
 
                     user.Update(

@@ -310,15 +310,12 @@ namespace WebMvcPluginUser.Controllers
                     var claims = identity.Claims;
                     int.TryParse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value,
                         out var userId);
-                    _userService.TryGetUsers(userId, out var user);
                     
                     var body = requestBody != null
                         ? JObject.Parse(requestBody.ToString()!)
                         : null;
 
-                    if (!CoreHelper.GetParameter(out var jsonName, body, "name", JTokenType.String,
-                            ref responseModel, true)
-                        || !CoreHelper.GetParameter(out var jsonPassword, body, "password", JTokenType.String,
+                    if (!CoreHelper.GetParameter(out var jsonPassword, body, "password", JTokenType.String,
                             ref responseModel, true)
                         || !CoreHelper.GetParameter(out var jsonEmail, body, "email", JTokenType.String,
                             ref responseModel)
@@ -343,29 +340,6 @@ namespace WebMvcPluginUser.Controllers
                     {
                         break;
                     }
-<<<<<<< Updated upstream
-
-                    var name = jsonName?.ToString();
-                    var password = jsonPassword?.ToString();
-                    var phoneNumber = jsonPhoneNumber?.ToString();
-                    var address = jsonAddress?.ToString();
-                    var avatar = jsonAvatar?.ToString();
-                    var slogan = jsonSlogan?.ToString();
-                    var bio = jsonBio?.ToString();
-                    var job = jsonJob?.ToString();
-                    var gender = jsonGender?.ToString();
-                    DateTime.TryParse(jsonBirthday?.ToString(), out _);
-
-                    user.Name = name ?? user.Name;
-                    user.Password = password ?? user.Password;
-                    user.PhoneNumber = phoneNumber ?? user.PhoneNumber;
-                    user.Address = address ?? user.Address;
-                    user.Avatar = avatar ?? user.Avatar;
-                    user.Slogan = slogan ?? user.Slogan;
-                    user.Bio = bio ?? user.Bio;
-                    user.Job = job ?? user.Job;
-                    user.Gender = gender ?? user.Gender;
-=======
                     
                     _ = DateTime.TryParse(jsonBirthday?.ToString(), out var birthday);
 
@@ -379,7 +353,6 @@ namespace WebMvcPluginUser.Controllers
                         responseModel.FromErrorCode(ErrorCode.UserNotFound);
                         break;
                     }
->>>>>>> Stashed changes
 
                     user.Update(
                         address: jsonAddress?.ToString(),
