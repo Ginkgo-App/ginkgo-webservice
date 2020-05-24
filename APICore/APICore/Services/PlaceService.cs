@@ -127,6 +127,7 @@ namespace APICore.Services
                 if (place != null)
                 {
                     _context.Places.Remove(place);
+                    _context.SaveChanges();
                     isSuccess = true;
                 }
                 

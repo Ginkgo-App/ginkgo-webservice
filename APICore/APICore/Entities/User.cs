@@ -13,12 +13,12 @@ namespace APICore.Entities
             Role = role;
         }
 
-        public User(string name, string hashPassword, string email, string? phoneNumber, string? fullName,
-            string? avatar, string? bio, string? slogan, string? job, DateTime? birthday, string? gender,
-            string? address, string role)
+        public User(string password, string email, string role, string name, string phoneNumber = null,
+            string fullName = null, string avatar = null, string bio = null, string slogan = null, string job = null,
+            DateTime? birthday = null, string gender = null, string address = null)
         {
             Name = name;
-            Password = hashPassword;
+            Password = Helpers.CoreHelper.HashPassword(password);
             Email = email;
             PhoneNumber = phoneNumber;
             FullName = fullName;
@@ -29,35 +29,36 @@ namespace APICore.Entities
             Birthday = birthday ?? new DateTime();
             Gender = gender;
             Address = address;
-            Role = role;
+            Role = RoleType.TryParse(role) ?? RoleType.User;
         }
 
-        public User(string? name, string? password, string? token, string email, string? phoneNumber, string? fullName, string? avatar, string? bio, string? slogan, string? job, DateTime? birthday, string? gender, string? address, string role)
+        public User Update(string? name, string? password, string email, string? phoneNumber, string? avatar, string? bio, string? slogan, string? job, DateTime? birthday, string? gender, string? address, string? role)
         {
-            Name = name;
-            Password = password;
-            Token = token;
-            Email = email;
-            PhoneNumber = phoneNumber;
-            FullName = fullName;
-            Avatar = avatar;
-            Bio = bio;
-            Slogan = slogan;
-            Job = job;
-            Birthday = birthday;
-            Gender = gender;
-            Address = address;
-            Role = role;
+            Name = name ?? Name;
+            Password = password != null ? Helpers.CoreHelper.HashPassword(password) : Password;
+            Email = email ?? Email;
+            PhoneNumber = phoneNumber ?? PhoneNumber;
+            Avatar = avatar ?? Avatar;
+            Bio = bio ?? Bio;
+            Slogan = slogan ?? Slogan;
+            Job = job ?? Job;
+            Birthday = birthday ?? Birthday;
+            Gender = gender ?? Gender;
+            Address = address ?? Address;
+            // If role diff Null, try parse to correct role, else role = default(user)
+            Role = (role != null ? RoleType.TryParse(role) : Role) ?? RoleType.User;
+            return this;
         }
 
-        public User()
-        {
-        }
+        // public User()
+        // {
+        // }
 
         public int Id { get; set; }
         public string? Name { get; set; }
         public string? Password { get; set; }
-        [NotMapped] public string? Token { get; set; }
+        [NotMapped] 
+        public string? Token { get; set; }
         public string Email { get; set; }
         public string? PhoneNumber { get; set; }
         public string? FullName { get; set; }
@@ -100,7 +101,7 @@ public static class RoleType
             Creator => Creator,
             Admin => Admin,
             User => User,
-            _ => null
+            _ => User
         };
     }
 }

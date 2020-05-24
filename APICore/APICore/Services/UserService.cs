@@ -7,6 +7,7 @@ using System.Security.Claims;
 using System.Text;
 using APICore.DBContext;
 using APICore.Entities;
+using APICore.Helpers;
 using APICore.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -45,8 +46,11 @@ namespace APICore.Services
                     break;
                 }
 
+                // Hash password
+                var hashPassword = CoreHelper.HashPassword(password);
+
                 // return null if user not found
-                if (user == null || (user.Password != null && !user.Password.Equals(password)))
+                if (user == null || (user.Password != null && !user.Password.Equals(hashPassword)))
                 {
                     _logger.Error($"Email: '{email}' or password is incorrect");
                     statusCode = ErrorCode.Fail;
@@ -124,13 +128,13 @@ namespace APICore.Services
                 }
 
                 user = new User
-                {
-                    Name = name,
-                    Email = email,
-                    PhoneNumber = phoneNumber,
-                    Password = password,
-                    Role = RoleType.User
-                };
+                (
+                    name: name,
+                    email: email,
+                    phoneNumber: phoneNumber,
+                    password: CoreHelper.HashPassword(password),
+                    role: RoleType.User
+                );
 
                 if (!TryAddUser(user))
                 {
@@ -141,7 +145,6 @@ namespace APICore.Services
                 {
                     break;
                 }
-
 
                 statusCode = ErrorCode.Success;
             } while (false);
@@ -471,9 +474,11 @@ namespace APICore.Services
                 var friendDBs = type?.ToLower() switch
                 {
                     "accepted" => _context.Friends.Where(a =>
-                            a.IsAccepted && (a.UserId == userId || a.RequestedUserId == userId)).ToArray(),
-                    "requesting" => _context.Friends.Where(a => a.IsAccepted == false && (a.UserId == userId)).ToArray(),
-                    "waiting" => _context.Friends.Where(a => a.IsAccepted == false && (a.UserId == userId)).ToArray(),
+                        a.IsAccepted && (a.UserId == userId || a.RequestedUserId == userId)).ToArray(),
+                    "requesting" => _context.Friends.Where(a => a.IsAccepted == false && (a.UserId == userId))
+                        .ToArray(),
+                    "waiting" => _context.Friends.Where(a => a.IsAccepted == false && (a.RequestedUserId == userId))
+                        .ToArray(),
                     _ => _context.Friends.Where(a => a.UserId == userId || a.RequestedUserId == userId).ToArray()
                 };
                 foreach (var friend in friendDBs)
@@ -504,7 +509,7 @@ namespace APICore.Services
                 {
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                     new Claim(ClaimTypes.Name, user.Email),
-                    new Claim(ClaimTypes.Role, user.Role), 
+                    new Claim(ClaimTypes.Role, user.Role),
                 }),
                 Expires = DateTime.UtcNow.AddDays(7),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key),

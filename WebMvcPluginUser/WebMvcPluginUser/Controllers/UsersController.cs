@@ -10,7 +10,6 @@ using APICore.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
-using WebMvcPluginUser.Helpers;
 using WebMvcPluginUser.Models;
 using static APICore.Helpers.ErrorList;
 
@@ -34,15 +33,13 @@ namespace WebMvcPluginUser.Controllers
         [HttpPost("authenticate")]
         public object Authenticate([FromBody] AuthenticateModel model)
         {
-            ResponseModel responseModel = new ResponseModel();
-            JArray data = new JArray();
-            string hashedPassword = UserHelper.HashPassword(model.Password);
+            var responseModel = new ResponseModel();
+            var data = new JArray();
 
             try
             {
-                var errorCode = _userService.Authenticate(model.Email, hashedPassword, out User user);
+                var errorCode = _userService.Authenticate(model.Email, model.Password, out User user);
 
-                //data.Add(JObject.Parse(JsonConvert.SerializeObject(userHelper.WithoutPassword(user))));
                 if (user == null || errorCode != ErrorCode.Success)
                 {
                     responseModel.ErrorCode = (int) ErrorCode.UsernamePasswordIncorrect;
@@ -96,9 +93,9 @@ namespace WebMvcPluginUser.Controllers
                     var name = jsonName.ToString();
                     var email = jsonEmail.ToString();
                     var phoneNumber = jsonPhoneNumber.ToString();
-                    var hashedPassword = UserHelper.HashPassword(jsonPassword.ToString());
+                    var password = jsonPassword.ToString();
 
-                    var statusCode = _userService.Register(name, email, phoneNumber, hashedPassword, out var user);
+                    var statusCode = _userService.Register(name, email, phoneNumber, password, out var user);
 
                     if (statusCode == ErrorCode.Success)
                     {
@@ -323,6 +320,10 @@ namespace WebMvcPluginUser.Controllers
                             ref responseModel, true)
                         || !CoreHelper.GetParameter(out var jsonPassword, body, "password", JTokenType.String,
                             ref responseModel, true)
+                        || !CoreHelper.GetParameter(out var jsonEmail, body, "email", JTokenType.String,
+                            ref responseModel)
+                        || !CoreHelper.GetParameter(out var jsonName, body, "name", JTokenType.String,
+                            ref responseModel, true)
                         || !CoreHelper.GetParameter(out var jsonPhoneNumber, body, "phoneNumber", JTokenType.String,
                             ref responseModel, true)
                         || !CoreHelper.GetParameter(out var jsonAddress, body, "address", JTokenType.String,
@@ -342,6 +343,7 @@ namespace WebMvcPluginUser.Controllers
                     {
                         break;
                     }
+<<<<<<< Updated upstream
 
                     var name = jsonName?.ToString();
                     var password = jsonPassword?.ToString();
@@ -363,7 +365,37 @@ namespace WebMvcPluginUser.Controllers
                     user.Bio = bio ?? user.Bio;
                     user.Job = job ?? user.Job;
                     user.Gender = gender ?? user.Gender;
+=======
+                    
+                    _ = DateTime.TryParse(jsonBirthday?.ToString(), out var birthday);
 
+                    if (!_userService.TryGetUsers(userId, out var user))
+                    {
+                        break;
+                    }
+
+                    if (user == null)
+                    {
+                        responseModel.FromErrorCode(ErrorCode.UserNotFound);
+                        break;
+                    }
+>>>>>>> Stashed changes
+
+                    user.Update(
+                        address: jsonAddress?.ToString(),
+                        avatar: jsonAvatar?.ToString(),
+                        bio: jsonBio?.ToString(),
+                        birthday: birthday,
+                        email: jsonEmail?.ToString()!,
+                        gender: jsonGender?.ToString(),
+                        job: jsonJob?.ToString(),
+                        name: jsonName?.ToString(),
+                        slogan: jsonSlogan?.ToString(),
+                        role: null,
+                        password: jsonPassword?.ToString(),
+                        phoneNumber: jsonPhoneNumber?.ToString()
+                    );
+                    
                     var isSuccess = _userService.TryUpdateUser(user);
 
                     if (!isSuccess)
@@ -454,6 +486,40 @@ namespace WebMvcPluginUser.Controllers
 
                     responseModel.FromErrorCode(ErrorCode.Success);
                     responseModel.Data = JArray.FromObject(tourInfos);
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
+
+        [HttpGet("{id}/friends")]
+        public object GetUserFriends(int id)
+        {
+            var responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
+                    var identity = HttpContext.User.Identity as ClaimsIdentity;
+                    if (identity == null)
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    if (!_userService.TryGetFriends(id, "accepted", out var friends) || friends == null)
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    responseModel.FromErrorCode(ErrorCode.Success);
+                    responseModel.Data = JArray.FromObject(friends);
                 } while (false);
             }
             catch (Exception ex)

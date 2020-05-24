@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
-using WebMvcPluginUser.Helpers;
 using static APICore.Helpers.ErrorList;
 
 namespace WebMvcPluginUser.Controllers
@@ -27,7 +26,7 @@ namespace WebMvcPluginUser.Controllers
         [HttpGet("users")]
         public object GetAllUser([FromQuery] int page, [FromQuery] int pageSize)
         {
-            ResponseModel responseModel = new ResponseModel();
+            var responseModel = new ResponseModel();
 
             try
             {
@@ -42,7 +41,7 @@ namespace WebMvcPluginUser.Controllers
 
                     if (users == null || users.Count == 0 || pagination == null)
                     {
-                        responseModel.ErrorCode = (int)ErrorCode.UserNotFound;
+                        responseModel.ErrorCode = (int) ErrorCode.UserNotFound;
                         responseModel.Message = Description(responseModel.ErrorCode);
                         break;
                     }
@@ -52,7 +51,7 @@ namespace WebMvcPluginUser.Controllers
                         data.Add(JObject.FromObject(user));
                     }
 
-                    responseModel.ErrorCode = (int)ErrorCode.Success;
+                    responseModel.ErrorCode = (int) ErrorCode.Success;
                     responseModel.Message = Description(responseModel.ErrorCode);
                     responseModel.Data = data;
                     responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
@@ -69,7 +68,7 @@ namespace WebMvcPluginUser.Controllers
         [HttpGet("users/{userId}")]
         public object GetUserById(int userId)
         {
-            ResponseModel responseModel = new ResponseModel();
+            var responseModel = new ResponseModel();
 
             try
             {
@@ -84,13 +83,13 @@ namespace WebMvcPluginUser.Controllers
 
                     if (user == null)
                     {
-                        responseModel.ErrorCode = (int)ErrorCode.UserNotFound;
+                        responseModel.ErrorCode = (int) ErrorCode.UserNotFound;
                         responseModel.Message = Description(responseModel.ErrorCode);
                         break;
                     }
 
                     data.Add(JObject.FromObject(user));
-                    responseModel.ErrorCode = (int)ErrorCode.Success;
+                    responseModel.ErrorCode = (int) ErrorCode.Success;
                     responseModel.Message = Description(responseModel.ErrorCode);
                     responseModel.Data = data;
                 } while (false);
@@ -106,7 +105,7 @@ namespace WebMvcPluginUser.Controllers
         [HttpDelete("users/{userId}")]
         public object DeleteUser(int userId)
         {
-            ResponseModel responseModel = new ResponseModel();
+            var responseModel = new ResponseModel();
 
             try
             {
@@ -114,12 +113,12 @@ namespace WebMvcPluginUser.Controllers
                 {
                     if (!_userService.TryRemoveUser(userId))
                     {
-                        responseModel.ErrorCode = (int)ErrorCode.Fail;
+                        responseModel.ErrorCode = (int) ErrorCode.Fail;
                         responseModel.Message = "Remove user fail";
                         break;
                     }
 
-                    responseModel.ErrorCode = (int)ErrorCode.Success;
+                    responseModel.ErrorCode = (int) ErrorCode.Success;
                     responseModel.Message = Description(responseModel.ErrorCode);
                 } while (false);
             }
@@ -172,32 +171,22 @@ namespace WebMvcPluginUser.Controllers
                         break;
                     }
 
-                    var name = jsonName?.ToString();
-                    var email = jsonEmail.ToString();
-                    var password = UserHelper.HashPassword(jsonPassword?.ToString());
-                    var phoneNumber = jsonPhoneNumber?.ToString();
-                    var address = jsonAddress?.ToString();
-                    var avatar = jsonAvatar?.ToString();
-                    var slogan = jsonSlogan?.ToString();
-                    var bio = jsonBio?.ToString();
-                    var job = jsonJob?.ToString();
-                    var gender = jsonGender?.ToString();
-                    var isParsed = DateTime.TryParse(jsonBirthday?.ToString(), out DateTime birthday);
-                    var roleType = RoleType.TryParse(jsonRole?.ToString());
+                    _ = DateTime.TryParse(jsonBirthday?.ToString(), out DateTime birthday);
 
-                    User user = new User();
-                    user.Name = name ?? user.Name;
-                    user.Email = email ?? user.Email;
-                    user.Password = password ?? user.Password;
-                    user.PhoneNumber = phoneNumber ?? user.Password;
-                    user.Address = address ?? user.Password;
-                    user.Avatar = avatar ?? user.Password;
-                    user.Slogan = slogan ?? user.Password;
-                    user.Bio = bio ?? user.Bio;
-                    user.Job = job ?? user.Job;
-                    user.Gender = GenderType.TryParse(gender) ?? user.Gender;
-                    user.Birthday = isParsed ? birthday : user.Birthday;
-                    user.Role = roleType ?? user.Role;
+                    var user = new User(
+                        email: jsonEmail?.ToString()!,
+                        role: jsonRole?.ToString()!,
+                        name: jsonName?.ToString()!,
+                        password: jsonPassword?.ToString()!,
+                        phoneNumber: jsonPhoneNumber?.ToString()!,
+                        address: jsonAddress?.ToString()!,
+                        avatar: jsonAvatar?.ToString()!,
+                        slogan: jsonSlogan?.ToString()!,
+                        bio: jsonBio?.ToString()!,
+                        job: jsonJob?.ToString()!,
+                        gender: jsonGender?.ToString(),
+                        birthday: birthday
+                    );
 
                     if (!_userService.TryAddUser(user))
                     {
@@ -205,7 +194,7 @@ namespace WebMvcPluginUser.Controllers
                     }
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data = new JArray { JObject.FromObject(user) };
+                    responseModel.Data = new JArray {JObject.FromObject(user)};
                 } while (false);
             }
             catch (Exception ex)
@@ -256,29 +245,17 @@ namespace WebMvcPluginUser.Controllers
                     {
                         break;
                     }
+                    
+                    _ = DateTime.TryParse(jsonBirthday?.ToString(), out var birthday);
 
-                    var name = jsonName?.ToString();
-                    var email = jsonEmail.ToString();
-                    var password = UserHelper.HashPassword(jsonPassword?.ToString());
-                    var phoneNumber = jsonPhoneNumber?.ToString();
-                    var address = jsonAddress?.ToString();
-                    var avatar = jsonAvatar?.ToString();
-                    var slogan = jsonSlogan?.ToString();
-                    var bio = jsonBio?.ToString();
-                    var job = jsonJob?.ToString();
-                    var gender = jsonGender?.ToString();
-                    var isParsed = DateTime.TryParse(jsonBirthday?.ToString(), out DateTime birthday);
-                    var roleType = RoleType.TryParse(jsonRole?.ToString());
-
-
-                    if (!_userService.TryGetUsers(userId, out User user))
+                    if (!_userService.TryGetUsers(userId, out var user))
                     {
                         break;
                     }
 
-                    bool isSuccess;
                     if (user == null)
                     {
+<<<<<<< Updated upstream
                         user = new User();
                         user.Name = name ?? user.Name;
                         user.Email = email ?? user.Email;
@@ -311,7 +288,28 @@ namespace WebMvcPluginUser.Controllers
                         user.Role = roleType ?? user.Role;
 
                         isSuccess = _userService.TryUpdateUser(user);
+=======
+                        responseModel.FromErrorCode(ErrorCode.UserNotFound);
+                        break;
+>>>>>>> Stashed changes
                     }
+
+                    user.Update(
+                        address: jsonAddress?.ToString(),
+                        avatar: jsonAvatar?.ToString(),
+                        bio: jsonBio?.ToString(),
+                        birthday: birthday,
+                        email: jsonEmail?.ToString()!,
+                        gender: jsonGender?.ToString(),
+                        job: jsonJob?.ToString(),
+                        name: jsonName?.ToString(),
+                        slogan: jsonSlogan?.ToString(),
+                        role: jsonRole?.ToString(),
+                        password: jsonPassword?.ToString(),
+                        phoneNumber: jsonPhoneNumber?.ToString()
+                    );
+
+                    var isSuccess = _userService.TryUpdateUser(user);
 
                     if (!isSuccess)
                     {
@@ -319,7 +317,7 @@ namespace WebMvcPluginUser.Controllers
                     }
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data = new JArray { JObject.FromObject(user) };
+                    responseModel.Data = new JArray {JObject.FromObject(user)};
                 } while (false);
             }
             catch (Exception ex)
@@ -346,13 +344,13 @@ namespace WebMvcPluginUser.Controllers
 
                     if (tourInfo == null)
                     {
-                        responseModel.ErrorCode = (int)ErrorCode.UserNotFound;
+                        responseModel.ErrorCode = (int) ErrorCode.UserNotFound;
                         responseModel.Message = Description(responseModel.ErrorCode);
                         break;
                     }
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data = new JArray { JObject.FromObject(tourInfo) };
+                    responseModel.Data = new JArray {JObject.FromObject(tourInfo)};
                 } while (false);
             }
             catch (Exception ex)
@@ -414,7 +412,7 @@ namespace WebMvcPluginUser.Controllers
                     }
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data = new JArray { JObject.FromObject(tourInfo) };
+                    responseModel.Data = new JArray {JObject.FromObject(tourInfo)};
                 } while (false);
             }
             catch (Exception ex)
@@ -436,12 +434,12 @@ namespace WebMvcPluginUser.Controllers
                 {
                     if (!_userService.TryRemoveTourInfo(id))
                     {
-                        responseModel.ErrorCode = (int)ErrorCode.Fail;
+                        responseModel.ErrorCode = (int) ErrorCode.Fail;
                         responseModel.Message = "Remove tour fail";
                         break;
                     }
 
-                    responseModel.ErrorCode = (int)ErrorCode.Success;
+                    responseModel.ErrorCode = (int) ErrorCode.Success;
                     responseModel.Message = Description(responseModel.ErrorCode);
                 } while (false);
             }

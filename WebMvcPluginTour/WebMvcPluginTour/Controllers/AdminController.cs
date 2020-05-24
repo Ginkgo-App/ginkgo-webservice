@@ -33,7 +33,7 @@ namespace WebMvcPluginTour.Controllers
             _tourService = tourService;
         }
 
-        [HttpGet("{Id}/tours")]
+        [HttpGet("{id}/tours")]
         public object GetAllTours(int id, [FromQuery] int page, [FromQuery] int pageSize)
         {
             var responseModel = new ResponseModel();
@@ -116,7 +116,6 @@ namespace WebMvcPluginTour.Controllers
         }
 
         [HttpGet]
-        [AllowAnonymous]
         public object GetAllTourInfos([FromQuery] int page, [FromQuery] int pageSize)
         {
             var responseModel = new ResponseModel();
@@ -159,7 +158,7 @@ namespace WebMvcPluginTour.Controllers
             return responseModel.ToJson();
         }
 
-        [HttpGet("{Id}")]
+        [HttpGet("{id}")]
         public object GetTourInfo(int id)
         {
             ResponseModel responseModel = new ResponseModel();
@@ -272,7 +271,7 @@ namespace WebMvcPluginTour.Controllers
             return responseModel.ToJson();
         }
 
-        [HttpPut("{Id}")]
+        [HttpPut("{id}")]
         public object UpdateTourInfo(int id, [FromBody] object requestBody)
         {
             var responseModel = new ResponseModel();
@@ -341,7 +340,7 @@ namespace WebMvcPluginTour.Controllers
             return responseModel.ToJson();
         }
 
-        [HttpDelete("{Id}")]
+        [HttpDelete("{id}")]
         public object DeleteTourInfo(int id)
         {
             var responseModel = new ResponseModel();

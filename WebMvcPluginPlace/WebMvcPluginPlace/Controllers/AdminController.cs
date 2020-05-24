@@ -113,7 +113,7 @@ namespace WebMvcPluginPlace.Controllers
 
                     var place = new Place(name, images, description);
 
-                    if (_placeService.TryAddPlace(place))
+                    if (!_placeService.TryAddPlace(place))
                     {
                         responseModel.FromErrorCode(ErrorList.ErrorCode.Fail);
                         break;
@@ -168,7 +168,7 @@ namespace WebMvcPluginPlace.Controllers
                     place.Description = jsonDescription?.ToString() ?? place.Description;
                     place.Images = images ?? place.Images;
 
-                    if (_placeService.TryUpdatePlace(place))
+                    if (!_placeService.TryUpdatePlace(place))
                     {
                         responseModel.FromErrorCode(ErrorList.ErrorCode.Fail);
                         break;
@@ -187,7 +187,7 @@ namespace WebMvcPluginPlace.Controllers
         }
         
         [HttpDelete("{Id}")]
-        public object UpdatePlace(int id)
+        public object DeletePlace(int id)
         {
             var responseModel = new ResponseModel();
 
