@@ -317,8 +317,6 @@ namespace WebMvcPluginUser.Controllers
 
                     if (!CoreHelper.GetParameter(out var jsonPassword, body, "password", JTokenType.String,
                             ref responseModel, true)
-                        || !CoreHelper.GetParameter(out var jsonEmail, body, "email", JTokenType.String,
-                            ref responseModel)
                         || !CoreHelper.GetParameter(out var jsonName, body, "name", JTokenType.String,
                             ref responseModel, true)
                         || !CoreHelper.GetParameter(out var jsonPhoneNumber, body, "phoneNumber", JTokenType.String,
@@ -341,7 +339,7 @@ namespace WebMvcPluginUser.Controllers
                         break;
                     }
                     
-                    _ = DateTime.TryParse(jsonBirthday?.ToString(), out var birthday);
+                    var isParseBirthday = DateTime.TryParse(jsonBirthday?.ToString(), out var birthday);
 
                     if (!_userService.TryGetUsers(userId, out var user))
                     {
@@ -359,7 +357,7 @@ namespace WebMvcPluginUser.Controllers
                         avatar: jsonAvatar?.ToString(),
                         bio: jsonBio?.ToString(),
                         birthday: birthday,
-                        email: jsonEmail?.ToString()!,
+                        email: null!,
                         gender: jsonGender?.ToString(),
                         job: jsonJob?.ToString(),
                         name: jsonName?.ToString(),

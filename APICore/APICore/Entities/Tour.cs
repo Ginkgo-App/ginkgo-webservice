@@ -19,7 +19,7 @@ namespace APICore.Entities
             JObject result = JObject.FromObject(this);
 
             result.Add("TotalMember", totalMember);
-            result.Add("Host", host!=null? host.ToSimpleJson(isFriend) : null);
+            result.Add("Host", host?.ToSimpleJson(isFriend));
             result.Add("Services", services!=null? JArray.FromObject(services) : null);
 
             return result;

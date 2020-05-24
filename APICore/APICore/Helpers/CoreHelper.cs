@@ -4,6 +4,7 @@ using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 
 namespace APICore.Helpers
@@ -25,11 +26,11 @@ namespace APICore.Helpers
                     break;
                 }
 
-                var stringComparation = isIgnoreCase
+                var stringComparision = isIgnoreCase
                     ? StringComparison.OrdinalIgnoreCase
                     : StringComparison.Ordinal;
 
-                body.TryGetValue(fieldName, stringComparation, out result);
+                body.TryGetValue(fieldName, stringComparision, out result);
 
                 if (isNullable)
                 {
@@ -64,6 +65,24 @@ namespace APICore.Helpers
             } while (false);
 
             return true;
+        }
+        
+        public string ValidateEmail(string email)
+        {
+            if (!Regex.IsMatch(email, @"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$"))
+            {
+                throw new ExceptionWithMessage("'" + email + "' is invalid format");
+            }
+            return email;
+        }
+        
+        public string ValidatePhoneNumber(string phoneNumber)
+        {
+            if (!Regex.IsMatch(phoneNumber, @"^-*[0-9,\.?\-?\(?\)?\ ]+$"))
+            {
+                throw new ExceptionWithMessage("'" + phoneNumber + "' is invalid format");
+            }
+            return phoneNumber;
         }
 
         public static void ValidatePageSize(ref int page, ref int pageSize)

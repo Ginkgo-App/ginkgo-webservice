@@ -12,6 +12,26 @@ using static APICore.Helpers.ErrorList;
 
 namespace APICore.Services
 {
+    public interface ITourInfoService
+    {
+        ErrorCode TryGetToursByUserId(int userId, int page, int pageSize, out List<TourInfo> tourInfos,
+            out Pagination pagination);
+
+        ErrorCode TryGetTourInfos(int page, int pageSize, out List<TourInfo> tourInfos,
+            out Pagination pagination);
+
+        ErrorCode TryGetTours(int tourInfoId, int page, int pageSize, out List<Tour> tourInfos,
+            out Pagination pagination);
+
+        ErrorCode TryGetTourInfoById(int tourId, out TourInfo tourInfos);
+        bool TryAddTourInfo(TourInfo tourInfo);
+        bool TryUpdateTourInfo(TourInfo tourInfo);
+        bool TryRemoveTourInfo(int tourInfoId);
+        ErrorCode TryGetPlaceById(int placeId, out Place place);
+        ErrorCode TryGetUserById(int userId, out User user);
+        ErrorCode TryGetServiceById(int serviceId, out Service service);
+    }
+
     public class TourInfoService : ITourInfoService
     {
         private PostgreSQLContext _context;
