@@ -18,6 +18,31 @@ using static APICore.Helpers.ErrorList;
 
 namespace APICore.Services
 {
+    public interface IUserService
+    {
+        ErrorCode Authenticate(string email, string password, out User user);
+        ErrorCode Authenticate(string email, ref AuthProvider authProvider, out User user);
+        ErrorCode Register(string name, string email, string phoneNumber, string password, out User user);
+        bool TryGetUsers(int page, int pageSize, out List<User> users, out Pagination pagination);
+        bool TryGetUsers(string email, out User user);
+        bool TryGetUsers(int userId, out User user);
+        bool TryAddUser(User user);
+        bool TryUpdateUser(User user);
+        bool TryRemoveUser(int userId);
+        bool TryAddAuthProvider(AuthProvider authProvider, User user);
+        bool TryGetFacebookInfo(string accessToken, out AuthProvider authProvider);
+
+        bool TryGetTours(int userId, int page, int pageSize, out List<TourInfo> tourInfos,
+            out Pagination pagination);
+
+        bool TryGetTourInfoById(int tourId, out TourInfo tourInfos);
+        bool TryUpdateTourInfo(TourInfo tourInfo);
+        bool TryRemoveTourInfo(int tourInfoId);
+
+        bool TryGetFriends(int userId, string type, int page, int pageSize, out List<User> friends,
+            out Pagination pagination);
+    }
+
     public class UserService : IUserService
     {
         private readonly AppSettings _appSettings;
@@ -169,7 +194,6 @@ namespace APICore.Services
 
                 var total = usersDb.Select(p => p.Id).Count();
                 var skip = pageSize * (page - 1);
-
                 var canPage = skip < total;
 
                 if (canPage)
@@ -392,21 +416,40 @@ namespace APICore.Services
             return true;
         }
 
-        public bool TryGetTours(int userId, out List<TourInfo> tourInfos)
+        public bool TryGetTours(int userId, int page, int pageSize, out List<TourInfo> tourInfos,
+            out Pagination pagination)
         {
             tourInfos = null;
+            pagination = null;
+            var isSuccess = false;
 
             try
             {
                 DbService.ConnectDb(out _context);
-                tourInfos = _context.TourInfos.Where(a => a.CreateById == userId).ToList();
+
+                var tourInfosDb = _context.TourInfos.Where(a => a.CreateById == userId).ToList();
+
+                var total = tourInfosDb.Select(p => p.Id).Count();
+                var skip = pageSize * (page - 1);
+                var canPage = skip < total;
+
+                if (canPage)
+                {
+                    tourInfos = tourInfosDb.Select(u => u)
+                        .Skip(skip)
+                        .Take(pageSize)
+                        .ToList();
+
+                    pagination = new Pagination(total, page, pageSize);
+                    isSuccess = true;
+                }
             }
             finally
             {
                 DbService.DisconnectDb(out _context);
             }
 
-            return true;
+            return isSuccess;
         }
 
         public bool TryGetTourInfoById(int tourId, out TourInfo tourInfos)
@@ -464,9 +507,12 @@ namespace APICore.Services
             return isSuccess;
         }
 
-        public bool TryGetFriends(int userId, string type, out List<User> friends)
+        public bool TryGetFriends(int userId, string type, int page, int pageSize, out List<User> friends,
+            out Pagination pagination)
         {
             friends = new List<User>();
+            pagination = null;
+            var isSuccess = false;
 
             try
             {
@@ -481,21 +527,37 @@ namespace APICore.Services
                         .ToArray(),
                     _ => _context.Friends.Where(a => a.UserId == userId || a.RequestedUserId == userId).ToArray()
                 };
-                foreach (var friend in friendDBs)
-                {
-                    var id = friend.UserId != userId ? friend.UserId : friend.RequestedUserId;
-                    TryGetUsers(id, out var user);
-                    friends.Add(user);
-                }
 
-                friends = friends.Distinct().ToList();
+                var total = friendDBs.Count();
+                var skip = pageSize * (page - 1);
+                var canPage = skip < total;
+
+                if (canPage)
+                {
+                    var listFriends = friendDBs.Select(u => u)
+                        .Skip(skip)
+                        .Take(pageSize)
+                        .ToList();
+
+                    pagination = new Pagination(total, page, pageSize);
+
+                    foreach (var friend in listFriends)
+                    {
+                        var id = friend.UserId != userId ? friend.UserId : friend.RequestedUserId;
+                        TryGetUsers(id, out var user);
+                        friends.Add(user);
+                    }
+
+                    friends = friends.Distinct().ToList();
+                    isSuccess = true;
+                }
             }
             finally
             {
                 DbService.DisconnectDb(out _context);
             }
 
-            return true;
+            return isSuccess;
         }
 
         private void GenerateToken(User user)

@@ -180,52 +180,6 @@ namespace WebMvcPluginUser.Controllers
             return responseModel.ToJson().ToString();
         }
 
-        //[Authorize(Roles = RoleType.Admin)]
-        //[HttpGet]
-        //public IActionResult GetAllUser(int userId, [FromQuery]int page, [FromQuery]int pageSize)
-        //{
-        //    ResponseModel responseModel = new ResponseModel();
-
-        //    try
-        //    {
-        //        do
-        //        {
-        //            List<User> users = null;
-        //            JArray data = new JArray();
-
-        //            if (!_userService.TryGetUsers(page, pageSize, out users))
-        //            {
-        //                break;
-        //            }
-
-        //            if (users == null || users.Count == 0)
-        //            {
-        //                responseModel.ErrorCode = (int)ErrorList.ErrorCode.UserNotFound;
-        //                responseModel.Message = ErrorList.Description(responseModel.ErrorCode);
-        //                break;
-        //            }
-
-        //            foreach (var user in users)
-        //            {
-        //                data.Add(JObject.FromObject(user));
-        //            }
-
-        //            responseModel.ErrorCode = (int)ErrorList.ErrorCode.Success;
-        //            responseModel.Message = ErrorList.Description(responseModel.ErrorCode);
-        //            responseModel.Data = data;
-
-        //        } while (false);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Response.StatusCode = 501;
-        //        responseModel.ErrorCode = 501;
-        //        responseModel.Message = ex.Message;
-        //    }
-
-        //    return responseModel.ToJson();
-        //}
-
         [HttpGet("{userId}")]
         public object GetUserById(int userId)
         {
@@ -356,7 +310,7 @@ namespace WebMvcPluginUser.Controllers
                         address: jsonAddress?.ToString(),
                         avatar: jsonAvatar?.ToString(),
                         bio: jsonBio?.ToString(),
-                        birthday: birthday,
+                        birthday: isParseBirthday ? birthday : (DateTime?)null,
                         email: null!,
                         gender: jsonGender?.ToString(),
                         job: jsonJob?.ToString(),
@@ -429,7 +383,7 @@ namespace WebMvcPluginUser.Controllers
         }
 
         [HttpGet("me/tours")]
-        public object GetMyTours()
+        public object GetMyTours([FromQuery] int page, [FromQuery] int pageSize)
         {
             var responseModel = new ResponseModel();
 
@@ -437,6 +391,8 @@ namespace WebMvcPluginUser.Controllers
             {
                 do
                 {
+                    CoreHelper.ValidatePageSize(ref page, ref pageSize);
+                    
                     var identity = HttpContext.User.Identity as ClaimsIdentity;
                     if (identity == null)
                     {
@@ -447,7 +403,7 @@ namespace WebMvcPluginUser.Controllers
                     var claims = identity.Claims;
                     int.TryParse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value,
                         out var userId);
-                    _userService.TryGetTours(userId, out List<TourInfo> tourInfos);
+                    _userService.TryGetTours(userId, page, pageSize, out List<TourInfo> tourInfos, out var pagination);
 
                     if (tourInfos == null)
                     {
@@ -457,6 +413,7 @@ namespace WebMvcPluginUser.Controllers
 
                     responseModel.FromErrorCode(ErrorCode.Success);
                     responseModel.Data = JArray.FromObject(tourInfos);
+                    responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
                 } while (false);
             }
             catch (Exception ex)
@@ -468,7 +425,7 @@ namespace WebMvcPluginUser.Controllers
         }
 
         [HttpGet("{id}/friends")]
-        public object GetUserFriends(int id)
+        public object GetUserFriends(int id, [FromQuery] int page, [FromQuery] int pageSize)
         {
             var responseModel = new ResponseModel();
 
@@ -476,6 +433,8 @@ namespace WebMvcPluginUser.Controllers
             {
                 do
                 {
+                    CoreHelper.ValidatePageSize(ref page, ref pageSize);
+                    
                     var identity = HttpContext.User.Identity as ClaimsIdentity;
                     if (identity == null)
                     {
@@ -483,7 +442,7 @@ namespace WebMvcPluginUser.Controllers
                         break;
                     }
 
-                    if (!_userService.TryGetFriends(id, "accepted", out var friends) || friends == null)
+                    if (!_userService.TryGetFriends(id, "accepted", page, pageSize, out var friends, out var pagination) || friends == null)
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
                         break;
@@ -491,6 +450,7 @@ namespace WebMvcPluginUser.Controllers
 
                     responseModel.FromErrorCode(ErrorCode.Success);
                     responseModel.Data = JArray.FromObject(friends);
+                    responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
                 } while (false);
             }
             catch (Exception ex)
@@ -502,7 +462,7 @@ namespace WebMvcPluginUser.Controllers
         }
 
         [HttpGet("me/friends")]
-        public object GetMyFriends([FromQuery] string type)
+        public object GetMyFriends([FromQuery] string type, [FromQuery] int page, [FromQuery] int pageSize)
         {
             var responseModel = new ResponseModel();
 
@@ -510,6 +470,8 @@ namespace WebMvcPluginUser.Controllers
             {
                 do
                 {
+                    CoreHelper.ValidatePageSize(ref page, ref pageSize);
+                    
                     var identity = HttpContext.User.Identity as ClaimsIdentity;
                     if (identity == null)
                     {
@@ -521,7 +483,7 @@ namespace WebMvcPluginUser.Controllers
                     int.TryParse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value,
                         out var userId);
 
-                    if (!_userService.TryGetFriends(userId, type, out var friends) || friends == null)
+                    if (!_userService.TryGetFriends(userId, type, page, pageSize, out var friends, out var pagination) || friends == null)
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
                         break;
@@ -529,6 +491,7 @@ namespace WebMvcPluginUser.Controllers
 
                     responseModel.FromErrorCode(ErrorCode.Success);
                     responseModel.Data = JArray.FromObject(friends);
+                    responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
                 } while (false);
             }
             catch (Exception ex)

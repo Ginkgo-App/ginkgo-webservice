@@ -171,7 +171,7 @@ namespace WebMvcPluginUser.Controllers
                         break;
                     }
 
-                    _ = DateTime.TryParse(jsonBirthday?.ToString(), out DateTime birthday);
+                    var isParsedBirthday = DateTime.TryParse(jsonBirthday?.ToString(), out DateTime birthday);
 
                     var user = new User(
                         email: jsonEmail?.ToString()!,
@@ -185,7 +185,7 @@ namespace WebMvcPluginUser.Controllers
                         bio: jsonBio?.ToString()!,
                         job: jsonJob?.ToString()!,
                         gender: jsonGender?.ToString(),
-                        birthday: birthday
+                        birthday: isParsedBirthday ? birthday : (DateTime?) null
                     );
 
                     if (!_userService.TryAddUser(user))
@@ -245,8 +245,8 @@ namespace WebMvcPluginUser.Controllers
                     {
                         break;
                     }
-                    
-                    _ = DateTime.TryParse(jsonBirthday?.ToString(), out var birthday);
+
+                    var isParsedBirthday = DateTime.TryParse(jsonBirthday?.ToString(), out var birthday);
 
                     if (!_userService.TryGetUsers(userId, out var user))
                     {
@@ -263,7 +263,7 @@ namespace WebMvcPluginUser.Controllers
                         address: jsonAddress?.ToString(),
                         avatar: jsonAvatar?.ToString(),
                         bio: jsonBio?.ToString(),
-                        birthday: birthday,
+                        birthday: isParsedBirthday ? birthday : (DateTime?) null,
                         email: jsonEmail?.ToString()!,
                         gender: jsonGender?.ToString(),
                         job: jsonJob?.ToString(),
