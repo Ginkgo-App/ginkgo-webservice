@@ -47,10 +47,10 @@ namespace APICore.Services
                 }
 
                 // Hash password
-                var hashPassword = CoreHelper.HashPassword(password);
+                // var hashPassword = CoreHelper.HashPassword(password);
 
                 // return null if user not found
-                if (user == null || (user.Password != null && !user.Password.Equals(hashPassword)))
+                if (user == null || (user.Password != null && !user.Password.Equals(CoreHelper.HashPassword(password))))
                 {
                     _logger.Error($"Email: '{email}' or password is incorrect");
                     statusCode = ErrorCode.Fail;
@@ -132,7 +132,7 @@ namespace APICore.Services
                     name: name,
                     email: email,
                     phoneNumber: phoneNumber,
-                    password: CoreHelper.HashPassword(password),
+                    password: password,
                     role: RoleType.User
                 );
 
@@ -249,7 +249,7 @@ namespace APICore.Services
             try
             {
                 DbService.ConnectDb(out _context);
-                _context.Users.Update(user);
+                _context.Users.Add(user);
                 _context.SaveChanges();
             }
             finally

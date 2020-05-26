@@ -112,14 +112,14 @@ namespace WebMvcPluginUser.Controllers
                 response.FromException(ex);
             }
 
-            return response;
+            return response.ToJson();
         }
 
         [AllowAnonymous]
         [HttpPost("social-provider")]
-        public object SocialProvider([FromBody] object requestBody)
+        public string SocialProvider([FromBody] object requestBody)
         {
-            ResponseModel responseModel = new ResponseModel();
+            var responseModel = new ResponseModel();
 
             try
             {
@@ -177,7 +177,7 @@ namespace WebMvcPluginUser.Controllers
                 responseModel.FromException(ex);
             }
 
-            return responseModel.ToJson();
+            return responseModel.ToJson().ToString();
         }
 
         //[Authorize(Roles = RoleType.Admin)]
