@@ -171,7 +171,7 @@ namespace WebMvcPluginUser.Controllers
                         break;
                     }
 
-                    var isParsedBirthday = DateTime.TryParse(jsonBirthday?.ToString(), out DateTime birthday);
+                    var isParsedBirthday = DateTime.TryParse(jsonBirthday?.ToString(), out var birthday);
 
                     var user = new User(
                         email: jsonEmail?.ToString()!,
