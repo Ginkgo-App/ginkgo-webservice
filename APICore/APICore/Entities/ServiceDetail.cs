@@ -2,8 +2,8 @@
 {
     public class ServiceDetail
     {
-        public int Id { get; set; }
-        public int ServiceId { get; set; }
-        public int CreateById { get; set; }
+        public int Id { get; private set; }
+        public int ServiceId { get; private set; }
+        public int CreateById { get; private set; }
     }
 }

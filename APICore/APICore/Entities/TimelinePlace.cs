@@ -5,8 +5,8 @@ namespace APICore.Entities
     public class TimelinePlace
     {
         [Key]
-        public int PlaceId { get; set; }
+        public int PlaceId { get; private set; }
         [Key]
-        public int TimelineId { get; set; }
+        public int TimelineId { get; private set; }
     }
 }

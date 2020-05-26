@@ -15,16 +15,16 @@ namespace APICore.Entities
             DestinatePlaceId = destinatePlaceId;
         }
 
-        public int Id { get; set; }
-        public int CreateById { get; set; }
-        public string? Name { get; set; }
-        public string[]? Images { get; set; }
-        public int StartPlaceId { get; set; }
-        public int DestinatePlaceId { get; set; }
-        public DateTime? DeleteAt { get; set; }
-        public double? Rating { get; set; }
+        public int Id { get; private set; }
+        public int CreateById { get; private set; }
+        public string? Name { get; private set; }
+        public string[]? Images { get; private set; }
+        public int StartPlaceId { get; private set; }
+        public int DestinatePlaceId { get; private set; }
+        public DateTime? DeleteAt { get; private set; }
+        public double? Rating { get; private set; }
 
-        public JObject ToJson(Place startPlace, Place destinatePlace)
+        public JObject ToJson(Place startPlace, Place destinatePlace )
         {
             JObject json = JObject.FromObject(this);
 
@@ -35,6 +35,16 @@ namespace APICore.Entities
             json.Add("StartPlace", startPlace == null ? null : JObject.FromObject(startPlace));
             json.Add("DestinatePlace", destinatePlace == null ? null : JObject.FromObject(destinatePlace));
             return json;
+        }
+        
+        public TourInfo Update(int? createById = null, string? name = null, string[] images = null, int? startPlaceId = null, int? destinatePlaceId = null)
+        {
+            CreateById = createById ?? CreateById;
+            Name = name ?? Name;
+            Images = images ?? Images;
+            StartPlaceId = startPlaceId ?? StartPlaceId;
+            DestinatePlaceId = destinatePlaceId ?? DestinatePlaceId;
+            return this;
         }
     }
 }

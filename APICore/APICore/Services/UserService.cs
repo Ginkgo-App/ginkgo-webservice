@@ -331,11 +331,7 @@ namespace APICore.Services
                 var dbAuthProvider = _context.AuthProviders.FirstOrDefault(a => a.Id == authProvider.Id);
                 if (dbAuthProvider != null)
                 {
-                    dbAuthProvider.Name = authProvider.Name;
-                    dbAuthProvider.Avatar = authProvider.Avatar;
-                    dbAuthProvider.Email = authProvider.Email;
-                    dbAuthProvider.Provider = authProvider.Provider;
-                    dbAuthProvider.UserId = user.Id;
+                    _context.AuthProviders.Add(authProvider);   
                     _context.AuthProviders.Update(dbAuthProvider);
                 }
                 else
@@ -384,15 +380,8 @@ namespace APICore.Services
                     break;
                 }
 
-
-                authProvider = new AuthProvider
-                {
-                    Id = httpContent.id,
-                    Name = httpContent.name,
-                    Email = httpContent.email,
-                    Provider = ProviderType.facebook.ToString()
-                };
-
+                authProvider = new AuthProvider(httpContent.id, httpContent.name, httpContent.email,
+                    provider: ProviderType.facebook.ToString());
                 isSuccess = true;
             } while (false);
 

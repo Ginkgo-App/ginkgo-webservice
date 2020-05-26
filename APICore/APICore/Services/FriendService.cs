@@ -84,12 +84,7 @@ namespace APICore.Services
                     break;
                 }
 
-                var friend = new Friend
-                {
-                    UserId = userId,
-                    RequestedUserId = userRequestId,
-                    IsAccepted = false,
-                };
+                var friend = new Friend(userId, userRequestId);
 
                 try
                 {
@@ -134,7 +129,7 @@ namespace APICore.Services
                         errorCode = ErrorCode.AlreadyFriend;
                         break;
                     }
-
+    
                     friendDb.IsAccepted = true;
                     _context.Friends.Update(friendDb);
                     _context.SaveChanges();

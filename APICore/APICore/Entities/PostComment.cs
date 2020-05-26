@@ -17,10 +17,10 @@ namespace APICore.Entities
         {
         }
 
-        public int Id { get; set; }
-        public string? Content { get; set; }
-        public int UserId { get; set; }
-        public int PostId { get; set; }
-        public DateTime CreateAt { get; set; }
+        public int Id { get; private set; }
+        public string? Content { get; private set; }
+        public int UserId { get; private set; }
+        public int PostId { get; private set; }
+        public DateTime CreateAt { get; private set; }
     }
 }

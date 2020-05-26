@@ -67,7 +67,7 @@ namespace APICore.Helpers
             return true;
         }
         
-        public string ValidateEmail(string email)
+        public static string ValidateEmail(string email)
         {
             if (!Regex.IsMatch(email, @"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$"))
             {
@@ -76,7 +76,7 @@ namespace APICore.Helpers
             return email;
         }
         
-        public string ValidatePhoneNumber(string phoneNumber)
+        public static string ValidatePhoneNumber(string phoneNumber)
         {
             if (!Regex.IsMatch(phoneNumber, @"^-*[0-9,\.?\-?\(?\)?\ ]+$"))
             {

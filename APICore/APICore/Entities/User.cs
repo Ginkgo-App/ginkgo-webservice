@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
+using APICore.Helpers;
 
 namespace APICore.Entities
 {
@@ -18,9 +19,9 @@ namespace APICore.Entities
             DateTime? birthday = null, string gender = null, string address = null)
         {
             Name = name;
-            Password = Helpers.CoreHelper.HashPassword(password);
-            Email = email;
-            PhoneNumber = phoneNumber;
+            Password = CoreHelper.HashPassword(password);
+            Email = CoreHelper.ValidateEmail(email);
+            PhoneNumber = CoreHelper.ValidatePhoneNumber(phoneNumber);
             FullName = fullName;
             Avatar = avatar;
             Bio = bio;
@@ -35,9 +36,9 @@ namespace APICore.Entities
         public User Update(string? name, string? password, string email, string? phoneNumber, string? avatar, string? bio, string? slogan, string? job, DateTime? birthday, string? gender, string? address, string? role)
         {
             Name = name ?? Name;
-            Password = password != null ? Helpers.CoreHelper.HashPassword(password) : Password;
-            Email = email ?? Email;
-            PhoneNumber = phoneNumber ?? PhoneNumber;
+            Password = password != null ? CoreHelper.HashPassword(password) : Password;
+            Email = email != null ? CoreHelper.ValidateEmail(email) : Email;
+            PhoneNumber = phoneNumber != null ? CoreHelper.ValidatePhoneNumber(phoneNumber) : PhoneNumber;
             Avatar = avatar ?? Avatar;
             Bio = bio ?? Bio;
             Slogan = slogan ?? Slogan;
@@ -50,26 +51,22 @@ namespace APICore.Entities
             return this;
         }
 
-        // public User()
-        // {
-        // }
-
-        public int Id { get; set; }
-        public string? Name { get; set; }
-        public string? Password { get; set; }
+        public int Id { get; private set; }
+        public string? Name { get; private set; }
+        public string? Password { get; private set; }
         [NotMapped] 
         public string? Token { get; set; }
-        public string Email { get; set; }
-        public string? PhoneNumber { get; set; }
-        public string? FullName { get; set; }
-        public string? Avatar { get; set; }
-        public string? Bio { get; set; }
-        public string? Slogan { get; set; }
-        public string? Job { get; set; }
-        public DateTime? Birthday { get; set; }
-        public string? Gender { get; set; }
-        public string? Address { get; set; }
-        public string Role { get; set; }
+        public string Email { get; private set; }
+        public string? PhoneNumber { get; private set; }
+        public string? FullName { get; private set; }
+        public string? Avatar { get; private set; }
+        public string? Bio { get; private set; }
+        public string? Slogan { get; private set; }
+        public string? Job { get; private set; }
+        public DateTime? Birthday { get; private set; }
+        public string? Gender { get; private set; }
+        public string? Address { get; private set; }
+        public string Role { get; private set; }
 
 
         public JObject ToSimpleJson(int isFriend)

@@ -164,9 +164,7 @@ namespace WebMvcPluginPlace.Controllers
                         ? JsonConvert.DeserializeObject<string[]>(jsonImages.ToString())
                         : null;
 
-                    place.Name = jsonName?.ToString() ?? place.Name;
-                    place.Description = jsonDescription?.ToString() ?? place.Description;
-                    place.Images = images ?? place.Images;
+                    place.Update(jsonName?.ToString(), images, jsonDescription?.ToString());
 
                     if (!_placeService.TryUpdatePlace(place))
                     {

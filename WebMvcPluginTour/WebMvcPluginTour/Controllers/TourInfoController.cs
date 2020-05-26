@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using APICore.Entities;
@@ -75,7 +74,7 @@ namespace WebMvcPluginTour.Controllers
                     var identity = HttpContext.User.Identity as ClaimsIdentity;
 
                     // Gets list of claims.
-                    IEnumerable<Claim> claim = identity?.Claims;
+                    var claim = identity?.Claims;
 
                     // Gets userId from claims. Generally it's an email address.
                     var userIdString = claim
@@ -98,7 +97,7 @@ namespace WebMvcPluginTour.Controllers
                     {
                         _ = _tourService.TryGetTotalMember(tour.Id, out var totalMember);
 
-                        data.Add(tour.ToSimpleJson(host, eIsFriend, totalMember, null));
+                        data.Add(tour.ToSimpleJson(host, eIsFriend, totalMember, null!));
                     }
 
                     responseModel.ErrorCode = (int) ErrorCode.Success;
@@ -162,13 +161,13 @@ namespace WebMvcPluginTour.Controllers
         [HttpGet("{Id}")]
         public object GetTourInfo(int id)
         {
-            ResponseModel responseModel = new ResponseModel();
+            var responseModel = new ResponseModel();
 
             try
             {
                 do
                 {
-                    var errorCode = _tourInfoService.TryGetTourInfoById(id, out TourInfo tourInfo);
+                    var errorCode = _tourInfoService.TryGetTourInfoById(id, out var tourInfo);
                     if (errorCode != ErrorCode.Success)
                     {
                         responseModel.FromErrorCode(errorCode);
@@ -220,13 +219,13 @@ namespace WebMvcPluginTour.Controllers
                         : null;
 
                     if (!CoreHelper.GetParameter(out var jsonDestinationPlaceId, body, "DestinationPlaceId",
-                            JTokenType.Integer, ref responseModel, true)
+                            JTokenType.Integer, ref responseModel)
                         || !CoreHelper.GetParameter(out var jsonStartPlaceId, body, "StartPlaceId",
-                            JTokenType.Integer, ref responseModel, true)
+                            JTokenType.Integer, ref responseModel)
                         || !CoreHelper.GetParameter(out var jsonImages, body, "Images", JTokenType.Array,
                             ref responseModel, true)
                         || !CoreHelper.GetParameter(out var jsonName, body, "Name", JTokenType.String,
-                            ref responseModel, true))
+                            ref responseModel))
                     {
                         break;
                     }
@@ -248,8 +247,8 @@ namespace WebMvcPluginTour.Controllers
 
                     var tourInfo = new TourInfo(
                         createById: userId,
-                        name: name,
-                        images: images,
+                        name: name!,
+                        images: images!,
                         startPlaceId: startPlaceId,
                         destinatePlaceId: destinationPlaceId
                     );
@@ -313,15 +312,17 @@ namespace WebMvcPluginTour.Controllers
                     var isDestinationPlaceId =
                         int.TryParse(jsonDestinationPlaceId?.ToString(), out var destinationPlaceId);
                     var isStartPlaceId = int.TryParse(jsonStartPlaceId?.ToString(), out var startPlaceId);
-                    var name = jsonName?.ToString();
                     var images = jsonImages != null
                         ? JsonConvert.DeserializeObject<string[]>(jsonImages.ToString())
                         : null;
-
-                    tourInfo.Images = images ?? tourInfo.Images;
-                    tourInfo.Name = name ?? tourInfo.Name;
-                    tourInfo.StartPlaceId = isStartPlaceId ? startPlaceId : tourInfo.StartPlaceId;
-                    tourInfo.DestinatePlaceId = isDestinationPlaceId ? destinationPlaceId : tourInfo.DestinatePlaceId;
+                    
+                    tourInfo.Update(
+                        createById:null,
+                        name:jsonName?.ToString(),
+                        images:images!,
+                        startPlaceId:isStartPlaceId ? startPlaceId : (int?) null,
+                        destinatePlaceId:isDestinationPlaceId ? destinationPlaceId : (int?) null
+                    );
 
                     if (!_tourInfoService.TryUpdateTourInfo(tourInfo))
                     {

@@ -21,21 +21,34 @@ namespace APICore.Services
             _appSettings = appSettings.Value;
         }
         
-        public ErrorList.ErrorCode TryGetServiceByTourId(int tourId, out List<APICore.Entities.TourService> tourServices)
+        public ErrorList.ErrorCode TryGetServiceByTourId(int tourId, out List<Service> tourServices)
         {
             ErrorList.ErrorCode errorCode;
+            tourServices = new List<Service>();
             do
             {
                     try
                     {
                         DbService.ConnectDb(out _context);
-                        tourServices = _context.TourServices.Where(s => s.TourId == tourId).ToList();
+                        var tourServiceIds = _context.TourServices.Where(s => s.TourId == tourId).ToList();
 
-                        if (!tourServices.Any())
+                        if (!tourServiceIds.Any())
                         {
                             errorCode = ErrorList.ErrorCode.ServiceNotFound;
                             break;
                         }
+
+                        foreach (var tourServiceId in tourServiceIds)
+                        {
+                            var service =  _context.Services.FirstOrDefault(s=>s.Id.Equals( tourServiceId.ServiceId));
+                            if (service == null)
+                            {
+                                continue;
+                            }
+                            tourServices.Add(service);
+                        }
+
+                        tourServices = tourServices.Distinct().ToList();
                         errorCode = ErrorList.ErrorCode.Success;
                     }
                     finally
@@ -45,6 +58,24 @@ namespace APICore.Services
             } while (false);
 
             return errorCode;
+        }
+        
+        public bool TryGetServiceById(int serviceId, out Service service)
+        {
+            do
+            {
+                try
+                {
+                    DbService.ConnectDb(out _context);
+                    service = _context.Services.FirstOrDefault(s => s.Id == serviceId);
+                }
+                finally
+                {
+                    DbService.DisconnectDb(out _context);
+                }
+            } while (false);
+
+            return true;
         }
     }
 }

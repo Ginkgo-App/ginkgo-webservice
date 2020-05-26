@@ -14,10 +14,14 @@ namespace APICore.Services
 {
     public interface ITourService
     {
-        ErrorCode TryGetTotalMember(int tourId, out int totalMember);
+        bool TryGetTotalMember(int tourId, out int totalMember);
 
-        ErrorCode TryGetAllTours(int tourInfoId, int page, int pageSize, out List<Tour> tours,
+        bool TryGetAllTours(int tourInfoId, int page, int pageSize, out List<Tour> tours,
             out Pagination pagination);
+
+        bool TryAddTour(Tour tour);
+        bool TryUpdateTour(Tour tour);
+        bool TryDeleteTour(int tourId);
     }
 
     public class TourService : ITourService
@@ -31,16 +35,14 @@ namespace APICore.Services
             _appSettings = appSettings.Value;
         }
 
-        public ErrorCode TryGetTotalMember(int tourId, out int totalMember)
+        public bool TryGetTotalMember(int tourId, out int totalMember)
         {
             totalMember = 0;
-            ErrorCode errorCode;
 
             try
             {
                 DbService.ConnectDb(out _context);
                 totalMember = _context.TourMembers.Count(t => t.TourId == tourId);
-                errorCode = ErrorCode.Success;
                 DbService.DisconnectDb(out _context);
             }
             finally
@@ -48,15 +50,14 @@ namespace APICore.Services
                 DbService.DisconnectDb(out _context);
             }
 
-            return errorCode;
+            return true;
         }
 
-        public ErrorCode TryGetAllTours(int tourInfoId, int page, int pageSize, out List<Tour> tours,
+        public bool TryGetAllTours(int tourInfoId, int page, int pageSize, out List<Tour> tours,
             out Pagination pagination)
         {
             tours = null;
             pagination = null;
-            var errorCode = ErrorCode.Fail;
 
             try
             {
@@ -78,7 +79,6 @@ namespace APICore.Services
                         .ToList();
 
                     pagination = new Pagination(total, page, pageSize);
-                    errorCode = ErrorCode.Success;
                 }
 
                 DbService.DisconnectDb(out _context);
@@ -88,13 +88,11 @@ namespace APICore.Services
                 DbService.DisconnectDb(out _context);
             }
 
-            return errorCode;
+            return true;
         }
         
-        public ErrorCode TryAddTour(Tour tour)
+        public bool TryAddTour(Tour tour)
         {
-            var errorCode = ErrorCode.Fail;
-
             try
             {
                 DbService.ConnectDb(out _context);
@@ -107,7 +105,46 @@ namespace APICore.Services
                 DbService.DisconnectDb(out _context);
             }
 
-            return errorCode;
+            return true;
+        }
+        
+        public bool TryUpdateTour(Tour tour)
+        {
+            try
+            {
+                DbService.ConnectDb(out _context);
+                _context.Tours.Update(tour);
+                _context.SaveChanges();
+                DbService.DisconnectDb(out _context);
+            }
+            finally
+            {
+                DbService.DisconnectDb(out _context);
+            }
+
+            return true;
+        }
+        
+        public bool TryDeleteTour(int tourId)
+        {
+            try
+            {
+                DbService.ConnectDb(out _context);
+                var tour = _context.Tours.SingleOrDefault(t => t.Id == tourId);
+                if (tour == null)
+                {
+                    throw new ExceptionWithMessage(message:"Tour not found");
+                }
+                _context.Tours.Remove(tour);
+                _context.SaveChanges();
+                DbService.DisconnectDb(out _context);
+            }
+            finally
+            {
+                DbService.DisconnectDb(out _context);
+            }
+
+            return true;
         }
     }
 }

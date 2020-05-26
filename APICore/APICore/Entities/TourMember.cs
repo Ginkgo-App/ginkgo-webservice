@@ -6,10 +6,10 @@ namespace APICore.Entities
     public class TourMember
     {
         [Key]
-        public int TourId { get; set; }
+        public int TourId { get; private set; }
         [Key]
-        public int UserId { get; set; }
-        public bool IsHost { get; set; }
-        public DateTime JoinAt { get; set; }
+        public int UserId { get; private set; }
+        public bool IsHost { get; private set; }
+        public DateTime JoinAt { get; private set; }
     }
 }

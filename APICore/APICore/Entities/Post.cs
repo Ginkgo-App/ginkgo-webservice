@@ -5,10 +5,10 @@ namespace APICore.Entities
 {
     public class Post
     {
-        public int Id { get; set; }
-        public string? Content { get; set; }
-        public string[]? Images { get; set; }
-        public int AuthorId { get; set; }
-        public DateTime CreateAt { get; set; }
+        public int Id { get; private set; }
+        public string? Content { get; private set; }
+        public string[]? Images { get; private set; }
+        public int AuthorId { get; private set; }
+        public DateTime CreateAt { get; private set; }
     }
 }

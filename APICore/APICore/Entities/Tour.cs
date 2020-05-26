@@ -7,12 +7,21 @@ namespace APICore.Entities
 {
     public class Tour
     {
-        public int Id { get; set; }
-        public string? Name { get; set; }
-        public DateTime StartDay { get; set; }
-        public DateTime EndDay { get; set; }
-        public int MaxMember { get; set; }
-        public int TourInfoId { get; set; }
+        public Tour(string? name, DateTime startDay, DateTime endDay, int maxMember, int tourInfoId)
+        {
+            Name = name;
+            StartDay = startDay;
+            EndDay = endDay;
+            MaxMember = maxMember;
+            TourInfoId = tourInfoId;
+        }
+
+        public int Id { get; private set; }
+        public string? Name { get; private set; }
+        public DateTime StartDay { get; private set; }
+        public DateTime EndDay { get; private set; }
+        public int MaxMember { get; private set; }
+        public int TourInfoId { get; private set; }
 
         public JObject ToSimpleJson(User host, int isFriend, int totalMember, List<Service> services)
         {
