@@ -32,7 +32,7 @@ namespace APICore.Services
         bool TryAddAuthProvider(AuthProvider authProvider, User user);
         bool TryGetFacebookInfo(string accessToken, out AuthProvider authProvider);
 
-        bool TryGetTours(int userId, int page, int pageSize, out List<TourInfo> tourInfos,
+        bool TryGetTours(int userId, int page, int pageSize, out List<SimpleTour> tours,
             out Pagination pagination);
 
         bool TryGetTourInfoById(int tourId, out TourInfo tourInfos);
@@ -408,10 +408,10 @@ namespace APICore.Services
             return true;
         }
 
-        public bool TryGetTours(int userId, int page, int pageSize, out List<TourInfo> tourInfos,
+        public bool TryGetTours(int userId, int page, int pageSize, out List<SimpleTour> tours,
             out Pagination pagination)
         {
-            tourInfos = null;
+            tours = null;
             pagination = null;
             var isSuccess = false;
 
@@ -419,23 +419,35 @@ namespace APICore.Services
             {
                 DbService.ConnectDb(out _context);
 
-                var tourInfosDb = _context.TourInfos.Where(a => a.CreateById == userId).ToList();
+                var toursDb = (from t in _context.Tours
+                    join ti in _context.TourInfos on t.TourInfoId equals ti.Id
+                    join host in _context.Users on ti.CreateById equals host.Id
+                    where ti.CreateById == userId
+                    select new
+                    {
+                        Id = t.Id,
+                        Name = t.Name,
+                        StartDay = t.StartDay,
+                        EndDay = t.EndDay,
+                        Price = 0,
+                        Host = host
+                    }).ToList();
 
-                var total = tourInfosDb.Select(p => p.Id).Count();
+                Console.WriteLine(toursDb.Count());
+
+                var total = toursDb.Count();
                 var skip = pageSize * (page - 1);
-                var canPage = skip < total;
 
-                if (canPage)
-                {
-                    tourInfos = tourInfosDb.Select(u => u)
-                        .Skip(skip)
-                        .Take(pageSize)
-                        .ToList();
-                }
-                else
-                {
-                    tourInfos = new List<TourInfo>();
-                }
+                tours = toursDb
+                    .Skip(skip)
+                    .Take(pageSize)
+                    .ToList().ConvertAll((e) =>
+                    {
+                        return new SimpleTour(e.Id, e.Name, e.StartDay, e.EndDay,
+                            _context.TourMembers.Count(t => t.TourId == e.Id), e.Host.ToSimpleUser(FriendType.Accepted),
+                            null,
+                            0);
+                    });
 
                 pagination = new Pagination(total, page, pageSize);
                 isSuccess = true;

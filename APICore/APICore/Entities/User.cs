@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using APICore.Helpers;
+using APICore.Models;
 
 namespace APICore.Entities
 {
@@ -33,7 +34,8 @@ namespace APICore.Entities
             Role = RoleType.TryParse(role) ?? RoleType.User;
         }
 
-        public User Update(string? name, string? password, string email, string? phoneNumber, string? avatar, string? bio, string? slogan, string? job, DateTime? birthday, string? gender, string? address, string? role)
+        public User Update(string? name, string? password, string email, string? phoneNumber, string? avatar,
+            string? bio, string? slogan, string? job, DateTime? birthday, string? gender, string? address, string? role)
         {
             Name = name ?? Name;
             Password = password != null ? CoreHelper.HashPassword(password) : Password;
@@ -54,8 +56,7 @@ namespace APICore.Entities
         public int Id { get; private set; }
         public string? Name { get; private set; }
         public string? Password { get; private set; }
-        [NotMapped] 
-        public string? Token { get; set; }
+        [NotMapped] public string? Token { get; set; }
         public string Email { get; private set; }
         public string? PhoneNumber { get; private set; }
         public string? FullName { get; private set; }
@@ -69,7 +70,7 @@ namespace APICore.Entities
         public string Role { get; private set; }
 
 
-        public JObject ToSimpleJson(int isFriend)
+        public JObject ToSimpleJson(string friendType)
         {
             JObject result = new JObject
             {
@@ -77,10 +78,17 @@ namespace APICore.Entities
                 ["Name"] = this.Name,
                 ["Avatar"] = this.Avatar,
                 ["Job"] = this.Job,
-                ["IsFriend"] = isFriend
+                ["FriendType"] = friendType
             };
 
             return result;
+        }
+
+        public SimpleUser ToSimpleUser(string friendType)
+        {
+            var simpleUser = new SimpleUser(Id, Name, Avatar, Job, friendType);
+
+            return simpleUser;
         }
     }
 }
@@ -127,6 +135,41 @@ public static class GenderType
         else if (text.Equals(Other, StringComparison.OrdinalIgnoreCase))
         {
             return Other;
+        }
+
+        return null;
+    }
+}
+
+public static class FriendType
+{
+    public const string None = "none";
+    public const string Accepted = "accepted";
+    public const string Requested = "requested";
+    public const string Waiting = "waiting";
+
+    public static string? TryParse(string text)
+    {
+        if (text == null)
+        {
+            return null;
+        }
+
+        if (text.Equals(None, StringComparison.OrdinalIgnoreCase))
+        {
+            return None;
+        }
+        else if (text.Equals(Accepted, StringComparison.OrdinalIgnoreCase))
+        {
+            return Accepted;
+        }
+        else if (text.Equals(Requested, StringComparison.OrdinalIgnoreCase))
+        {
+            return Requested;
+        }
+        else if (text.Equals(Waiting, StringComparison.OrdinalIgnoreCase))
+        {
+            return Waiting;
         }
 
         return null;
