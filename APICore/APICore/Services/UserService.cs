@@ -202,11 +202,14 @@ namespace APICore.Services
                         .Skip(skip)
                         .Take(pageSize)
                         .ToList();
-
-                    pagination = new Pagination(total, page, pageSize);
-
-                    isSuccess = true;
                 }
+                else
+                {
+                    users = new List<User>();
+                }
+
+                pagination = new Pagination(total, page, pageSize);
+                isSuccess = true;
             }
             finally
             {
@@ -331,7 +334,7 @@ namespace APICore.Services
                 var dbAuthProvider = _context.AuthProviders.FirstOrDefault(a => a.Id == authProvider.Id);
                 if (dbAuthProvider != null)
                 {
-                    _context.AuthProviders.Add(authProvider);   
+                    _context.AuthProviders.Add(authProvider);
                     _context.AuthProviders.Update(dbAuthProvider);
                 }
                 else
@@ -428,10 +431,14 @@ namespace APICore.Services
                         .Skip(skip)
                         .Take(pageSize)
                         .ToList();
-
-                    pagination = new Pagination(total, page, pageSize);
-                    isSuccess = true;
                 }
+                else
+                {
+                    tourInfos = new List<TourInfo>();
+                }
+
+                pagination = new Pagination(total, page, pageSize);
+                isSuccess = true;
             }
             finally
             {
@@ -528,8 +535,6 @@ namespace APICore.Services
                         .Take(pageSize)
                         .ToList();
 
-                    pagination = new Pagination(total, page, pageSize);
-
                     foreach (var friend in listFriends)
                     {
                         var id = friend.UserId != userId ? friend.UserId : friend.RequestedUserId;
@@ -538,8 +543,14 @@ namespace APICore.Services
                     }
 
                     friends = friends.Distinct().ToList();
-                    isSuccess = true;
                 }
+                else
+                {
+                    friends = new List<User>();
+                }
+
+                pagination = new Pagination(total, page, pageSize);
+                isSuccess = true;
             }
             finally
             {

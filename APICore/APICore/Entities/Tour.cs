@@ -33,5 +33,13 @@ namespace APICore.Entities
 
             return result;
         }
+
+        public void Update(string name, in DateTime? startDay, in DateTime? endDay, in int? maxMember)
+        {
+            Name = name ?? Name;
+            StartDay = startDay ?? StartDay;
+            EndDay = endDay ?? EndDay;
+            MaxMember = maxMember ?? MaxMember;
+        }
     }
 }

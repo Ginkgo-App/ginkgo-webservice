@@ -53,10 +53,14 @@ namespace APICore.Services
                         .Skip(skip)
                         .Take(pageSize)
                         .ToList();
-
-                    pagination = new Pagination(total, page, pageSize);
-                    isSuccess = true;
                 }
+                else
+                {
+                    places = new List<Place>();
+                }
+
+                pagination = new Pagination(total, page, pageSize);
+                isSuccess = true;
             }
             finally
             {
@@ -82,7 +86,7 @@ namespace APICore.Services
 
             return true;
         }
-        
+
         public bool TryUpdatePlace(Place place)
         {
             try
@@ -99,7 +103,7 @@ namespace APICore.Services
 
             return true;
         }
-        
+
         public bool TryAddPlace(Place place)
         {
             try
@@ -116,7 +120,7 @@ namespace APICore.Services
 
             return true;
         }
-        
+
         public bool TryRemovePlace(int placeId)
         {
             var isSuccess = false;
@@ -130,7 +134,6 @@ namespace APICore.Services
                     _context.SaveChanges();
                     isSuccess = true;
                 }
-                
             }
             finally
             {

@@ -21,7 +21,7 @@ namespace APICore.Entities
             Name = name;
             Password = CoreHelper.HashPassword(password);
             Email = CoreHelper.ValidateEmail(email);
-            PhoneNumber = CoreHelper.ValidatePhoneNumber(phoneNumber);
+            PhoneNumber = phoneNumber;
             FullName = fullName;
             Avatar = avatar;
             Bio = bio;
@@ -38,7 +38,7 @@ namespace APICore.Entities
             Name = name ?? Name;
             Password = password != null ? CoreHelper.HashPassword(password) : Password;
             Email = email != null ? CoreHelper.ValidateEmail(email) : Email;
-            PhoneNumber = phoneNumber != null ? CoreHelper.ValidatePhoneNumber(phoneNumber) : PhoneNumber;
+            PhoneNumber = phoneNumber ?? PhoneNumber;
             Avatar = avatar ?? Avatar;
             Bio = bio ?? Bio;
             Slogan = slogan ?? Slogan;

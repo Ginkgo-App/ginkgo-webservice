@@ -8,6 +8,8 @@ namespace APICore.Models
 {
     public class ResponseModel
     {
+        private Dictionary<string, JToken> _additionalProperties = new Dictionary<string, JToken>();
+
         public ResponseModel()
         {
             ErrorCode = (int)ErrorList.ErrorCode.Default;
@@ -16,11 +18,19 @@ namespace APICore.Models
         }
 
         public int ErrorCode { get; set; }
+        // ReSharper disable once UnusedAutoPropertyAccessor.Global
         public string Message { get; set; }
+        // ReSharper disable once UnusedAutoPropertyAccessor.Global
+
         public JArray Data { get; set; }
 
+        
         [JsonExtensionData]
-        public Dictionary<string, JToken> AdditionalProperties { get; set; } = new Dictionary<string, JToken>();
+        public Dictionary<string, JToken> AdditionalProperties
+        {
+            get => _additionalProperties;
+            set => _additionalProperties = value;
+        }
 
         public override string ToString()
         {
@@ -41,15 +51,16 @@ namespace APICore.Models
         public void FromException(Exception ex)
         {
             Console.WriteLine(ex);
+
             ErrorCode = 501;
-            Message = "An error has occurred";
+            Message = ex is ExceptionWithMessage ? ex.Message : "An error has occurred";
             Data = new JArray
             {
                 JObject.FromObject(new
                 {
                     Error = ex.Message,
                     Stack = ex.StackTrace,
-                    Source = ex.Source,
+                    ex.Source,
                     InnnerException = ex.InnerException
                 })
             };

@@ -68,10 +68,14 @@ namespace APICore.Services
                         .Skip(skip)
                         .Take(pageSize)
                         .ToList();
-
-                    pagination = new Pagination(total, page, pageSize);
-                    errorCode = ErrorCode.Success;
                 }
+                else
+                {
+                    tourInfos = new List<TourInfo>();
+                }
+
+                pagination = new Pagination(total, page, pageSize);
+                errorCode = ErrorCode.Success;
             }
             finally
             {
@@ -106,10 +110,14 @@ namespace APICore.Services
                         .Skip(skip)
                         .Take(pageSize)
                         .ToList();
-
-                    pagination = new Pagination(total, page, pageSize);
-                    errorCode = ErrorCode.Success;
                 }
+                else
+                {
+                    tourInfos = new List<TourInfo>();
+                }
+
+                pagination = new Pagination(total, page, pageSize);
+                errorCode = ErrorCode.Success;
 
                 DbService.DisconnectDb(out _context);
             }
@@ -146,10 +154,14 @@ namespace APICore.Services
                         .Skip(skip)
                         .Take(pageSize)
                         .ToList();
-
-                    pagination = new Pagination(total, page, pageSize);
-                    errorCode = ErrorCode.Success;
                 }
+                else
+                {
+                    tourInfos = new List<Tour>();
+                }
+
+                pagination = new Pagination(total, page, pageSize);
+                errorCode = ErrorCode.Success;
 
                 DbService.DisconnectDb(out _context);
             }

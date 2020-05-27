@@ -1,14 +1,11 @@
 ﻿using System.Collections.Generic;
 using APICore.DBContext;
-using APICore.Services.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using NLog;
 using System.Linq;
 using APICore.Entities;
 using APICore.Helpers;
 using APICore.Models;
-using static APICore.Helpers.ErrorList;
 
 namespace APICore.Services
 {
@@ -19,6 +16,7 @@ namespace APICore.Services
         bool TryGetAllTours(int tourInfoId, int page, int pageSize, out List<Tour> tours,
             out Pagination pagination);
 
+        bool TryGetTour(int id, out Tour tour);
         bool TryAddTour(Tour tour);
         bool TryUpdateTour(Tour tour);
         bool TryDeleteTour(int tourId);
@@ -77,10 +75,13 @@ namespace APICore.Services
                         .Skip(skip)
                         .Take(pageSize)
                         .ToList();
-
-                    pagination = new Pagination(total, page, pageSize);
+                }
+                else
+                {
+                    tours = new List<Tour>();
                 }
 
+                pagination = new Pagination(total, page, pageSize);
                 DbService.DisconnectDb(out _context);
             }
             finally
@@ -90,7 +91,24 @@ namespace APICore.Services
 
             return true;
         }
-        
+
+        public bool TryGetTour(int id, out Tour tour)
+        {
+            try
+            {
+                DbService.ConnectDb(out _context);
+                tour = _context.Tours.SingleOrDefault(t => t.Id == id);
+                _context.SaveChanges();
+                DbService.DisconnectDb(out _context);
+            }
+            finally
+            {
+                DbService.DisconnectDb(out _context);
+            }
+
+            return true;
+        }
+
         public bool TryAddTour(Tour tour)
         {
             try
@@ -107,7 +125,7 @@ namespace APICore.Services
 
             return true;
         }
-        
+
         public bool TryUpdateTour(Tour tour)
         {
             try
@@ -124,7 +142,7 @@ namespace APICore.Services
 
             return true;
         }
-        
+
         public bool TryDeleteTour(int tourId)
         {
             try
@@ -133,8 +151,9 @@ namespace APICore.Services
                 var tour = _context.Tours.SingleOrDefault(t => t.Id == tourId);
                 if (tour == null)
                 {
-                    throw new ExceptionWithMessage(message:"Tour not found");
+                    throw new ExceptionWithMessage(message: "Tour not found");
                 }
+
                 _context.Tours.Remove(tour);
                 _context.SaveChanges();
                 DbService.DisconnectDb(out _context);
