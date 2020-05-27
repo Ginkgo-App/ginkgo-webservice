@@ -11,6 +11,7 @@ using APICore.Entities;
 using APICore.Helpers;
 using APICore.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
@@ -34,7 +35,7 @@ namespace APICore.Services
         bool TryAddAuthProvider(AuthProvider authProvider, User user);
         bool TryGetFacebookInfo(string accessToken, out AuthProvider authProvider);
 
-        bool TryGetTours(int userId, int page, int pageSize, out List<TourInfo> tourInfos,
+        bool TryGetTours(int userId, int page, int pageSize, out List<SimpleTour> tours,
             out Pagination pagination);
 
         bool TryGetTourInfoById(int tourId, out TourInfo tourInfos);
@@ -415,10 +416,10 @@ namespace APICore.Services
             return true;
         }
 
-        public bool TryGetTours(int userId, int page, int pageSize, out List<TourInfo> tourInfos,
+        public bool TryGetTours(int userId, int page, int pageSize, out List<SimpleTour> tours,
             out Pagination pagination)
         {
-            tourInfos = null;
+            tours = null;
             pagination = null;
             var isSuccess = false;
 
@@ -426,23 +427,46 @@ namespace APICore.Services
             {
                 DbService.ConnectDb(out _context);
 
-                var tourInfosDb = _context.TourInfos.Where(a => a.CreateById == userId).ToList();
+                var toursDb = (from t in _context.Tours
+                    join ti in _context.TourInfos on t.TourInfoId equals ti.Id
+                    join tm in _context.TourMembers on t.Id equals tm.TourId
+                    join host in _context.Users on ti.CreateById equals host.Id
+                    let f = (from tourMember in _context.TourMembers
+                            join friend in (from fr in _context.Friends.Where(fr =>
+                                        fr.IsAccepted && (fr.UserId == userId || fr.RequestedUserId == userId))
+                                    select new
+                                    {
+                                        Id = fr.UserId == userId ? fr.RequestedUserId : fr.UserId
+                                    }
+                                ) on tourMember.UserId equals friend.Id
+                            join user in _context.Users on friend.Id equals user.Id
+                            select user
+                        )
+                    where ti.CreateById == userId || tm.UserId == userId
+                    select new
+                    {
+                        Id = t.Id,
+                        Name = t.Name,
+                        StartDay = t.StartDay,
+                        EndDay = t.EndDay,
+                        Price = 0,
+                        Host = host,
+                        Friends = f.ToList()
+                    }).AsEnumerable().Distinct((a, b) => a.Id == b.Id).ToList();
 
-                var total = tourInfosDb.Select(p => p.Id).Count();
+                var total = toursDb.Count();
                 var skip = pageSize * (page - 1);
-                var canPage = skip < total;
 
-                if (canPage)
-                {
-                    tourInfos = tourInfosDb.Select(u => u)
-                        .Skip(skip)
-                        .Take(pageSize)
-                        .ToList();
-                }
-                else
-                {
-                    tourInfos = new List<TourInfo>();
-                }
+                tours = toursDb
+                    .Skip(skip)
+                    .Take(pageSize)
+                    .ToList().ConvertAll((e) =>
+                    {
+                        return new SimpleTour(e.Id, e.Name, e.StartDay, e.EndDay,
+                            _context.TourMembers.Count(t => t.TourId == e.Id), e.Host.ToSimpleUser(FriendType.Accepted),
+                            e.Friends.Any() ? e.Friends.First().ToSimpleUser(FriendType.Accepted) : null,
+                            0);
+                    });
 
                 pagination = new Pagination(total, page, pageSize);
                 isSuccess = true;

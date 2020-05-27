@@ -24,7 +24,8 @@ namespace WebMvcPluginTour.Controllers
         private readonly IFriendService _friendService;
         private readonly ITourService _tourService;
 
-        public TourInfoController(ITourInfoService tourInfoService, IUserService userService, IFriendService friendService, ITourService tourService)
+        public TourInfoController(ITourInfoService tourInfoService, IUserService userService,
+            IFriendService friendService, ITourService tourService)
         {
             _tourInfoService = tourInfoService;
             _userService = userService;
@@ -90,7 +91,7 @@ namespace WebMvcPluginTour.Controllers
                     // Convert userId to int
                     var userId = int.Parse(userIdString);
 
-                    var eIsFriend = string.IsNullOrEmpty(userIdString) ? 0 : _friendService.CalculateIsFriend(userId, host.Id);
+                    var eIsFriend = _friendService.CalculateIsFriend(userId, host.Id);
 
                     // Add data to Response
                     foreach (var tour in tours)
@@ -315,13 +316,13 @@ namespace WebMvcPluginTour.Controllers
                     var images = jsonImages != null
                         ? JsonConvert.DeserializeObject<string[]>(jsonImages.ToString())
                         : null;
-                    
+
                     tourInfo.Update(
-                        createById:null,
-                        name:jsonName?.ToString(),
-                        images:images!,
-                        startPlaceId:isStartPlaceId ? startPlaceId : (int?) null,
-                        destinatePlaceId:isDestinationPlaceId ? destinationPlaceId : (int?) null
+                        createById: null,
+                        name: jsonName?.ToString(),
+                        images: images!,
+                        startPlaceId: isStartPlaceId ? startPlaceId : (int?) null,
+                        destinatePlaceId: isDestinationPlaceId ? destinationPlaceId : (int?) null
                     );
 
                     if (!_tourInfoService.TryUpdateTourInfo(tourInfo))
