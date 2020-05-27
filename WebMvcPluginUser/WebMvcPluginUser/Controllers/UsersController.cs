@@ -403,16 +403,16 @@ namespace WebMvcPluginUser.Controllers
                     var claims = identity.Claims;
                     int.TryParse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value,
                         out var userId);
-                    _userService.TryGetTours(userId, page, pageSize, out List<TourInfo> tourInfos, out var pagination);
+                    _userService.TryGetTours(userId, page, pageSize, out var tours, out var pagination);
 
-                    if (tourInfos == null)
+                    if (tours == null)
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
                         break;
                     }
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data = JArray.FromObject(tourInfos);
+                    responseModel.Data = JArray.FromObject(tours);
                     responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
                 } while (false);
             }
