@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Mail;
 using System.Security.Claims;
 using System.Text;
 using APICore.DBContext;
@@ -13,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NLog;
 using static APICore.Helpers.ErrorList;
 
@@ -375,16 +377,21 @@ namespace APICore.Services
                     break;
                 }
 
-                dynamic httpContent =
+                var httpContent =
                     JsonConvert.DeserializeObject(httpResponse.Content.ReadAsStringAsync().Result);
+                var jsonContext = httpContent != null ? JObject.FromObject(httpContent) : null;
 
-                if ((int) httpResponse.StatusCode != 200 || httpContent == null)
+                if ((int) httpResponse.StatusCode != 200 || jsonContext == null)
                 {
                     break;
                 }
 
-                authProvider = new AuthProvider(httpContent.id, httpContent.name, httpContent.email,
-                    provider: ProviderType.facebook.ToString());
+                var type = ProviderType.facebook.ToString();
+                var id = jsonContext.GetValue("id")?.ToString() ?? "none";
+                var name = jsonContext.GetValue("name")?.ToString();
+                var email = jsonContext.GetValue("email")?.ToString();
+                
+                authProvider = new AuthProvider(id, name, email, null, type, 0);
                 isSuccess = true;
             } while (false);
 

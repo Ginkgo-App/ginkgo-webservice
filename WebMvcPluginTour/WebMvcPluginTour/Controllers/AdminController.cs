@@ -192,11 +192,38 @@ namespace WebMvcPluginTour.Controllers
                     var serviceIds = jsonServiceIds != null
                         ? JsonConvert.DeserializeObject<string[]>(jsonServiceIds.ToString())
                         : null;
+                    
+                    // Cast to ClaimsIdentity.
+                    var identity = HttpContext.User.Identity as ClaimsIdentity;
+
+                    // Gets list of claims.
+                    var claim = identity?.Claims;
+
+                    // Gets userId from claims. Generally it's an email address.
+                    var userIdString = claim
+                        ?.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)
+                        ?.Value;
+
+                    if (string.IsNullOrEmpty(userIdString))
+                    {
+                        responseModel.FromErrorCode(ErrorCode.UserNotFound);
+                        break;
+                    }
+
+                    // Convert userId to int
+                    var userId = int.Parse(userIdString);
+                    
+                    if (!_userService.TryGetUsers(userId, out var host))
+                    {
+                        responseModel.FromErrorCode(ErrorCode.UserNotFound);
+                        break;
+                    }
 
                     var tour = new Tour(
                         name: name,
                         startDay: startDate,
                         endDay: endDate,
+                        createBy: userId,
                         maxMember: maxMember,
                         tourInfoId: id
                     );

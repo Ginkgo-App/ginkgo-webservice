@@ -9,7 +9,6 @@ namespace APICore.Entities
         public int TourId { get; private set; }
         [Key]
         public int UserId { get; private set; }
-        public bool IsHost { get; private set; }
         public DateTime JoinAt { get; private set; }
     }
 }
