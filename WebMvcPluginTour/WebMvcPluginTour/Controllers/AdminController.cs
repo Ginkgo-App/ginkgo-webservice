@@ -92,9 +92,7 @@ namespace WebMvcPluginTour.Controllers
                     // Convert userId to int
                     var userId = int.Parse(userIdString);
 
-                    var eIsFriend = string.IsNullOrEmpty(userIdString)
-                        ? 0
-                        : _friendService.CalculateIsFriend(userId, host.Id);
+                    var eIsFriend = _friendService.CalculateIsFriend(userId, host.Id);
 
                     // Add data to Response
                     foreach (var tour in tours)

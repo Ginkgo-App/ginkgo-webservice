@@ -259,20 +259,9 @@ namespace WebMvcPluginUser.Controllers
                         break;
                     }
 
-                    user.Update(
-                        address: jsonAddress?.ToString(),
-                        avatar: jsonAvatar?.ToString(),
-                        bio: jsonBio?.ToString(),
-                        birthday: isParsedBirthday ? birthday : (DateTime?) null,
-                        email: jsonEmail?.ToString()!,
-                        gender: jsonGender?.ToString(),
-                        job: jsonJob?.ToString(),
-                        name: jsonName?.ToString(),
-                        slogan: jsonSlogan?.ToString(),
-                        role: jsonRole?.ToString(),
+                    user.Update(name: jsonName?.ToString(),
                         password: jsonPassword?.ToString(),
-                        phoneNumber: jsonPhoneNumber?.ToString()
-                    );
+                        email: jsonEmail?.ToString()!, phoneNumber: jsonPhoneNumber?.ToString(), avatar: jsonAvatar?.ToString(), bio: jsonBio?.ToString(), slogan: jsonSlogan?.ToString(), job: jsonJob?.ToString(), birthday: isParsedBirthday ? birthday : (DateTime?) null, gender: jsonGender?.ToString(), address: jsonAddress?.ToString(), role: jsonRole?.ToString());
 
                     var isSuccess = _userService.TryUpdateUser(user);
 

@@ -28,12 +28,12 @@ namespace APICore.Entities
         public int Price { get; private set; }
         
 
-        public JObject ToSimpleJson(User host, int isFriend, int totalMember, List<Service> services)
+        public JObject ToSimpleJson(User host, string friendType, int totalMember, List<Service> services)
         {
             JObject result = JObject.FromObject(this);
 
             result.Add("TotalMember", totalMember);
-            result.Add("CreateBy", host?.ToSimpleJson(isFriend));
+            result.Add("CreateBy", host?.ToSimpleJson(friendType));
             result.Add("Services", services!=null? JArray.FromObject(services) : null);
 
             return result;

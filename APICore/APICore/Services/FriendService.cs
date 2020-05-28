@@ -39,30 +39,35 @@ namespace APICore.Services
             return errorCode;
         }
 
-        public int CalculateIsFriend(int userId, int userRequestId)
+        public string CalculateIsFriend(int userId, int userRequestId)
         {
+            if (userId == userRequestId)
+            {
+                return FriendType.None;
+            }
+
             TryGetFriendRequest(userId, userRequestId, out var friendDb);
             if (friendDb == null)
             {
-                return 0;
+                return FriendType.None;
             }
 
             if (friendDb.IsAccepted)
             {
-                return 3;
+                return FriendType.Accepted;
             }
 
             if (userId == friendDb.UserId)
             {
-                return 1;
+                return FriendType.Waiting;
             }
 
             if (userId == friendDb.RequestedUserId)
             {
-                return 2;
+                return FriendType.Requested;
             }
 
-            return -1;
+            return FriendType.None;
         }
 
         public ErrorCode TryAddFriend(int userId, int userRequestId)
@@ -129,7 +134,7 @@ namespace APICore.Services
                         errorCode = ErrorCode.AlreadyFriend;
                         break;
                     }
-    
+
                     friendDb.IsAccepted = true;
                     _context.Friends.Update(friendDb);
                     _context.SaveChanges();
