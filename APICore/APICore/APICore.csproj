@@ -77,10 +77,10 @@
         <ItemGroup>
             <!--
             <PluginProject Include="..\..\WebMvcPluginHello\ApiPluginHello\ApiPluginHello.csproj" />
-                        -->
             <PluginProject Include="..\..\WebMvcPluginTour\WebMvcPluginTour\WebMvcPluginTour.csproj" />
             <PluginProject Include="..\..\WebMvcPluginUser\WebMvcPluginUser\WebMvcPluginUser.csproj" />
             <PluginProject Include="..\..\WebMvcPluginPlace\WebMvcPluginPlace\WebMvcPluginPlace.csproj" />
+                        -->
         </ItemGroup>
 
         <MSBuild Projects="@(PluginProject)" Targets="Publish" Properties="PublishDir=$(TargetDir)\Plugins" />
