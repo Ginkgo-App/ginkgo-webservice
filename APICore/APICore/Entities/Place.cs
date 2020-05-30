@@ -1,4 +1,6 @@
-﻿using System.Security.Authentication;
+﻿using System.Collections.Generic;
+using System.Security.Authentication;
+using System.Threading.Tasks.Dataflow;
 using Newtonsoft.Json.Linq;
 
 #nullable enable
@@ -19,7 +21,7 @@ namespace APICore.Entities
         public string[]? Images { get; private set; }
         public string? Description { get; private set; }
         public int TypeId { get; private set; }
-        
+
         public Place Update(string? name, string[]? images, string? description, int? typeId)
         {
             Name = name ?? Name;
@@ -27,16 +29,6 @@ namespace APICore.Entities
             Description = description ?? Description;
             TypeId = typeId ?? TypeId;
             return this;
-        }
-        
-        public JObject ToJson(PlaceType placeType)
-        {
-            JObject json = JObject.FromObject(this);
-
-            json.Remove("TypeId");
-            json.Add("Type", placeType?.Value);
-            
-            return json;
         }
     }
 }

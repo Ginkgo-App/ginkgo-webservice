@@ -41,6 +41,7 @@ namespace APICore.DBContext
         public DbSet<FeedbackLike> FeedbackLikes { get; set; }
         public DbSet<Message> Messages { get; set; }
         public DbSet<Place> Places { get; set; }
+        public DbSet<ChildPlace> ChildPlaces { get; set; }
         public DbSet<PlaceType> PlaceTypes { get; set; }
         public DbSet<Post> Posts { get; set; }
         public DbSet<PostComment> PostComments { get; set; }
@@ -68,6 +69,7 @@ namespace APICore.DBContext
             modelBuilder.Entity<TourMember>().HasKey(fb => new { fb.TourId, fb.UserId });
             modelBuilder.Entity<TourMember>().HasKey(fb => new { fb.TourId, fb.UserId });
             modelBuilder.Entity<FeedbackLike>().HasKey(fb => new { fb.UserId, fb.TourInfoId, fb.AuthorId });
+            modelBuilder.Entity<ChildPlace>().HasKey(fb => new { fb.ParentId, fb.ChildId});
             modelBuilder.Entity<PostLike>().HasKey(fb => new { fb.UserId, fb.PostId});
             modelBuilder.Entity<Friend>().HasKey(fb => new { fb.UserId, fb.RequestedUserId});
         }

@@ -38,9 +38,18 @@ namespace WebMvcPluginPlace.Controllers
                         responseModel.FromErrorCode(ErrorList.ErrorCode.Fail);
                         break;
                     }
+                    
+                    var jPlaces = new JArray();
+                    
+                    foreach (var p in places)
+                    {
+                        var isSuccess = _placeService.TryGetPlaceInfoById(p.Id, out var place);
+                        if (!isSuccess) continue;
+                        jPlaces.Add(place.ToJson());
+                    }
 
                     responseModel.FromErrorCode(ErrorList.ErrorCode.Success);
-                    responseModel.Data = JArray.FromObject(places);
+                    responseModel.Data = jPlaces;
                     responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
                 } while (false);
             }
@@ -62,7 +71,7 @@ namespace WebMvcPluginPlace.Controllers
             {
                 do
                 {
-                    var errorCode = _placeService.TryGetPlaceById(id, out var place, out var placeType);
+                    var errorCode = _placeService.TryGetPlaceInfoById(id, out var place);
 
                     if (!errorCode)
                     {
@@ -71,7 +80,7 @@ namespace WebMvcPluginPlace.Controllers
                     }
 
                     responseModel.FromErrorCode(ErrorList.ErrorCode.Success);
-                    responseModel.Data = new JArray {place.ToJson(placeType)};
+                    responseModel.Data = new JArray {place.ToJson()};
                 } while (false);
             }
             catch (Exception ex)

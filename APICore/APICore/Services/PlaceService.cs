@@ -5,14 +5,16 @@ using APICore.Entities;
 using APICore.Helpers;
 using APICore.Models;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json.Linq;
 using NLog;
 
 namespace APICore.Services
 {
     public interface IPlaceService
     {
-        bool TryGetAllPlaces(int page, int pageSize, out List<Place> places, out Pagination pagination);
-        bool TryGetPlaceById(int placeId, out Place place, out PlaceType placeType);
+        bool TryGetAllPlaces(int page, int pageSize, out List<PlaceInfo> places, out Pagination pagination);
+        bool TryGetPlaceInfoById(int placeId, out PlaceInfo place);
+        bool TryGetPlaceById(int placeId, out Place place);
         bool TryUpdatePlace(Place place);
         bool TryAddPlace(Place place);
         bool TryRemovePlace(int placeId);
@@ -29,9 +31,9 @@ namespace APICore.Services
             _appSettings = appSettings.Value;
         }
 
-        public bool TryGetAllPlaces(int page, int pageSize, out List<Place> places, out Pagination pagination)
+        public bool TryGetAllPlaces(int page, int pageSize, out List<PlaceInfo> places, out Pagination pagination)
         {
-            places = null;
+            places = new List<PlaceInfo>();
             pagination = null;
             bool isSuccess;
 
@@ -49,14 +51,36 @@ namespace APICore.Services
 
                 if (canPage)
                 {
-                    places = listTourInfos.Select(u => u)
+                    var placeIds = listTourInfos
                         .Skip(skip)
                         .Take(pageSize)
                         .ToList();
+
+                    foreach (var place in placeIds)
+                    {
+                        var placeType = _context.PlaceTypes.FirstOrDefault(t => t.Id == place.TypeId);
+                        if (placeType == null) continue;
+                        var childPlaces = new  List<PlaceInfo>();
+
+                        if (placeType.IsHaveChild)
+                        {
+                            var childPlaceIds = _context.ChildPlaces.Where(p => p.ParentId == place.Id).ToList();
+
+                            foreach (var childPlaceId in childPlaceIds)
+                            {
+                                var childPlace = _context.Places.FirstOrDefault(p => p.Id == childPlaceId.ChildId);
+                                var type = _context.PlaceTypes.FirstOrDefault(t => t.Id == childPlace.TypeId);
+                                childPlaces.Add(new PlaceInfo(childPlace, type, new List<PlaceInfo>()));
+                            }
+                        }
+                        
+                        places.Add(new PlaceInfo(place, placeType, childPlaces));
+                    }
+                    
                 }
                 else
                 {
-                    places = new List<Place>();
+                    places = new List<PlaceInfo>();
                 }
 
                 pagination = new Pagination(total, page, pageSize);
@@ -70,17 +94,50 @@ namespace APICore.Services
             return isSuccess;
         }
 
-        public bool TryGetPlaceById(int placeId, out Place place, out PlaceType placeType)
+        public bool TryGetPlaceInfoById(int placeId, out PlaceInfo place)
         {
             place = null;
-            placeType = null;
+            var childPlaces = new List<PlaceInfo>();
 
             try
             {
                 DbService.ConnectDb(out _context);
                 var placeDb = _context.Places.FirstOrDefault(p => p.Id == placeId);
-                place = placeDb;
-                placeType = _context.PlaceTypes.FirstOrDefault(t => t.Id == placeDb.Id);
+                if (placeDb == null) return false;
+
+                var placeType = _context.PlaceTypes.FirstOrDefault(t => t.Id == placeDb.TypeId);
+                if (placeType == null) return false;
+
+                if (placeType.IsHaveChild)
+                {
+                    var childPlaceIds = _context.ChildPlaces.Where(p => p.ParentId == placeDb.Id).ToList();
+
+                    foreach (var childPlaceId in childPlaceIds)
+                    {
+                        var childPlace = _context.Places.FirstOrDefault(p => p.Id == childPlaceId.ChildId);
+                        var type = _context.PlaceTypes.FirstOrDefault(t => t.Id == childPlace.TypeId);
+                        childPlaces.Add(new PlaceInfo(childPlace, type, new List<PlaceInfo>()));
+                    }
+                }
+                
+                place = new PlaceInfo(placeDb, placeType, childPlaces);
+            }
+            finally
+            {
+                DbService.DisconnectDb(out _context);
+            }
+
+            return true;
+        }
+        
+        public bool TryGetPlaceById(int placeId, out Place place)
+        {
+            place = null;
+
+            try
+            {
+                DbService.ConnectDb(out _context);
+                place = _context.Places.FirstOrDefault(p => p.Id == placeId);
             }
             finally
             {
