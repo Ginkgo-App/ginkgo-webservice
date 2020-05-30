@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Mail;
 using System.Security.Claims;
 using System.Text;
 using APICore.DBContext;
@@ -10,9 +11,11 @@ using APICore.Entities;
 using APICore.Helpers;
 using APICore.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NLog;
 using static APICore.Helpers.ErrorList;
 
@@ -375,16 +378,21 @@ namespace APICore.Services
                     break;
                 }
 
-                dynamic httpContent =
+                var httpContent =
                     JsonConvert.DeserializeObject(httpResponse.Content.ReadAsStringAsync().Result);
+                var jsonContext = httpContent != null ? JObject.FromObject(httpContent) : null;
 
-                if ((int) httpResponse.StatusCode != 200 || httpContent == null)
+                if ((int) httpResponse.StatusCode != 200 || jsonContext == null)
                 {
                     break;
                 }
 
-                authProvider = new AuthProvider(httpContent.id, httpContent.name, httpContent.email,
-                    provider: ProviderType.facebook.ToString());
+                var type = ProviderType.facebook.ToString();
+                var id = jsonContext.GetValue("id")?.ToString() ?? "none";
+                var name = jsonContext.GetValue("name")?.ToString();
+                var email = jsonContext.GetValue("email")?.ToString();
+                
+                authProvider = new AuthProvider(id, name, email, null, type, 0);
                 isSuccess = true;
             } while (false);
 
@@ -421,8 +429,20 @@ namespace APICore.Services
 
                 var toursDb = (from t in _context.Tours
                     join ti in _context.TourInfos on t.TourInfoId equals ti.Id
+                    join tm in _context.TourMembers on t.Id equals tm.TourId
                     join host in _context.Users on ti.CreateById equals host.Id
-                    where ti.CreateById == userId
+                    let f = (from tourMember in _context.TourMembers
+                            join friend in (from fr in _context.Friends.Where(fr =>
+                                        fr.IsAccepted && (fr.UserId == userId || fr.RequestedUserId == userId))
+                                    select new
+                                    {
+                                        Id = fr.UserId == userId ? fr.RequestedUserId : fr.UserId
+                                    }
+                                ) on tourMember.UserId equals friend.Id
+                            join user in _context.Users on friend.Id equals user.Id
+                            select user
+                        )
+                    where ti.CreateById == userId || tm.UserId == userId
                     select new
                     {
                         Id = t.Id,
@@ -430,10 +450,9 @@ namespace APICore.Services
                         StartDay = t.StartDay,
                         EndDay = t.EndDay,
                         Price = 0,
-                        Host = host
-                    }).ToList();
-
-                Console.WriteLine(toursDb.Count());
+                        Host = host,
+                        Friends = f.ToList()
+                    }).AsEnumerable().Distinct((a, b) => a.Id == b.Id).ToList();
 
                 var total = toursDb.Count();
                 var skip = pageSize * (page - 1);
@@ -445,7 +464,7 @@ namespace APICore.Services
                     {
                         return new SimpleTour(e.Id, e.Name, e.StartDay, e.EndDay,
                             _context.TourMembers.Count(t => t.TourId == e.Id), e.Host.ToSimpleUser(FriendType.Accepted),
-                            null,
+                            e.Friends.Any() ? e.Friends.First().ToSimpleUser(FriendType.Accepted) : null,
                             0);
                     });
 

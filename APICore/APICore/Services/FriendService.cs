@@ -62,12 +62,7 @@ namespace APICore.Services
                 return FriendType.Waiting;
             }
 
-            if (userId == friendDb.RequestedUserId)
-            {
-                return FriendType.Requested;
-            }
-
-            return FriendType.None;
+            return userId == friendDb.RequestedUserId ? FriendType.Requested : FriendType.None;
         }
 
         public ErrorCode TryAddFriend(int userId, int userRequestId)
