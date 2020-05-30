@@ -117,7 +117,7 @@ namespace WebMvcPluginUser.Controllers
 
         [AllowAnonymous]
         [HttpPost("social-provider")]
-        public string SocialProvider([FromBody] object requestBody)
+        public object SocialProvider([FromBody] object requestBody)
         {
             var responseModel = new ResponseModel();
 
@@ -177,7 +177,7 @@ namespace WebMvcPluginUser.Controllers
                 responseModel.FromException(ex);
             }
 
-            return responseModel.ToJson().ToString();
+            return responseModel.ToJson();
         }
 
         [HttpGet("{userId}")]
@@ -431,14 +431,18 @@ namespace WebMvcPluginUser.Controllers
                         break;
                     }
 
-                    if (!_userService.TryGetFriends(id, "accepted", page, pageSize, out var friends, out var pagination) || friends == null)
+                    if (!_userService.TryGetFriends(id, FriendType.Accepted, page, pageSize, out var friends, out var pagination) || friends == null)
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
                         break;
                     }
 
+                    // Remove me from list
+                    friends.RemoveAll(u => u.Id == id);
+                    var listFriendSimple = friends.Select(u => u.ToSimpleJson(FriendType.Accepted));
+
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data = JArray.FromObject(friends);
+                    responseModel.Data = JArray.FromObject(listFriendSimple);
                     responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
                 } while (false);
             }
@@ -472,14 +476,24 @@ namespace WebMvcPluginUser.Controllers
                     int.TryParse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value,
                         out var userId);
 
-                    if (!_userService.TryGetFriends(userId, type, page, pageSize, out var friends, out var pagination) || friends == null)
+                    var friendType = type?.ToLower() switch
+                    {
+                        FriendType.Accepted => FriendType.Accepted,
+                        FriendType.Requested => FriendType.Requested,
+                        FriendType.Waiting => FriendType.Waiting,
+                        _ => FriendType.Accepted
+                    };
+
+                    if (!_userService.TryGetFriends(userId, friendType, page, pageSize, out var friends, out var pagination) || friends == null)
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
                         break;
                     }
+                    
+                    var listFriendSimple = friends.Select(u => u.ToSimpleJson(friendType));
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data = JArray.FromObject(friends);
+                    responseModel.Data = JArray.FromObject(listFriendSimple);
                     responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
                 } while (false);
             }

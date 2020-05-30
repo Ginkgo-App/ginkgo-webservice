@@ -71,22 +71,13 @@ namespace APICore.Entities
 
         public JObject ToSimpleJson(string friendType)
         {
-            JObject result = new JObject
-            {
-                ["Id"] = this.Id,
-                ["Name"] = this.Name,
-                ["Avatar"] = this.Avatar,
-                ["Job"] = this.Job,
-                ["FriendType"] = friendType
-            };
-
-            return result;
+            var simpleUser = new SimpleUser(Id, Name, Avatar, Job, FriendType.TryParse(friendType));
+            return JObject.FromObject(simpleUser);
         }
 
         public SimpleUser ToSimpleUser(string friendType)
         {
-            var simpleUser = new SimpleUser(Id, Name, Avatar, Job, friendType);
-
+            var simpleUser = new SimpleUser(Id, Name, Avatar, Job, FriendType.TryParse(friendType));
             return simpleUser;
         }
     }
@@ -118,59 +109,34 @@ public static class GenderType
 
     public static string? TryParse(string text)
     {
-        if (text == null)
+        return text?.ToLower() switch
         {
-            return null;
-        }
-
-        if (text.Equals(Male, StringComparison.OrdinalIgnoreCase))
-        {
-            return Male;
-        }
-        else if (text.Equals(Female, StringComparison.OrdinalIgnoreCase))
-        {
-            return Female;
-        }
-        else if (text.Equals(Other, StringComparison.OrdinalIgnoreCase))
-        {
-            return Other;
-        }
-
-        return null;
+            "male" => Male,
+            "female" => Female,
+            "other" => Other,
+            _ => Other
+        };
     }
 }
 
 public static class FriendType
 {
+    public const string Me = "me";
     public const string None = "none";
     public const string Accepted = "accepted";
-    public const string Requested = "requested";
     public const string Waiting = "waiting";
+    public const string Requested = "requested";
 
-    public static string? TryParse(string text)
+    public static string TryParse(string type)
     {
-        if (text == null)
+        return type?.ToLower() switch
         {
-            return null;
-        }
-
-        if (text.Equals(None, StringComparison.OrdinalIgnoreCase))
-        {
-            return None;
-        }
-        else if (text.Equals(Accepted, StringComparison.OrdinalIgnoreCase))
-        {
-            return Accepted;
-        }
-        else if (text.Equals(Requested, StringComparison.OrdinalIgnoreCase))
-        {
-            return Requested;
-        }
-        else if (text.Equals(Waiting, StringComparison.OrdinalIgnoreCase))
-        {
-            return Waiting;
-        }
-
-        return null;
+            "me" => Me,
+            "none" => None,
+            "accepted" => Accepted,
+            "waiting" => Waiting,
+            "requested" => Requested,
+            _ => None
+        };
     }
 }

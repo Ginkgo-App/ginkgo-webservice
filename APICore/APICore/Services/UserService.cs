@@ -531,11 +531,11 @@ namespace APICore.Services
                 DbService.ConnectDb(out _context);
                 var friendDBs = type?.ToLower() switch
                 {
-                    "accepted" => _context.Friends.Where(a =>
+                    FriendType.Accepted => _context.Friends.Where(a =>
                         a.IsAccepted && (a.UserId == userId || a.RequestedUserId == userId)).ToArray(),
-                    "requesting" => _context.Friends.Where(a => a.IsAccepted == false && (a.UserId == userId))
+                    FriendType.Requested => _context.Friends.Where(a => a.IsAccepted == false && (a.RequestedUserId == userId))
                         .ToArray(),
-                    "waiting" => _context.Friends.Where(a => a.IsAccepted == false && (a.RequestedUserId == userId))
+                    FriendType.Waiting => _context.Friends.Where(a => a.IsAccepted == false && (a.UserId == userId))
                         .ToArray(),
                     _ => _context.Friends.Where(a => a.UserId == userId || a.RequestedUserId == userId).ToArray()
                 };
