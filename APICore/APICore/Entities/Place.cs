@@ -1,10 +1,13 @@
-﻿#nullable enable
+﻿using System.Security.Authentication;
+
+#nullable enable
 namespace APICore.Entities
 {
     public class Place
     {
-        public Place(string? name, string[]? images, string? description)
+        public Place(int typeId, string? name, string[]? images, string? description)
         {
+            TypeId = typeId;
             Name = name;
             Images = images;
             Description = description;
@@ -14,12 +17,14 @@ namespace APICore.Entities
         public string? Name { get; private set; }
         public string[]? Images { get; private set; }
         public string? Description { get; private set; }
+        public int TypeId { get; private set; }
         
-        public Place Update(string? name, string[]? images, string? description)
+        public Place Update(string? name, string[]? images, string? description, int? typeId)
         {
             Name = name ?? Name;
             Images = images ?? Images;
             Description = description ?? Description;
+            TypeId = typeId ?? TypeId;
             return this;
         }
     }

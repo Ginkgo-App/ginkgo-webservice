@@ -405,8 +405,6 @@ namespace WebMvcPluginTour.Controllers
                         throw new ExceptionWithMessage("Tour info not found.");
                     }
 
-                   
-
                     var name = jsonName?.ToString();
                     _ = DateTime.TryParse(jsonStartDate?.ToString(), out var startDate);
                     _ = DateTime.TryParse(jsonEndDate?.ToString(), out var endDate);

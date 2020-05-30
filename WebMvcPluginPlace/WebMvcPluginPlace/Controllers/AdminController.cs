@@ -97,6 +97,8 @@ namespace WebMvcPluginPlace.Controllers
 
                     if (!CoreHelper.GetParameter(out var jsonName, body, "Name", JTokenType.String, 
                             ref responseModel)
+                        || !CoreHelper.GetParameter(out var jsonTypeId, body, "TypeId", JTokenType.Integer,
+                            ref responseModel)
                         || !CoreHelper.GetParameter(out var jsonImages, body, "Images", JTokenType.Array,
                             ref responseModel, true)
                         || !CoreHelper.GetParameter(out var jsonDescription, body, "Description", JTokenType.String,
@@ -110,8 +112,18 @@ namespace WebMvcPluginPlace.Controllers
                     var images = jsonImages != null
                         ? JsonConvert.DeserializeObject<string[]>(jsonImages.ToString())
                         : null;
+                    
+                    var typeId = jsonTypeId != null
+                        ? int.Parse(jsonTypeId.ToString())
+                        : (int?) null;
 
-                    var place = new Place(name, images, description);
+                    if (typeId == null)
+                    {
+                        responseModel.FromErrorCode(ErrorList.ErrorCode.InvalidParameter);
+                        break;
+                    }
+
+                    var place = new Place((int)typeId ,name, images, description);
 
                     if (!_placeService.TryAddPlace(place))
                     {
@@ -155,6 +167,8 @@ namespace WebMvcPluginPlace.Controllers
                         || !CoreHelper.GetParameter(out var jsonImages, body, "Images", JTokenType.Array,
                             ref responseModel, true)
                         || !CoreHelper.GetParameter(out var jsonDescription, body, "Description", JTokenType.String,
+                            ref responseModel, true)
+                        || !CoreHelper.GetParameter(out var jsonTypeId, body, "TypeId", JTokenType.Integer,
                             ref responseModel, true))
                     {
                         break;
@@ -163,8 +177,12 @@ namespace WebMvcPluginPlace.Controllers
                     var images = jsonImages != null
                         ? JsonConvert.DeserializeObject<string[]>(jsonImages.ToString())
                         : null;
+                    
+                    var typeId = jsonTypeId != null
+                        ? int.Parse(jsonTypeId.ToString())
+                        : (int?) null;
 
-                    place.Update(jsonName?.ToString(), images, jsonDescription?.ToString());
+                    place.Update(jsonName?.ToString(), images, jsonDescription?.ToString(), typeId);
 
                     if (!_placeService.TryUpdatePlace(place))
                     {
