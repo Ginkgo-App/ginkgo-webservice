@@ -50,10 +50,12 @@ namespace APICore.Services
         private readonly AppSettings _appSettings;
         private readonly Logger _logger = Vars.Logger;
         private PostgreSQLContext _context;
+        private FriendService _friendService;
 
         public UserService(IOptions<AppSettings> appSettings)
         {
             _appSettings = appSettings.Value;
+            _friendService = new FriendService(appSettings);
         }
 
         public ErrorCode Authenticate(string email, string password, out User user)
@@ -388,7 +390,7 @@ namespace APICore.Services
                 var id = jsonContext.GetValue("id")?.ToString() ?? "none";
                 var name = jsonContext.GetValue("name")?.ToString();
                 var email = jsonContext.GetValue("email")?.ToString();
-                
+
                 authProvider = new AuthProvider(id, name, email, null, type);
                 isSuccess = true;
             } while (false);
@@ -425,9 +427,8 @@ namespace APICore.Services
                 DbService.ConnectDb(out _context);
 
                 var toursDb = (from t in _context.Tours
-                    join ti in _context.TourInfos on t.TourInfoId equals ti.Id
                     join tm in _context.TourMembers on t.Id equals tm.TourId
-                    join host in _context.Users on ti.CreateById equals host.Id
+                    join host in _context.Users on t.CreateBy equals host.Id
                     let f = (from tourMember in _context.TourMembers
                             join friend in (from fr in _context.Friends.Where(fr =>
                                         fr.IsAccepted && (fr.UserId == userId || fr.RequestedUserId == userId))
@@ -439,14 +440,14 @@ namespace APICore.Services
                             join user in _context.Users on friend.Id equals user.Id
                             select user
                         )
-                    where ti.CreateById == userId || tm.UserId == userId
+                    where t.CreateBy == userId || tm.UserId == userId
                     select new
                     {
                         Id = t.Id,
                         Name = t.Name,
                         StartDay = t.StartDay,
                         EndDay = t.EndDay,
-                        Price = 0,
+                        Price = t.Price,
                         Host = host,
                         Friends = f.ToList()
                     }).AsEnumerable().Distinct((a, b) => a.Id == b.Id).ToList();
@@ -457,13 +458,17 @@ namespace APICore.Services
                 tours = toursDb
                     .Skip(skip)
                     .Take(pageSize)
-                    .ToList().ConvertAll((e) =>
+                    .Select((e) =>
                     {
-                        return new SimpleTour(e.Id, e.Name, e.StartDay, e.EndDay,
-                            _context.TourMembers.Count(t => t.TourId == e.Id), e.Host.ToSimpleUser(FriendType.Accepted),
-                            e.Friends.Any() ? e.Friends.First().ToSimpleUser(FriendType.Accepted) : null,
-                            0);
-                    });
+                        var totalMember = _context.TourMembers.Count(t => t.TourId == e.Id);
+                        var listFriend = e.Friends.Any()
+                            ? e.Friends.Select(u => u.ToSimpleUser(FriendType.Accepted)).ToList()
+                            : null;
+
+                        return new SimpleTour(e.Id, e.Name, e.StartDay, e.EndDay, totalMember,
+                            e.Host.ToSimpleUser(_friendService.CalculateIsFriend(userId, e.Host.Id)), listFriend, e.Price);
+                    })
+                    .ToList();
 
                 pagination = new Pagination(total, page, pageSize);
                 isSuccess = true;
@@ -545,7 +550,8 @@ namespace APICore.Services
                 {
                     FriendType.Accepted => _context.Friends.Where(a =>
                         a.IsAccepted && (a.UserId == userId || a.RequestedUserId == userId)).ToArray(),
-                    FriendType.Requested => _context.Friends.Where(a => a.IsAccepted == false && (a.RequestedUserId == userId))
+                    FriendType.Requested => _context.Friends
+                        .Where(a => a.IsAccepted == false && (a.RequestedUserId == userId))
                         .ToArray(),
                     FriendType.Waiting => _context.Friends.Where(a => a.IsAccepted == false && (a.UserId == userId))
                         .ToArray(),

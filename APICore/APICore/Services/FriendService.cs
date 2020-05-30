@@ -43,7 +43,7 @@ namespace APICore.Services
         {
             if (userId == userRequestId)
             {
-                return FriendType.None;
+                return FriendType.Me;
             }
 
             TryGetFriendRequest(userId, userRequestId, out var friendDb);

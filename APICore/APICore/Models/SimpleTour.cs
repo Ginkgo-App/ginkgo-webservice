@@ -13,11 +13,11 @@ namespace APICore.Models
         public DateTime EndDay { get; }
         public int TotalMember { get; }
         public SimpleUser Host { get; }
-        public SimpleUser Friend { get; }
+        public List<SimpleUser> Friends { get; }
         public double Price { get; }
 
         public SimpleTour(int id, string name, DateTime startDay, DateTime endDay, int totalMember, SimpleUser host,
-            SimpleUser friend, double price)
+            List<SimpleUser> friends, double price)
         {
             Id = id;
             Name = name;
@@ -25,7 +25,7 @@ namespace APICore.Models
             EndDay = endDay;
             TotalMember = totalMember;
             Host = host;
-            Friend = friend;
+            Friends = friends;
             Price = price;
         }
     }

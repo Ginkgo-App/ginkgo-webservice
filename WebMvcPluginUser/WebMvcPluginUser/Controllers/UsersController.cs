@@ -423,9 +423,8 @@ namespace WebMvcPluginUser.Controllers
                 do
                 {
                     CoreHelper.ValidatePageSize(ref page, ref pageSize);
-                    
-                    var identity = HttpContext.User.Identity as ClaimsIdentity;
-                    if (identity == null)
+
+                    if (!(HttpContext.User.Identity is ClaimsIdentity identity))
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
                         break;
