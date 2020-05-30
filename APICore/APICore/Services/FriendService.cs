@@ -105,7 +105,7 @@ namespace APICore.Services
         }
 
 
-        public ErrorCode TryAcceptFriend(int userId, int userRequestId)
+        public ErrorCode TryAcceptFriend(int userId, int userRequestedId)
         {
             ErrorCode errorCode;
 
@@ -115,7 +115,7 @@ namespace APICore.Services
                 {
                     DbService.ConnectDb(out _context);
                     var friendDBs = _context.Friends.Where(f =>
-                            f.UserId == userId && f.RequestedUserId == userRequestId)
+                            f.UserId == userId && f.RequestedUserId == userRequestedId)
                         .ToArray();
 
                     var friendDb = friendDBs.Length > 0 ? friendDBs[0] : null;

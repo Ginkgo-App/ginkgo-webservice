@@ -542,8 +542,8 @@ namespace WebMvcPluginUser.Controllers
             return responseModel.ToJson();
         }
 
-        [HttpPost("me/accept-friend/{userRequestId}")]
-        public object AcceptFriendRequest(int userRequestId)
+        [HttpPost("me/accept-friend/{userId}")]
+        public object AcceptFriendRequest(int userId)
         {
             var responseModel = new ResponseModel();
 
@@ -551,18 +551,9 @@ namespace WebMvcPluginUser.Controllers
             {
                 do
                 {
-                    var identity = HttpContext.User.Identity as ClaimsIdentity;
-                    if (identity == null)
-                    {
-                        responseModel.FromErrorCode(ErrorCode.Fail);
-                        break;
-                    }
+                    var userRequestedId = CoreHelper.GetUserId(HttpContext, ref responseModel);
 
-                    var claims = identity.Claims;
-                    int.TryParse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value,
-                        out var userId);
-
-                    var errorCode = _friendService.TryAcceptFriend(userId, userRequestId);
+                    var errorCode = _friendService.TryAcceptFriend(userId, userRequestedId);
                     if (errorCode != ErrorCode.Success)
                     {
                         responseModel.FromErrorCode(errorCode);
@@ -589,16 +580,7 @@ namespace WebMvcPluginUser.Controllers
             {
                 do
                 {
-                    var identity = HttpContext.User.Identity as ClaimsIdentity;
-                    if (identity == null)
-                    {
-                        responseModel.FromErrorCode(ErrorCode.Fail);
-                        break;
-                    }
-
-                    var claims = identity.Claims;
-                    int.TryParse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value,
-                        out var userId);
+                    var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
 
                     var errorCode = _friendService.TryRemoveFriend(userId, friendId);
                     if (errorCode != ErrorCode.Success)
