@@ -81,62 +81,62 @@ namespace APICore.Entities
             return simpleUser;
         }
     }
-}
-
-public static class RoleType
-{
-    public const string Creator = "creator";
-    public const string User = "user";
-    public const string Admin = "admin";
-
-    public static string? TryParse(string text)
+    
+    public static class RoleType
     {
-        return text?.ToLower() switch
+        public const string Creator = "creator";
+        public const string User = "user";
+        public const string Admin = "admin";
+
+        public static string? TryParse(string text)
         {
-            Creator => Creator,
-            Admin => Admin,
-            User => User,
-            _ => User
-        };
+            return text?.ToLower() switch
+            {
+                Creator => Creator,
+                Admin => Admin,
+                User => User,
+                _ => User
+            };
+        }
     }
-}
 
-public static class GenderType
-{
-    public const string Male = "male";
-    public const string Female = "female";
-    public const string Other = "other";
-
-    public static string? TryParse(string text)
+    public static class GenderType
     {
-        return text?.ToLower() switch
+        public const string Male = "male";
+        public const string Female = "female";
+        public const string Other = "other";
+
+        public static string? TryParse(string text)
         {
-            "male" => Male,
-            "female" => Female,
-            "other" => Other,
-            _ => Other
-        };
+            return text?.ToLower() switch
+            {
+                "male" => Male,
+                "female" => Female,
+                "other" => Other,
+                _ => Other
+            };
+        }
     }
-}
 
-public static class FriendType
-{
-    public const string Me = "me";
-    public const string None = "none";
-    public const string Accepted = "accepted";
-    public const string Waiting = "waiting";
-    public const string Requested = "requested";
-
-    public static string TryParse(string type)
+    public static class FriendType
     {
-        return type?.ToLower() switch
+        public const string Me = "me";
+        public const string None = "none";
+        public const string Accepted = "accepted";
+        public const string Waiting = "waiting";
+        public const string Requested = "requested";
+
+        public static string TryParse(string type)
         {
-            "me" => Me,
-            "none" => None,
-            "accepted" => Accepted,
-            "waiting" => Waiting,
-            "requested" => Requested,
-            _ => None
-        };
+            return type?.ToLower() switch
+            {
+                "me" => Me,
+                "none" => None,
+                "accepted" => Accepted,
+                "waiting" => Waiting,
+                "requested" => Requested,
+                _ => None
+            };
+        }
     }
 }

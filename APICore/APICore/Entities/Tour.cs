@@ -33,7 +33,7 @@ namespace APICore.Entities
             JObject result = JObject.FromObject(this);
 
             result.Add("TotalMember", totalMember);
-            result.Add("CreateBy", host?.ToSimpleJson(friendType));
+            result.Add("Host", host?.ToSimpleJson(friendType));
             result.Add("Services", services!=null? JArray.FromObject(services) : null);
 
             return result;

@@ -10,6 +10,7 @@ using APICore.Entities;
 using APICore.Helpers;
 using APICore.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
@@ -425,8 +426,20 @@ namespace APICore.Services
 
                 var toursDb = (from t in _context.Tours
                     join ti in _context.TourInfos on t.TourInfoId equals ti.Id
+                    join tm in _context.TourMembers on t.Id equals tm.TourId
                     join host in _context.Users on ti.CreateById equals host.Id
-                    where ti.CreateById == userId
+                    let f = (from tourMember in _context.TourMembers
+                            join friend in (from fr in _context.Friends.Where(fr =>
+                                        fr.IsAccepted && (fr.UserId == userId || fr.RequestedUserId == userId))
+                                    select new
+                                    {
+                                        Id = fr.UserId == userId ? fr.RequestedUserId : fr.UserId
+                                    }
+                                ) on tourMember.UserId equals friend.Id
+                            join user in _context.Users on friend.Id equals user.Id
+                            select user
+                        )
+                    where ti.CreateById == userId || tm.UserId == userId
                     select new
                     {
                         Id = t.Id,
@@ -434,10 +447,9 @@ namespace APICore.Services
                         StartDay = t.StartDay,
                         EndDay = t.EndDay,
                         Price = 0,
-                        Host = host
-                    }).ToList();
-
-                Console.WriteLine(toursDb.Count());
+                        Host = host,
+                        Friends = f.ToList()
+                    }).AsEnumerable().Distinct((a, b) => a.Id == b.Id).ToList();
 
                 var total = toursDb.Count();
                 var skip = pageSize * (page - 1);
@@ -449,7 +461,7 @@ namespace APICore.Services
                     {
                         return new SimpleTour(e.Id, e.Name, e.StartDay, e.EndDay,
                             _context.TourMembers.Count(t => t.TourId == e.Id), e.Host.ToSimpleUser(FriendType.Accepted),
-                            null,
+                            e.Friends.Any() ? e.Friends.First().ToSimpleUser(FriendType.Accepted) : null,
                             0);
                     });
 
