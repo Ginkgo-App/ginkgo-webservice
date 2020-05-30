@@ -1,4 +1,5 @@
-﻿using APICore.DBContext;
+﻿using System;
+using APICore.DBContext;
 using APICore.Entities;
 using APICore.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -52,7 +53,7 @@ namespace APICore.Services
                 return FriendType.None;
             }
 
-            if (friendDb.IsAccepted)
+            if (friendDb.AcceptedAt != null)
             {
                 return FriendType.Accepted;
             }
@@ -74,7 +75,7 @@ namespace APICore.Services
                 TryGetFriendRequest(userId, userRequestId, out var friendDb);
                 if (friendDb != null)
                 {
-                    if (!friendDb.IsAccepted)
+                    if (friendDb.AcceptedAt != null)
                     {
                         errorCode = ErrorCode.FriendRequestAlreadySent;
                         break;
@@ -124,13 +125,13 @@ namespace APICore.Services
                         break;
                     }
 
-                    if (friendDb.IsAccepted)
+                    if (friendDb.AcceptedAt != null)
                     {
                         errorCode = ErrorCode.AlreadyFriend;
                         break;
                     }
 
-                    friendDb.IsAccepted = true;
+                    friendDb.AcceptedAt = DateTime.Now;
                     _context.Friends.Update(friendDb);
                     _context.SaveChanges();
                 }

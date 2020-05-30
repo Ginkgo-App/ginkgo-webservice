@@ -370,6 +370,91 @@ namespace WebMvcPluginTour.Controllers
 
             return responseModel.ToJson();
         }
+        
+        [HttpPost("{id}/tours")]
+        public object AddNewTour(int id, [FromBody] object requestBody)
+        {
+            var data = new JArray();
+            var responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
+                    var body = requestBody != null
+                        ? JObject.Parse(requestBody.ToString() ?? "{}")
+                        : null;
+
+                    if (!CoreHelper.GetParameter(out var jsonStartDate, body, "StartDay",
+                            JTokenType.Date, ref responseModel)
+                        || !CoreHelper.GetParameter(out var jsonEndDate, body, "EndDay",
+                            JTokenType.Date, ref responseModel)
+                        || !CoreHelper.GetParameter(out var jsonMaxMember, body, "MaxMember",
+                            JTokenType.Integer, ref responseModel)
+                        || !CoreHelper.GetParameter(out var jsonName, body, "Name",
+                            JTokenType.String, ref responseModel)
+                        || !CoreHelper.GetParameter(out var jsonServiceIds, body, "ServiceIds",
+                            JTokenType.Array, ref responseModel))
+                    {
+                        break;
+                    }
+
+                    if (_tourInfoService.TryGetTourInfoById(id, out var tourInfo) != ErrorCode.Success ||
+                        tourInfo == null)
+                    {
+                        throw new ExceptionWithMessage("Tour info not found.");
+                    }
+
+                   
+
+                    var name = jsonName?.ToString();
+                    _ = DateTime.TryParse(jsonStartDate?.ToString(), out var startDate);
+                    _ = DateTime.TryParse(jsonEndDate?.ToString(), out var endDate);
+                    _ = int.TryParse(jsonMaxMember?.ToString(), out var maxMember);
+                    var serviceIds = jsonServiceIds != null
+                        ? JsonConvert.DeserializeObject<string[]>(jsonServiceIds.ToString())
+                        : null;
+                    
+                    var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
+
+                    if (tourInfo.CreateById != userId)
+                    {
+                        Response.StatusCode = 403;
+                        break;
+                    }
+                    
+                    if (!_userService.TryGetUsers(userId, out var host))
+                    {
+                        responseModel.FromErrorCode(ErrorCode.UserNotFound);
+                        break;
+                    }
+
+                    var tour = new Tour(
+                        name: name,
+                        startDay: startDate,
+                        endDay: endDate,
+                        createBy: userId,
+                        maxMember: maxMember,
+                        tourInfoId: id
+                    );
+
+                    if (!_tourService.TryAddTour(tour))
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    responseModel.FromErrorCode(ErrorCode.Success);
+                    responseModel.Data = new JArray {JObject.FromObject(tour)};
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
 
         private JObject AddTourFullInfo(TourInfo tourInfo)
         {

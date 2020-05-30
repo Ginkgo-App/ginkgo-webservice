@@ -431,7 +431,7 @@ namespace APICore.Services
                     join host in _context.Users on t.CreateBy equals host.Id
                     let f = (from tourMember in _context.TourMembers
                             join friend in (from fr in _context.Friends.Where(fr =>
-                                        fr.IsAccepted && (fr.UserId == userId || fr.RequestedUserId == userId))
+                                        fr.AcceptedAt != null && (fr.UserId == userId || fr.RequestedUserId == userId))
                                     select new
                                     {
                                         Id = fr.UserId == userId ? fr.RequestedUserId : fr.UserId
@@ -549,11 +549,11 @@ namespace APICore.Services
                 var friendDBs = type?.ToLower() switch
                 {
                     FriendType.Accepted => _context.Friends.Where(a =>
-                        a.IsAccepted && (a.UserId == userId || a.RequestedUserId == userId)).ToArray(),
+                        a.AcceptedAt != null && (a.UserId == userId || a.RequestedUserId == userId)).ToArray(),
                     FriendType.Requested => _context.Friends
-                        .Where(a => a.IsAccepted == false && (a.RequestedUserId == userId))
+                        .Where(a => a.AcceptedAt == null && (a.RequestedUserId == userId))
                         .ToArray(),
-                    FriendType.Waiting => _context.Friends.Where(a => a.IsAccepted == false && (a.UserId == userId))
+                    FriendType.Waiting => _context.Friends.Where(a => a.AcceptedAt == null && (a.UserId == userId))
                         .ToArray(),
                     _ => _context.Friends.Where(a => a.UserId == userId || a.RequestedUserId == userId).ToArray()
                 };

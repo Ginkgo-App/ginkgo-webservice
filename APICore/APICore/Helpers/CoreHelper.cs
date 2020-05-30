@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
@@ -103,6 +105,20 @@ namespace APICore.Helpers
                 numBytesRequested: 256 / 8));
 
             return hashed;
+        }
+        
+        public static int GetUserId(HttpContext requestContext, ref  ResponseModel responseModel)
+        {
+            var identity = requestContext.User.Identity as ClaimsIdentity;
+            if (identity == null)
+            {
+                responseModel.FromErrorCode(ErrorList.ErrorCode.Fail);
+            }
+
+            var claims = identity.Claims;
+            int.TryParse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value,
+                out var userId);
+            return userId;
         }
     }
 } 
