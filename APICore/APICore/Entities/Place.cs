@@ -1,4 +1,5 @@
 ﻿using System.Security.Authentication;
+using Newtonsoft.Json.Linq;
 
 #nullable enable
 namespace APICore.Entities
@@ -26,6 +27,16 @@ namespace APICore.Entities
             Description = description ?? Description;
             TypeId = typeId ?? TypeId;
             return this;
+        }
+        
+        public JObject ToJson(PlaceType placeType)
+        {
+            JObject json = JObject.FromObject(this);
+
+            json.Remove("TypeId");
+            json.Add("Type", placeType?.Value);
+            
+            return json;
         }
     }
 }

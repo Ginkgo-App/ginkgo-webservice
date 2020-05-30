@@ -62,7 +62,7 @@ namespace WebMvcPluginPlace.Controllers
             {
                 do
                 {
-                    var errorCode = _placeService.TryGetPlaceById(id, out var place);
+                    var errorCode = _placeService.TryGetPlaceById(id, out var place, out var placeType);
 
                     if (!errorCode)
                     {
@@ -71,7 +71,7 @@ namespace WebMvcPluginPlace.Controllers
                     }
 
                     responseModel.FromErrorCode(ErrorList.ErrorCode.Success);
-                    responseModel.Data = new JArray{JToken.FromObject(place)};
+                    responseModel.Data = new JArray {place.ToJson(placeType)};
                 } while (false);
             }
             catch (Exception ex)
@@ -81,11 +81,11 @@ namespace WebMvcPluginPlace.Controllers
 
             return responseModel.ToJson();
         }
-        
+
         [HttpPost]
         public object CreatePlace([FromBody] object requestBody)
         {
-           var responseModel = new ResponseModel();
+            var responseModel = new ResponseModel();
 
             try
             {
@@ -95,7 +95,7 @@ namespace WebMvcPluginPlace.Controllers
                         ? JObject.Parse(requestBody.ToString() ?? "{}")
                         : null;
 
-                    if (!CoreHelper.GetParameter(out var jsonName, body, "Name", JTokenType.String, 
+                    if (!CoreHelper.GetParameter(out var jsonName, body, "Name", JTokenType.String,
                             ref responseModel)
                         || !CoreHelper.GetParameter(out var jsonTypeId, body, "TypeId", JTokenType.Integer,
                             ref responseModel)
@@ -112,7 +112,7 @@ namespace WebMvcPluginPlace.Controllers
                     var images = jsonImages != null
                         ? JsonConvert.DeserializeObject<string[]>(jsonImages.ToString())
                         : null;
-                    
+
                     var typeId = jsonTypeId != null
                         ? int.Parse(jsonTypeId.ToString())
                         : (int?) null;
@@ -123,7 +123,7 @@ namespace WebMvcPluginPlace.Controllers
                         break;
                     }
 
-                    var place = new Place((int)typeId ,name, images, description);
+                    var place = new Place((int) typeId, name, images, description);
 
                     if (!_placeService.TryAddPlace(place))
                     {
@@ -142,9 +142,9 @@ namespace WebMvcPluginPlace.Controllers
 
             return responseModel.ToJson();
         }
-        
+
         [HttpPut("{Id}")]
-        public object Update(int id,[FromBody] object requestBody)
+        public object Update(int id, [FromBody] object requestBody)
         {
             var responseModel = new ResponseModel();
 
@@ -152,17 +152,17 @@ namespace WebMvcPluginPlace.Controllers
             {
                 do
                 {
-                    if (!_placeService.TryGetPlaceById(id, out var place) || place == null)
+                    if (!_placeService.TryGetPlaceById(id, out var place, out var placeType) || place == null)
                     {
                         responseModel.FromErrorCode(ErrorList.ErrorCode.PlaceNotFound);
                         break;
                     }
-                    
+
                     var body = requestBody != null
                         ? JObject.Parse(requestBody.ToString() ?? "{}")
                         : null;
 
-                    if (!CoreHelper.GetParameter(out var jsonName, body, "Name", JTokenType.String, 
+                    if (!CoreHelper.GetParameter(out var jsonName, body, "Name", JTokenType.String,
                             ref responseModel)
                         || !CoreHelper.GetParameter(out var jsonImages, body, "Images", JTokenType.Array,
                             ref responseModel, true)
@@ -173,11 +173,11 @@ namespace WebMvcPluginPlace.Controllers
                     {
                         break;
                     }
-                    
+
                     var images = jsonImages != null
                         ? JsonConvert.DeserializeObject<string[]>(jsonImages.ToString())
                         : null;
-                    
+
                     var typeId = jsonTypeId != null
                         ? int.Parse(jsonTypeId.ToString())
                         : (int?) null;
@@ -191,7 +191,7 @@ namespace WebMvcPluginPlace.Controllers
                     }
 
                     responseModel.FromErrorCode(ErrorList.ErrorCode.Success);
-                    responseModel.Data = new JArray {JToken.FromObject(place)};
+                    responseModel.Data = new JArray {place.ToJson(placeType)};
                 } while (false);
             }
             catch (Exception ex)
@@ -201,7 +201,7 @@ namespace WebMvcPluginPlace.Controllers
 
             return responseModel.ToJson();
         }
-        
+
         [HttpDelete("{Id}")]
         public object DeletePlace(int id)
         {

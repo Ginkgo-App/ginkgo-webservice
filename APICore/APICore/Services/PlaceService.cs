@@ -12,7 +12,7 @@ namespace APICore.Services
     public interface IPlaceService
     {
         bool TryGetAllPlaces(int page, int pageSize, out List<Place> places, out Pagination pagination);
-        bool TryGetPlaceById(int placeId, out Place place);
+        bool TryGetPlaceById(int placeId, out Place place, out PlaceType placeType);
         bool TryUpdatePlace(Place place);
         bool TryAddPlace(Place place);
         bool TryRemovePlace(int placeId);
@@ -33,7 +33,7 @@ namespace APICore.Services
         {
             places = null;
             pagination = null;
-            var isSuccess = false;
+            bool isSuccess;
 
             try
             {
@@ -70,14 +70,17 @@ namespace APICore.Services
             return isSuccess;
         }
 
-        public bool TryGetPlaceById(int placeId, out Place place)
+        public bool TryGetPlaceById(int placeId, out Place place, out PlaceType placeType)
         {
             place = null;
+            placeType = null;
 
             try
             {
                 DbService.ConnectDb(out _context);
-                place = _context.Places.FirstOrDefault(p => p.Id == placeId);
+                var placeDb = _context.Places.FirstOrDefault(p => p.Id == placeId);
+                place = placeDb;
+                placeType = _context.PlaceTypes.FirstOrDefault(t => t.Id == placeDb.Id);
             }
             finally
             {

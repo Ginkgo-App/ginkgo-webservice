@@ -62,7 +62,7 @@ namespace WebMvcPluginPlace.Controllers
             {
                 do
                 {
-                    var errorCode = _placeService.TryGetPlaceById(id, out var place);
+                    var errorCode = _placeService.TryGetPlaceById(id, out var place, out var placeType);
 
                     if (!errorCode)
                     {
@@ -71,7 +71,7 @@ namespace WebMvcPluginPlace.Controllers
                     }
 
                     responseModel.FromErrorCode(ErrorList.ErrorCode.Success);
-                    responseModel.Data = new JArray {JToken.FromObject(place)};
+                    responseModel.Data = new JArray {place.ToJson(placeType)};
                 } while (false);
             }
             catch (Exception ex)

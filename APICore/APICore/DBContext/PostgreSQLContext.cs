@@ -41,6 +41,7 @@ namespace APICore.DBContext
         public DbSet<FeedbackLike> FeedbackLikes { get; set; }
         public DbSet<Message> Messages { get; set; }
         public DbSet<Place> Places { get; set; }
+        public DbSet<PlaceType> PlaceTypes { get; set; }
         public DbSet<Post> Posts { get; set; }
         public DbSet<PostComment> PostComments { get; set; }
         public DbSet<PostLike> PostLikes { get; set; }
