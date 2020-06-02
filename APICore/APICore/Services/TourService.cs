@@ -149,6 +149,7 @@ namespace APICore.Services
             {
                 DbService.ConnectDb(out _context);
                 var tour = _context.Tours.SingleOrDefault(t => t.Id == tourId);
+                
                 if (tour == null)
                 {
                     throw new ExceptionWithMessage(message: "Tour not found");

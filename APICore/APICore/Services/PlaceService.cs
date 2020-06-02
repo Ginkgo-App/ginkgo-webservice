@@ -5,7 +5,6 @@ using APICore.Entities;
 using APICore.Helpers;
 using APICore.Models;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json.Linq;
 using NLog;
 
 namespace APICore.Services
@@ -16,8 +15,12 @@ namespace APICore.Services
         bool TryGetPlaceInfoById(int placeId, out PlaceInfo place);
         bool TryGetPlaceById(int placeId, out Place place);
         bool TryUpdatePlace(Place place);
-        bool TryAddPlace(Place place);
+        bool TryAddPlace(Place place, int? parentId);
         bool TryRemovePlace(int placeId);
+        bool TryGetPlaceTypeById(int placeId, out PlaceType placeType);
+        bool TryUpdatePlaceTypeById(PlaceType placeType);
+        bool TryRemovePlaceType(PlaceType placeType);
+        bool TryRemovePlaceType(int placeTypeId);
     }
 
     public class PlaceService : IPlaceService
@@ -31,6 +34,8 @@ namespace APICore.Services
             _appSettings = appSettings.Value;
         }
 
+        #region Place
+
         public bool TryGetAllPlaces(int page, int pageSize, out List<PlaceInfo> places, out Pagination pagination)
         {
             places = new List<PlaceInfo>();
@@ -42,9 +47,9 @@ namespace APICore.Services
                 CoreHelper.ValidatePageSize(ref page, ref pageSize);
 
                 DbService.ConnectDb(out _context);
-                var listTourInfos = _context.Places.ToList();
+                var listTourInfos = _context.Places.Where(t => t.DeletedAt == null).ToList();
 
-                var total = listTourInfos.Select(p => p.Id).Count();
+                var total = listTourInfos.Count();
                 var skip = pageSize * (page - 1);
 
                 var canPage = skip < total;
@@ -60,7 +65,7 @@ namespace APICore.Services
                     {
                         var placeType = _context.PlaceTypes.FirstOrDefault(t => t.Id == place.TypeId);
                         if (placeType == null) continue;
-                        var childPlaces = new  List<PlaceInfo>();
+                        var childPlaces = new List<PlaceInfo>();
 
                         if (placeType.IsHaveChild)
                         {
@@ -73,10 +78,9 @@ namespace APICore.Services
                                 childPlaces.Add(new PlaceInfo(childPlace, type, new List<PlaceInfo>()));
                             }
                         }
-                        
+
                         places.Add(new PlaceInfo(place, placeType, childPlaces));
                     }
-                    
                 }
                 else
                 {
@@ -119,7 +123,7 @@ namespace APICore.Services
                         childPlaces.Add(new PlaceInfo(childPlace, type, new List<PlaceInfo>()));
                     }
                 }
-                
+
                 place = new PlaceInfo(placeDb, placeType, childPlaces);
             }
             finally
@@ -129,7 +133,7 @@ namespace APICore.Services
 
             return true;
         }
-        
+
         public bool TryGetPlaceById(int placeId, out Place place)
         {
             place = null;
@@ -164,13 +168,29 @@ namespace APICore.Services
             return true;
         }
 
-        public bool TryAddPlace(Place place)
+        public bool TryAddPlace(Place place, int? parentId)
         {
             try
             {
                 DbService.ConnectDb(out _context);
-                _context.Places.Add(place);
+                if (parentId != null)
+                {
+                    _ = _context.Places.FirstOrDefault(p => p.Id == parentId) ??
+                        throw new ExceptionWithMessage("Parent place not found");
+                }
+                
+                place = _context.Places.Add(place).Entity;
                 _context.SaveChanges();
+
+
+                var childPlaceRecord =
+                    _context.ChildPlaces.FirstOrDefault(p => p.ChildId == place.Id && p.ParentId == parentId);
+
+                if (childPlaceRecord == null && parentId != null)
+                {
+                    _context.ChildPlaces.Add(new ChildPlace((int)parentId, place.Id));
+                }
+                
                 DbService.DisconnectDb(out _context);
             }
             finally
@@ -180,6 +200,7 @@ namespace APICore.Services
 
             return true;
         }
+        
 
         public bool TryRemovePlace(int placeId)
         {
@@ -190,7 +211,7 @@ namespace APICore.Services
                 var place = _context.Places.FirstOrDefault(p => p.Id == placeId);
                 if (place != null)
                 {
-                    _context.Places.Remove(place);
+                    place.Delete();
                     _context.SaveChanges();
                     isSuccess = true;
                 }
@@ -202,5 +223,82 @@ namespace APICore.Services
 
             return isSuccess;
         }
+
+        #endregion
+
+        #region PlaceType
+
+        public bool TryGetPlaceTypeById(int placeId, out PlaceType placeType)
+        {
+            placeType = null;
+
+            try
+            {
+                DbService.ConnectDb(out _context);
+                placeType = _context.PlaceTypes.FirstOrDefault(p => p.Id == placeId);
+            }
+            finally
+            {
+                DbService.DisconnectDb(out _context);
+            }
+
+            return true;
+        }
+
+        public bool TryUpdatePlaceTypeById(PlaceType placeType)
+        {
+            try
+            {
+                DbService.ConnectDb(out _context);
+                _ = _context.PlaceTypes.Update(placeType);
+            }
+            finally
+            {
+                DbService.DisconnectDb(out _context);
+            }
+
+            return true;
+        }
+
+        public bool TryRemovePlaceType(PlaceType placeType)
+        {
+            try
+            {
+                DbService.ConnectDb(out _context);
+                placeType.Delete();
+                _context.SaveChanges();
+            }
+            finally
+            {
+                DbService.DisconnectDb(out _context);
+            }
+
+            return true;
+        }
+
+        public bool TryRemovePlaceType(int placeTypeId)
+        {
+            try
+            {
+                DbService.ConnectDb(out _context);
+                var placeType = _context.PlaceTypes.FirstOrDefault(p => p.Id == placeTypeId);
+
+                if (placeType == null)
+                {
+                    throw new ExceptionWithMessage("Place type not found");
+                }
+                
+                placeType.Delete();
+                _context.SaveChanges();
+            }
+            finally
+            {
+                DbService.DisconnectDb(out _context);
+            }
+
+            return true;
+        }
+
+        #endregion
     }
 }

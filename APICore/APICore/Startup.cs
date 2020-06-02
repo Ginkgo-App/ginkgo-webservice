@@ -14,7 +14,6 @@ using APICore.DBContext;
 using Toycloud.AspNetCore.Mvc.ModelBinding;
 using APICore.Middlewares;
 using APICore.Services;
-using APICore.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace APICore

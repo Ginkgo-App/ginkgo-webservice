@@ -2,10 +2,11 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using APICore.Models;
 
 namespace APICore.Entities
 {
-    public class Tour
+    public class Tour : IIsDeleted
     {
         public Tour(string? name, DateTime startDay, DateTime endDay, int maxMember, int createBy, int tourInfoId, int price = 0)
         {
@@ -16,6 +17,7 @@ namespace APICore.Entities
             CreateBy = createBy;
             TourInfoId = tourInfoId;
             Price = price;
+            DeletedAt = null;
         }
 
         public int Id { get; private set; }
@@ -45,6 +47,12 @@ namespace APICore.Entities
             StartDay = startDay ?? StartDay;
             EndDay = endDay ?? EndDay;
             MaxMember = maxMember ?? MaxMember;
+        }
+
+        public DateTime? DeletedAt { get; set; }
+        public void Delete()
+        {
+            DeletedAt = DateTime.Now;
         }
     }
 }

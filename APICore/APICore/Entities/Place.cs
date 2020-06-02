@@ -1,12 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Security.Authentication;
 using System.Threading.Tasks.Dataflow;
+using APICore.Models;
 using Newtonsoft.Json.Linq;
 
 #nullable enable
 namespace APICore.Entities
 {
-    public class Place
+    public class Place : IIsDeleted
     {
         public Place(int typeId, string? name, string[]? images, string? description)
         {
@@ -29,6 +31,12 @@ namespace APICore.Entities
             Description = description ?? Description;
             TypeId = typeId ?? TypeId;
             return this;
+        }
+
+        public DateTime? DeletedAt { get; set; }
+        public void Delete()
+        {
+            DeletedAt = DateTime.Now;
         }
     }
 }

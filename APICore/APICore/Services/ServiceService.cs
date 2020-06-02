@@ -3,13 +3,17 @@ using System.Linq;
 using APICore.DBContext;
 using APICore.Entities;
 using APICore.Helpers;
-using APICore.Services.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using NLog;
 
 namespace APICore.Services
 {
+    public interface IServiceService
+    {
+        ErrorList.ErrorCode TryGetServiceByTourId(int tourId, out List<Service> tourServices);
+        bool TryGetServiceById(int serviceId, out Service service);
+    }
+
     public class ServiceService : IServiceService
     {
         private PostgreSQLContext _context;
@@ -30,7 +34,7 @@ namespace APICore.Services
                     try
                     {
                         DbService.ConnectDb(out _context);
-                        var tourServiceIds = _context.TourServices.Where(s => s.TourId == tourId).ToList();
+                        var tourServiceIds = _context.TourServices.Where(s => s.TourId == tourId && s.DeletedAt == null).ToList();
 
                         if (!tourServiceIds.Any())
                         {

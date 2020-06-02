@@ -1,10 +1,11 @@
 ﻿#nullable enable
 using Newtonsoft.Json.Linq;
 using System;
+using APICore.Models;
 
 namespace APICore.Entities
 {
-    public class TourInfo
+    public class TourInfo : IIsDeleted
     {
         public TourInfo(int createById, string name, string[] images, int startPlaceId, int destinatePlaceId)
         {
@@ -13,6 +14,7 @@ namespace APICore.Entities
             Images = images;
             StartPlaceId = startPlaceId;
             DestinatePlaceId = destinatePlaceId;
+            DeleteAt = null;
         }
 
         public int Id { get; private set; }
@@ -45,6 +47,12 @@ namespace APICore.Entities
             StartPlaceId = startPlaceId ?? StartPlaceId;
             DestinatePlaceId = destinatePlaceId ?? DestinatePlaceId;
             return this;
+        }
+
+        public DateTime? DeletedAt { get; set; }
+        public void Delete()
+        {
+            DeletedAt = DateTime.Now;
         }
     }
 }

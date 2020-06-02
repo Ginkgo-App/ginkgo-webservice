@@ -189,13 +189,11 @@ namespace APICore.Services
             try
             {
                 DbService.ConnectDb(out _context);
-                var usersDb = (from u
-                            in _context.Users
-                        select u)
+                var usersDb = _context.Users.Where(u=>u.DeletedAt == null)
                     .ToListAsync()
                     .Result;
 
-                var total = usersDb.Select(p => p.Id).Count();
+                var total = usersDb.Count();
                 var skip = pageSize * (page - 1);
                 var canPage = skip < total;
 
@@ -314,7 +312,7 @@ namespace APICore.Services
                 var user = _context.Users.FirstOrDefault(u => u.Id == userId);
                 if (user != null)
                 {
-                    _context.Users.Remove(user);
+                   user.Delete();
                     _context.SaveChanges();
                     isSuccess = true;
                 }
@@ -523,7 +521,7 @@ namespace APICore.Services
                 var tourInfo = _context.TourInfos.FirstOrDefault(u => u.Id == tourInfoId);
                 if (tourInfo != null)
                 {
-                    _context.TourInfos.Remove(tourInfo);
+                    tourInfo.Delete();
                     _context.SaveChanges();
                     isSuccess = true;
                 }

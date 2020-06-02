@@ -23,6 +23,8 @@ namespace WebMvcPluginPlace.Controllers
             _placeService = placeService;
         }
 
+        #region Place
+
         [HttpGet]
         public object GetAllPlaces([FromQuery] int page, [FromQuery] int pageSize)
         {
@@ -107,6 +109,8 @@ namespace WebMvcPluginPlace.Controllers
                             ref responseModel)
                         || !CoreHelper.GetParameter(out var jsonTypeId, body, "TypeId", JTokenType.Integer,
                             ref responseModel)
+                        || !CoreHelper.GetParameter(out var jsonParentId, body, "ParentId", JTokenType.Integer,
+                            ref responseModel)
                         || !CoreHelper.GetParameter(out var jsonImages, body, "Images", JTokenType.Array,
                             ref responseModel, true)
                         || !CoreHelper.GetParameter(out var jsonDescription, body, "Description", JTokenType.String,
@@ -124,6 +128,9 @@ namespace WebMvcPluginPlace.Controllers
                     var typeId = jsonTypeId != null
                         ? int.Parse(jsonTypeId.ToString())
                         : (int?) null;
+                    var parentId = jsonParentId != null
+                        ? int.Parse(jsonParentId.ToString())
+                        : (int?) null;
 
                     if (typeId == null)
                     {
@@ -133,7 +140,7 @@ namespace WebMvcPluginPlace.Controllers
 
                     var place = new Place((int) typeId, name, images, description);
 
-                    if (!_placeService.TryAddPlace(place))
+                    if (!_placeService.TryAddPlace(place, parentId))
                     {
                         responseModel.FromErrorCode(ErrorList.ErrorCode.Fail);
                         break;
@@ -242,5 +249,8 @@ namespace WebMvcPluginPlace.Controllers
 
             return responseModel.ToJson();
         }
+
+        #endregion
+        
     }
 }

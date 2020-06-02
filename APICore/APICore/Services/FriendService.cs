@@ -1,15 +1,24 @@
 ﻿using System;
 using APICore.DBContext;
 using APICore.Entities;
-using APICore.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using NLog;
 using System.Linq;
+using APICore.Models;
 using static APICore.Helpers.ErrorList;
 
 namespace APICore.Services
 {
+    public interface IFriendService
+    {
+        ErrorCode CountTotalFriendAsync(int userId, out int total);
+        string CalculateIsFriend(int userId, int userRequestId);
+        ErrorCode TryAddFriend(int userId, int userRequestId);
+        ErrorCode TryAcceptFriend(int userId, int userRequestedId);
+        ErrorCode TryRemoveFriend(int userId, int userRequestId);
+    }
+
     public class FriendService : IFriendService
     {
         private PostgreSQLContext _context;
@@ -29,7 +38,7 @@ namespace APICore.Services
             try
             {
                 DbService.ConnectDb(out _context);
-                total = _context.Friends.CountAsync(u => u.UserId == userId).Result;
+                total = _context.Friends.CountAsync(u => u.UserId == userId && u.DeletedAt == null).Result;
                 errorCode = ErrorCode.Success;
             }
             finally
@@ -157,9 +166,16 @@ namespace APICore.Services
                     try
                     {
                         DbService.ConnectDb(out _context);
-                        _context.Friends.Remove(friendDb);
-                        _context.SaveChanges();
+                        friendDb = _context.Friends.FirstOrDefault(f =>
+                            f.UserId == userId && f.RequestedUserId == userRequestId);
+                        
+                        if (friendDb == null)
+                        {
+                            throw new ExceptionWithMessage("Friend request not found");
+                        }
 
+                        friendDb.Delete();
+                        _context.SaveChanges();
                         errorCode = ErrorCode.Success;
                     }
                     finally
@@ -182,8 +198,8 @@ namespace APICore.Services
             {
                 DbService.ConnectDb(out _context);
                 var friendDBs = _context.Friends.Where(a =>
-                        (a.UserId == userId && a.RequestedUserId == userOtherId)
-                        || (a.RequestedUserId == userId && a.UserId == userOtherId))
+                        (a.UserId == userId && a.RequestedUserId == userOtherId && a.DeletedAt == null)
+                        || (a.RequestedUserId == userId && a.UserId == userOtherId && a.DeletedAt == null))
                     .ToArray();
 
                 friendDb = friendDBs.Length > 0 ? friendDBs[0] : null;

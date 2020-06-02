@@ -55,7 +55,7 @@ namespace APICore.Services
                 ValidatePageSize(ref page, ref pageSize);
 
                 DbService.ConnectDb(out _context);
-                var listTourInfos = _context.TourInfos.Where(a => a.CreateById == userId).ToList();
+                var listTourInfos = _context.TourInfos.Where(a => a.CreateById == userId && a.DeletedAt == null).ToList();
 
                 var total = listTourInfos.Select(p => p.Id).Count();
                 var skip = pageSize * (page - 1);
@@ -97,9 +97,9 @@ namespace APICore.Services
                 ValidatePageSize(ref page, ref pageSize);
 
                 DbService.ConnectDb(out _context);
-                var listTourInfos = _context.TourInfos.ToList();
+                var listTourInfos = _context.TourInfos.Where(t=>t.DeletedAt == null).ToList();
 
-                var total = listTourInfos.Select(p => p.Id).Count();
+                var total = listTourInfos.Count();
                 var skip = pageSize * (page - 1);
 
                 var canPage = skip < total;
@@ -141,9 +141,9 @@ namespace APICore.Services
                 ValidatePageSize(ref page, ref pageSize);
 
                 DbService.ConnectDb(out _context);
-                var listTours = _context.Tours.ToList();
+                var listTours = _context.Tours.Where(t=>t.DeletedAt == null).ToList();
 
-                var total = listTours.Select(p => p.TourInfoId).Count();
+                var total = listTours.Count();
                 var skip = pageSize * (page - 1);
 
                 var canPage = skip < total;
@@ -236,7 +236,7 @@ namespace APICore.Services
                 var tourInfo = _context.TourInfos.FirstOrDefault(u => u.Id == tourInfoId);
                 if (tourInfo != null)
                 {
-                    _context.TourInfos.Remove(tourInfo);
+                    tourInfo.Delete();
                     _context.SaveChanges();
                     isSuccess = true;
                 }

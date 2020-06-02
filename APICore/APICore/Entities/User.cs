@@ -7,7 +7,7 @@ using APICore.Models;
 
 namespace APICore.Entities
 {
-    public class User
+    public class User : IIsDeleted
     {
         public User(string email, string role)
         {
@@ -79,6 +79,12 @@ namespace APICore.Entities
         {
             var simpleUser = new SimpleUser(Id, Name, Avatar, Job, FriendType.TryParse(friendType));
             return simpleUser;
+        }
+
+        public DateTime? DeletedAt { get; set; }
+        public void Delete()
+        {
+            DeletedAt = DateTime.Now;
         }
     }
     

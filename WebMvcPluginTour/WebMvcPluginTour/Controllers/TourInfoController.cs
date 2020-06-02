@@ -5,7 +5,6 @@ using APICore.Entities;
 using APICore.Helpers;
 using APICore.Models;
 using APICore.Services;
-using APICore.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;

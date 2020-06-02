@@ -1,9 +1,10 @@
 ﻿#nullable enable
 using System;
+using APICore.Models;
 
 namespace APICore.Entities
 {
-    public class PostComment
+    public class PostComment : IIsDeleted
     {
         public PostComment(string? content, int userId, int postId, DateTime at)
         {
@@ -11,6 +12,7 @@ namespace APICore.Entities
             UserId = userId;
             PostId = postId;
             CreateAt = at;
+            DeletedAt = null;
         }
 
         public PostComment()
@@ -22,5 +24,10 @@ namespace APICore.Entities
         public int UserId { get; private set; }
         public int PostId { get; private set; }
         public DateTime CreateAt { get; private set; }
+        public DateTime? DeletedAt { get; set; }
+        public void Delete()
+        {
+            DeletedAt = DateTime.Now;
+        }
     }
 }
