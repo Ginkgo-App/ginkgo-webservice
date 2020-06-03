@@ -123,11 +123,9 @@ namespace APICore.Services
                 try
                 {
                     DbService.ConnectDb(out _context);
-                    var friendDBs = _context.Friends.Where(f =>
-                            f.UserId == userId && f.RequestedUserId == userRequestedId)
-                        .ToArray();
 
-                    var friendDb = friendDBs.Length > 0 ? friendDBs[0] : null;
+                    TryGetFriendRequest(userId, userRequestedId, out var friendDb);
+
                     if (friendDb == null)
                     {
                         errorCode = ErrorCode.FriendRequestNotFound;
@@ -160,15 +158,11 @@ namespace APICore.Services
             ErrorCode errorCode;
             do
             {
-                TryGetFriendRequest(userId, userRequestId, out var friendDb);
-                if (friendDb != null)
-                {
                     try
                     {
                         DbService.ConnectDb(out _context);
-                        friendDb = _context.Friends.FirstOrDefault(f =>
-                            f.UserId == userId && f.RequestedUserId == userRequestId);
                         
+                        TryGetFriendRequest(userId, userRequestId, out var friendDb);                        
                         if (friendDb == null)
                         {
                             throw new ExceptionWithMessage("Friend request not found");
@@ -182,11 +176,6 @@ namespace APICore.Services
                     {
                         DbService.DisconnectDb(out _context);
                     }
-                }
-                else
-                {
-                    errorCode = ErrorCode.FriendNotFound;
-                }
             } while (false);
 
             return errorCode;

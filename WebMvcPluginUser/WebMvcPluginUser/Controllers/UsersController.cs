@@ -189,6 +189,8 @@ namespace WebMvcPluginUser.Controllers
                 {
                     var data = new JArray();
 
+                    var myUserId = CoreHelper.GetUserId(HttpContext, ref responseModel);
+
                     if (!_userService.TryGetUsers(userId, out var user))
                     {
                         break;
@@ -201,7 +203,9 @@ namespace WebMvcPluginUser.Controllers
                         break;
                     }
 
-                    data.Add(JObject.FromObject(user));
+                    var friendType = _friendService.CalculateIsFriend(myUserId, userId);
+
+                    data.Add(user.ToSimpleJson(friendType));
                     responseModel.ErrorCode = (int) ErrorCode.Success;
                     responseModel.Message = Description(responseModel.ErrorCode);
                     responseModel.Data = data;
