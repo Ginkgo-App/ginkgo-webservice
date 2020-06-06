@@ -20,7 +20,7 @@ namespace APICore.Services
         bool TryAddTour(Tour tour);
         bool TryUpdateTour(Tour tour);
         bool TryDeleteTour(int tourId);
-        bool TryAddService( int tourId ,IEnumerable<int> serviceIds);
+        bool TryAddService(int tourId, IEnumerable<int> serviceIds);
     }
 
     public class TourService : ITourService
@@ -72,10 +72,12 @@ namespace APICore.Services
 
                 if (canPage)
                 {
-                    tours = listTours.Where(u => u.TourInfoId == tourInfoId)
-                        .Skip(skip)
-                        .Take(pageSize)
-                        .ToList();
+                    tours = pageSize >= 0
+                        ? listTours
+                        : listTours.Where(u => u.TourInfoId == tourInfoId)
+                            .Skip(skip)
+                            .Take(pageSize)
+                            .ToList();
                 }
                 else
                 {
@@ -150,7 +152,7 @@ namespace APICore.Services
             {
                 DbService.ConnectDb(out _context);
                 var tour = _context.Tours.SingleOrDefault(t => t.Id == tourId);
-                
+
                 if (tour == null)
                 {
                     throw new ExceptionWithMessage(message: "Tour not found");
@@ -167,23 +169,24 @@ namespace APICore.Services
 
             return true;
         }
-        
-        public bool TryAddService( int tourId ,IEnumerable<int> serviceIds)
+
+        public bool TryAddService(int tourId, IEnumerable<int> serviceIds)
         {
             try
             {
                 DbService.ConnectDb(out _context);
 
                 var serviceList = serviceIds.ToList();
-                var isServiceExist = serviceList.All(serviceId => _context.Services.FirstOrDefault(s => s.Id == serviceId) != null);
+                var isServiceExist = serviceList.All(serviceId =>
+                    _context.Services.FirstOrDefault(s => s.Id == serviceId) != null);
 
                 if (!isServiceExist)
                 {
                     throw new ExceptionWithMessage("Service not found");
                 }
-                
+
                 var tour = _context.Tours.SingleOrDefault(t => t.Id == tourId);
-                
+
                 if (tour == null)
                 {
                     throw new ExceptionWithMessage(message: "Tour not found");
@@ -193,7 +196,7 @@ namespace APICore.Services
                 {
                     _context.TourServices.Add(new Entities.TourService(serviceId, tour.Id));
                 }
-                 
+
                 _context.SaveChanges();
                 DbService.DisconnectDb(out _context);
             }

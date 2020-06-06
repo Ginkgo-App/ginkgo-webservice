@@ -56,10 +56,13 @@ namespace APICore.Services
 
                 if (canPage)
                 {
-                    var placeIds = listTourInfos
-                        .Skip(skip)
-                        .Take(pageSize)
-                        .ToList();
+                    // If pageSize = 0 => Get all
+                    var placeIds = pageSize == 0
+                        ? listTourInfos
+                        : listTourInfos
+                            .Skip(skip)
+                            .Take(pageSize)
+                            .ToList();
 
                     foreach (var place in placeIds)
                     {
@@ -87,7 +90,7 @@ namespace APICore.Services
                     places = new List<PlaceInfo>();
                 }
 
-                pagination = new Pagination(total, page, pageSize);
+                pagination = new Pagination(total, page, pageSize > 0 ? pageSize : total);
                 isSuccess = true;
             }
             finally
@@ -178,7 +181,7 @@ namespace APICore.Services
                     _ = _context.Places.FirstOrDefault(p => p.Id == parentId) ??
                         throw new ExceptionWithMessage("Parent place not found");
                 }
-                
+
                 place = _context.Places.Add(place).Entity;
                 _context.SaveChanges();
 
@@ -188,9 +191,9 @@ namespace APICore.Services
 
                 if (childPlaceRecord == null && parentId != null)
                 {
-                    _context.ChildPlaces.Add(new ChildPlace((int)parentId, place.Id));
+                    _context.ChildPlaces.Add(new ChildPlace((int) parentId, place.Id));
                 }
-                
+
                 DbService.DisconnectDb(out _context);
             }
             finally
@@ -200,7 +203,7 @@ namespace APICore.Services
 
             return true;
         }
-        
+
 
         public bool TryRemovePlace(int placeId)
         {
@@ -287,7 +290,7 @@ namespace APICore.Services
                 {
                     throw new ExceptionWithMessage("Place type not found");
                 }
-                
+
                 placeType.Delete();
                 _context.SaveChanges();
             }

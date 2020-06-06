@@ -55,7 +55,8 @@ namespace APICore.Services
                 ValidatePageSize(ref page, ref pageSize);
 
                 DbService.ConnectDb(out _context);
-                var listTourInfos = _context.TourInfos.Where(a => a.CreateById == userId && a.DeletedAt == null).ToList();
+                var listTourInfos = _context.TourInfos.Where(a => a.CreateById == userId && a.DeletedAt == null)
+                    .ToList();
 
                 var total = listTourInfos.Select(p => p.Id).Count();
                 var skip = pageSize * (page - 1);
@@ -64,17 +65,20 @@ namespace APICore.Services
 
                 if (canPage)
                 {
-                    tourInfos = listTourInfos.Select(u => u)
-                        .Skip(skip)
-                        .Take(pageSize)
-                        .ToList();
+                    // If pageSize <= 0 then get all tour info
+                    tourInfos = pageSize <= 0
+                        ? listTourInfos
+                        : listTourInfos.Select(u => u)
+                            .Skip(skip)
+                            .Take(pageSize)
+                            .ToList();
                 }
                 else
                 {
                     tourInfos = new List<TourInfo>();
                 }
 
-                pagination = new Pagination(total, page, pageSize);
+                pagination = new Pagination(total, page, pageSize > 0 ? pageSize : total);
                 errorCode = ErrorCode.Success;
             }
             finally
@@ -97,7 +101,7 @@ namespace APICore.Services
                 ValidatePageSize(ref page, ref pageSize);
 
                 DbService.ConnectDb(out _context);
-                var listTourInfos = _context.TourInfos.Where(t=>t.DeletedAt == null).ToList();
+                var listTourInfos = _context.TourInfos.Where(t => t.DeletedAt == null).ToList();
 
                 var total = listTourInfos.Count();
                 var skip = pageSize * (page - 1);
@@ -106,17 +110,20 @@ namespace APICore.Services
 
                 if (canPage)
                 {
-                    tourInfos = listTourInfos.Select(u => u)
-                        .Skip(skip)
-                        .Take(pageSize)
-                        .ToList();
+                    tourInfos =
+                        pageSize <= 0
+                            ? listTourInfos
+                            : listTourInfos.Select(u => u)
+                                .Skip(skip)
+                                .Take(pageSize)
+                                .ToList();
                 }
                 else
                 {
                     tourInfos = new List<TourInfo>();
                 }
 
-                pagination = new Pagination(total, page, pageSize);
+                pagination = new Pagination(total, page, pageSize > 0 ? pageSize : total);
                 errorCode = ErrorCode.Success;
 
                 DbService.DisconnectDb(out _context);
@@ -141,7 +148,7 @@ namespace APICore.Services
                 ValidatePageSize(ref page, ref pageSize);
 
                 DbService.ConnectDb(out _context);
-                var listTours = _context.Tours.Where(t=>t.DeletedAt == null).ToList();
+                var listTours = _context.Tours.Where(t => t.DeletedAt == null).ToList();
 
                 var total = listTours.Count();
                 var skip = pageSize * (page - 1);
@@ -150,17 +157,19 @@ namespace APICore.Services
 
                 if (canPage)
                 {
-                    tourInfos = listTours.Where(u => u.TourInfoId == tourInfoId)
-                        .Skip(skip)
-                        .Take(pageSize)
-                        .ToList();
+                    tourInfos = pageSize <= 0
+                        ? listTours
+                        : listTours.Where(u => u.TourInfoId == tourInfoId)
+                            .Skip(skip)
+                            .Take(pageSize)
+                            .ToList();
                 }
                 else
                 {
                     tourInfos = new List<Tour>();
                 }
 
-                pagination = new Pagination(total, page, pageSize);
+                pagination = new Pagination(total, page, pageSize > 0 ? pageSize : total);
                 errorCode = ErrorCode.Success;
 
                 DbService.DisconnectDb(out _context);
@@ -265,7 +274,7 @@ namespace APICore.Services
             }
             finally
             {
-                DbService.DisconnectDb(out _context);  
+                DbService.DisconnectDb(out _context);
             }
 
             return errorCode;

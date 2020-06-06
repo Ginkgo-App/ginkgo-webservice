@@ -89,8 +89,8 @@ namespace APICore.Helpers
 
         public static void ValidatePageSize(ref int page, ref int pageSize)
         {
-            page = page <= 0 ? Vars.DefaultPage : page;
-            pageSize = pageSize <= 0 ? Vars.DefaultPageSize : pageSize;
+            page = page < 0 ? Vars.DefaultPage : page;
+            pageSize = pageSize < 0 ? Vars.DefaultPageSize : pageSize;
         }
         
         public static string HashPassword(string password)

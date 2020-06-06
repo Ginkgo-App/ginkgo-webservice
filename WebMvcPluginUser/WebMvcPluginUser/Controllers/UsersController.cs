@@ -266,7 +266,7 @@ namespace WebMvcPluginUser.Controllers
                     var claims = identity.Claims;
                     int.TryParse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value,
                         out var userId);
-                    
+
                     var body = requestBody != null
                         ? JObject.Parse(requestBody.ToString()!)
                         : null;
@@ -294,7 +294,7 @@ namespace WebMvcPluginUser.Controllers
                     {
                         break;
                     }
-                    
+
                     var isParseBirthday = DateTime.TryParse(jsonBirthday?.ToString(), out var birthday);
 
                     if (!_userService.TryGetUsers(userId, out var user))
@@ -310,8 +310,11 @@ namespace WebMvcPluginUser.Controllers
 
                     user.Update(name: jsonName?.ToString(),
                         password: jsonPassword?.ToString(),
-                        email: null!, phoneNumber: jsonPhoneNumber?.ToString(), avatar: jsonAvatar?.ToString(), bio: jsonBio?.ToString(), slogan: jsonSlogan?.ToString(), job: jsonJob?.ToString(), birthday: isParseBirthday ? birthday : (DateTime?)null, gender: jsonGender?.ToString(), address: jsonAddress?.ToString(), role: null);
-                    
+                        email: null!, phoneNumber: jsonPhoneNumber?.ToString(), avatar: jsonAvatar?.ToString(),
+                        bio: jsonBio?.ToString(), slogan: jsonSlogan?.ToString(), job: jsonJob?.ToString(),
+                        birthday: isParseBirthday ? birthday : (DateTime?) null, gender: jsonGender?.ToString(),
+                        address: jsonAddress?.ToString(), role: null);
+
                     var isSuccess = _userService.TryUpdateUser(user);
 
                     if (!isSuccess)
@@ -383,7 +386,7 @@ namespace WebMvcPluginUser.Controllers
                 do
                 {
                     CoreHelper.ValidatePageSize(ref page, ref pageSize);
-                    
+
                     var identity = HttpContext.User.Identity as ClaimsIdentity;
                     if (identity == null)
                     {
@@ -432,7 +435,8 @@ namespace WebMvcPluginUser.Controllers
                         break;
                     }
 
-                    if (!_userService.TryGetFriends(id, FriendType.Accepted, page, pageSize, out var friends, out var pagination) || friends == null)
+                    if (!_userService.TryGetFriends(id, FriendType.Accepted, page, pageSize, out var friends,
+                        out var pagination) || friends == null)
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
                         break;
@@ -465,7 +469,7 @@ namespace WebMvcPluginUser.Controllers
                 do
                 {
                     CoreHelper.ValidatePageSize(ref page, ref pageSize);
-                    
+
                     var identity = HttpContext.User.Identity as ClaimsIdentity;
                     if (identity == null)
                     {
@@ -485,12 +489,13 @@ namespace WebMvcPluginUser.Controllers
                         _ => FriendType.Accepted
                     };
 
-                    if (!_userService.TryGetFriends(userId, friendType, page, pageSize, out var friends, out var pagination) || friends == null)
+                    if (!_userService.TryGetFriends(userId, friendType, page, pageSize, out var friends,
+                        out var pagination) || friends == null)
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
                         break;
                     }
-                    
+
                     var listFriendSimple = friends.Select(u => u.ToSimpleJson(friendType));
 
                     responseModel.FromErrorCode(ErrorCode.Success);
