@@ -22,6 +22,7 @@ namespace WebMvcPluginTour.Controllers
         private readonly IUserService _userService;
         private readonly IFriendService _friendService;
         private readonly ITourService _tourService;
+        private readonly IServiceService _serviceService;
 
         public TourInfoController(ITourInfoService tourInfoService, IUserService userService,
             IFriendService friendService, ITourService tourService)
@@ -369,7 +370,7 @@ namespace WebMvcPluginTour.Controllers
 
             return responseModel.ToJson();
         }
-        
+
         [HttpPost("{id}/tours")]
         public object AddNewTour(int id, [FromBody] object requestBody)
         {
@@ -393,7 +394,7 @@ namespace WebMvcPluginTour.Controllers
                         || !CoreHelper.GetParameter(out var jsonName, body, "Name",
                             JTokenType.String, ref responseModel)
                         || !CoreHelper.GetParameter(out var jsonServiceIds, body, "ServiceIds",
-                            JTokenType.Array, ref responseModel))
+                            JTokenType.Array, ref responseModel, isNullable: true))
                     {
                         break;
                     }
@@ -409,9 +410,10 @@ namespace WebMvcPluginTour.Controllers
                     _ = DateTime.TryParse(jsonEndDate?.ToString(), out var endDate);
                     _ = int.TryParse(jsonMaxMember?.ToString(), out var maxMember);
                     var serviceIds = jsonServiceIds != null
-                        ? JsonConvert.DeserializeObject<string[]>(jsonServiceIds.ToString())
+                        ? JsonConvert.DeserializeObject<int[]>(jsonServiceIds.ToString())
                         : null;
-                    
+
+                    // Get user id
                     var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
 
                     if (tourInfo.CreateById != userId)
@@ -419,7 +421,8 @@ namespace WebMvcPluginTour.Controllers
                         Response.StatusCode = 403;
                         break;
                     }
-                    
+
+                    // Check user is exist
                     if (!_userService.TryGetUsers(userId, out var host))
                     {
                         responseModel.FromErrorCode(ErrorCode.UserNotFound);
@@ -435,7 +438,99 @@ namespace WebMvcPluginTour.Controllers
                         tourInfoId: id
                     );
 
+                    // Add tour to tour info
                     if (!_tourService.TryAddTour(tour))
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    // Add service id to TourService table
+                    if (serviceIds != null && serviceIds.Length > 0)
+                    {
+                        if (!_tourService.TryAddService(tour.Id, serviceIds))
+                        {
+                            responseModel.FromErrorCode(ErrorCode.Fail);
+                            break;
+                        }
+                    }
+
+                    responseModel.FromErrorCode(ErrorCode.Success);
+                    responseModel.Data = new JArray {JObject.FromObject(tour)};
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
+
+        [HttpPut("{tourInfoId}/tours/{tourId}")]
+        public object UpdateTour(int tourInfoId, int tourId, [FromBody] object requestBody)
+        {
+            var data = new JArray();
+            var responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
+                    var body = requestBody != null
+                        ? JObject.Parse(requestBody.ToString() ?? "{}")
+                        : null;
+
+                    if (!CoreHelper.GetParameter(out var jsonStartDate, body, "StartDay",
+                            JTokenType.Date, ref responseModel, isNullable: true)
+                        || !CoreHelper.GetParameter(out var jsonEndDate, body, "EndDay",
+                            JTokenType.Date, ref responseModel, isNullable: true)
+                        || !CoreHelper.GetParameter(out var jsonMaxMember, body, "MaxMember",
+                            JTokenType.Integer, ref responseModel, isNullable: true)
+                        || !CoreHelper.GetParameter(out var jsonName, body, "Name",
+                            JTokenType.String, ref responseModel, isNullable: true)
+                        || !CoreHelper.GetParameter(out var jsonServiceIds, body, "ServiceIds",
+                            JTokenType.Array, ref responseModel, isNullable: true))
+                    {
+                        break;
+                    }
+
+                    if (_tourInfoService.TryGetTourInfoById(tourInfoId, out var tourInfo) != ErrorCode.Success ||
+                        tourInfo == null)
+                    {
+                        throw new ExceptionWithMessage("Tour info not found.");
+                    }
+
+                    var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
+
+                    // User dont have permission
+                    if (tourInfo.CreateById != userId)
+                    {
+                        Response.StatusCode = 403;
+                        break;
+                    }
+
+                    var name = jsonName?.ToString();
+                    var isStartDayParse = DateTime.TryParse(jsonStartDate?.ToString(), out var startDate);
+                    var isEndDayParse = DateTime.TryParse(jsonEndDate?.ToString(), out var endDate);
+                    var isMaxMemberParse = int.TryParse(jsonMaxMember?.ToString(), out var maxMember);
+                    var serviceIds = jsonServiceIds != null
+                        ? JsonConvert.DeserializeObject<string[]>(jsonServiceIds.ToString())
+                        : null;
+
+                    if (!_tourService.TryGetTour(tourId, out var tour) || tour == null)
+                    {
+                        throw new ExceptionWithMessage("Tour not found.");
+                    }
+
+                    tour.Update(
+                        name: name!,
+                        startDay: isStartDayParse ? startDate : (DateTime?) null,
+                        endDay: isEndDayParse ? endDate : (DateTime?) null,
+                        maxMember: isMaxMemberParse ? maxMember : (int?) null
+                    );
+
+                    if (!_tourService.TryUpdateTour(tour))
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
                         break;
@@ -443,6 +538,40 @@ namespace WebMvcPluginTour.Controllers
 
                     responseModel.FromErrorCode(ErrorCode.Success);
                     responseModel.Data = new JArray {JObject.FromObject(tour)};
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
+        
+        [HttpGet("{tourInfoId}/tours/{tourId}/services")]
+        public object GetTourServices(int tourInfoId, int tourId, [FromBody] object requestBody)
+        {
+            var data = new JArray();
+            var responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
+
+                    if (_tourInfoService.TryGetTourInfoById(tourInfoId, out var tourInfo) != ErrorCode.Success ||
+                        tourInfo == null)
+                    {
+                        throw new ExceptionWithMessage("Tour info not found.");
+                    }
+
+                    if (_serviceService.TryGetServiceByTourId(tourId, out var tourServices))
+                    {
+                        break;
+                    }
+
+                    responseModel.FromErrorCode(ErrorCode.Success);
+                    responseModel.Data = JArray.FromObject(tourServices);
                 } while (false);
             }
             catch (Exception ex)

@@ -20,6 +20,7 @@ namespace APICore.Services
         bool TryAddTour(Tour tour);
         bool TryUpdateTour(Tour tour);
         bool TryDeleteTour(int tourId);
+        bool TryAddService( int tourId ,IEnumerable<int> serviceIds);
     }
 
     public class TourService : ITourService
@@ -156,6 +157,43 @@ namespace APICore.Services
                 }
 
                 _context.Tours.Remove(tour);
+                _context.SaveChanges();
+                DbService.DisconnectDb(out _context);
+            }
+            finally
+            {
+                DbService.DisconnectDb(out _context);
+            }
+
+            return true;
+        }
+        
+        public bool TryAddService( int tourId ,IEnumerable<int> serviceIds)
+        {
+            try
+            {
+                DbService.ConnectDb(out _context);
+
+                var serviceList = serviceIds.ToList();
+                var isServiceExist = serviceList.All(serviceId => _context.Services.FirstOrDefault(s => s.Id == serviceId) != null);
+
+                if (!isServiceExist)
+                {
+                    throw new ExceptionWithMessage("Service not found");
+                }
+                
+                var tour = _context.Tours.SingleOrDefault(t => t.Id == tourId);
+                
+                if (tour == null)
+                {
+                    throw new ExceptionWithMessage(message: "Tour not found");
+                }
+
+                foreach (var serviceId in serviceList)
+                {
+                    _context.TourServices.Add(new Entities.TourService(serviceId, tour.Id));
+                }
+                 
                 _context.SaveChanges();
                 DbService.DisconnectDb(out _context);
             }

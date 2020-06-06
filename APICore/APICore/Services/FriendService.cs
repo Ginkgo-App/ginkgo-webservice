@@ -82,6 +82,9 @@ namespace APICore.Services
             do
             {
                 TryGetFriendRequest(userId, userRequestId, out var friendDb);
+                
+                DbService.ConnectDb(out _context);
+
                 if (friendDb != null)
                 {
                     if (friendDb.AcceptedAt != null)
@@ -122,9 +125,9 @@ namespace APICore.Services
             {
                 try
                 {
-                    DbService.ConnectDb(out _context);
-
                     TryGetFriendRequest(userId, userRequestedId, out var friendDb);
+                    
+                    DbService.ConnectDb(out _context);
 
                     if (friendDb == null)
                     {

@@ -265,7 +265,7 @@ namespace APICore.Services
             }
             finally
             {
-                DbService.DisconnectDb(out _context);
+                DbService.DisconnectDb(out _context);  
             }
 
             return errorCode;

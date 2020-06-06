@@ -6,6 +6,13 @@ namespace APICore.Entities
 {
     public class TourService : IIsDeleted
     {
+        public TourService(int serviceId, int tourId)
+        {
+            ServiceId = serviceId;
+            TourId = tourId;
+            DeletedAt = null;
+        }
+
         [Key]
         public int ServiceId { get; private set; }
         [Key]

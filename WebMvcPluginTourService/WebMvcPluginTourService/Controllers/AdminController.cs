@@ -12,11 +12,11 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using static APICore.Helpers.ErrorList;
 
-namespace WebMvcPluginTour.Controllers
+namespace WebMvcPluginTourService.Controllers
 {
     [Authorize(Roles = RoleType.Admin)]
     [ApiController]
-    [Route("api/" + TourVars.Version + "/admin/tour-infos")]
+    [Route("api/" + ServiceVars.Version + "/admin/services")]
     public class AdminController : ControllerBase
     {
         private readonly ITourInfoService _tourInfoService;
@@ -189,7 +189,7 @@ namespace WebMvcPluginTour.Controllers
                     var serviceIds = jsonServiceIds != null
                         ? JsonConvert.DeserializeObject<string[]>(jsonServiceIds.ToString())
                         : null;
-
+                    
                     // Cast to ClaimsIdentity.
                     var identity = HttpContext.User.Identity as ClaimsIdentity;
 
@@ -209,7 +209,7 @@ namespace WebMvcPluginTour.Controllers
 
                     // Convert userId to int
                     var userId = int.Parse(userIdString);
-
+                    
                     if (!_userService.TryGetUsers(userId, out var host))
                     {
                         responseModel.FromErrorCode(ErrorCode.UserNotFound);
