@@ -72,7 +72,7 @@ namespace APICore.Services
 
                 if (canPage)
                 {
-                    tours = pageSize >= 0
+                    tours = pageSize <= 0
                         ? listTours
                         : listTours.Where(u => u.TourInfoId == tourInfoId)
                             .Skip(skip)

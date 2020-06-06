@@ -57,7 +57,7 @@ namespace APICore.Services
                 if (canPage)
                 {
                     // If pageSize = 0 => Get all
-                    var placeIds = pageSize == 0
+                    var placeIds = pageSize <= 0
                         ? listTourInfos
                         : listTourInfos
                             .Skip(skip)

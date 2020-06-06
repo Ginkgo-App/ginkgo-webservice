@@ -452,6 +452,7 @@ namespace APICore.Services
 
                 var total = toursDb.Count();
                 var skip = pageSize * (page - 1);
+                pageSize = pageSize <= 0 ? total : pageSize;
 
                 tours = toursDb
                     .Skip(skip)

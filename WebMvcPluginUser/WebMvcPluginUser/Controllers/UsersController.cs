@@ -387,16 +387,7 @@ namespace WebMvcPluginUser.Controllers
                 {
                     CoreHelper.ValidatePageSize(ref page, ref pageSize);
 
-                    var identity = HttpContext.User.Identity as ClaimsIdentity;
-                    if (identity == null)
-                    {
-                        responseModel.FromErrorCode(ErrorCode.Fail);
-                        break;
-                    }
-
-                    var claims = identity.Claims;
-                    int.TryParse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value,
-                        out var userId);
+                    var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
                     _userService.TryGetTours(userId, page, pageSize, out var tours, out var pagination);
 
                     if (tours == null)
