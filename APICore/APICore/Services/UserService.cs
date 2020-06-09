@@ -189,7 +189,7 @@ namespace APICore.Services
             try
             {
                 DbService.ConnectDb(out _context);
-                var usersDb = _context.Users.Where(u=>u.DeletedAt == null)
+                var usersDb = _context.Users.Where(u => u.DeletedAt == null)
                     .ToListAsync()
                     .Result;
 
@@ -312,7 +312,7 @@ namespace APICore.Services
                 var user = _context.Users.FirstOrDefault(u => u.Id == userId);
                 if (user != null)
                 {
-                   user.Delete();
+                    user.Delete();
                     _context.SaveChanges();
                     isSuccess = true;
                 }
@@ -425,6 +425,7 @@ namespace APICore.Services
                 DbService.ConnectDb(out _context);
 
                 var toursDb = (from t in _context.Tours
+                    join ti in _context.TourInfos on t.TourInfoId equals ti.Id
                     join tm in _context.TourMembers on t.Id equals tm.TourId
                     join host in _context.Users on t.CreateBy equals host.Id
                     let f = (from tourMember in _context.TourMembers
@@ -447,7 +448,8 @@ namespace APICore.Services
                         EndDay = t.EndDay,
                         Price = t.Price,
                         Host = host,
-                        Friends = f.ToList()
+                        Friends = f.ToList(),
+                        TourInfo = ti
                     }).AsEnumerable().Distinct((a, b) => a.Id == b.Id).ToList();
 
                 var total = toursDb.Count();
@@ -462,10 +464,11 @@ namespace APICore.Services
                         var totalMember = _context.TourMembers.Count(t => t.TourId == e.Id);
                         var listFriend = e.Friends.Any()
                             ? e.Friends.Select(u => u.ToSimpleUser(FriendType.Accepted)).ToList()
-                            : null;
+                            : new List<SimpleUser>();
 
                         return new SimpleTour(e.Id, e.Name, e.StartDay, e.EndDay, totalMember,
-                            e.Host.ToSimpleUser(_friendService.CalculateIsFriend(userId, e.Host.Id)), listFriend, e.Price);
+                            e.Host.ToSimpleUser(_friendService.CalculateIsFriend(userId, e.Host.Id)), listFriend,
+                            e.Price, e.TourInfo);
                     })
                     .ToList();
 
@@ -563,10 +566,12 @@ namespace APICore.Services
 
                 if (canPage)
                 {
-                    var listFriends = friendDBs.Select(u => u)
-                        .Skip(skip)
-                        .Take(pageSize)
-                        .ToList();
+                    var listFriends = pageSize <= 0
+                        ? friendDBs.ToList()
+                        : friendDBs.Select(u => u)
+                            .Skip(skip)
+                            .Take(pageSize)
+                            .ToList();
 
                     foreach (var friend in listFriends)
                     {

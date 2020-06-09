@@ -72,6 +72,8 @@ namespace APICore.DBContext
             modelBuilder.Entity<ChildPlace>().HasKey(fb => new { fb.ParentId, fb.ChildId});
             modelBuilder.Entity<PostLike>().HasKey(fb => new { fb.UserId, fb.PostId});
             modelBuilder.Entity<Friend>().HasKey(fb => new { fb.UserId, fb.RequestedUserId});
+
+            modelBuilder.Entity<Tour>().Ignore(t => t.TourInfo);
         }
     }
 }

@@ -98,7 +98,7 @@ namespace WebMvcPluginTour.Controllers
                     {
                         _ = _tourService.TryGetTotalMember(tour.Id, out var totalMember);
 
-                        data.Add(tour.ToSimpleJson(host, eIsFriend, totalMember, null!));
+                        data.Add(tour.ToSimpleJson(host, eIsFriend, totalMember, null!, tourInfo));
                     }
 
                     responseModel.ErrorCode = (int) ErrorCode.Success;
@@ -430,6 +430,7 @@ namespace WebMvcPluginTour.Controllers
                     }
 
                     var tour = new Tour(
+                        tourInfo: tourInfo,
                         name: name,
                         startDay: startDate,
                         endDay: endDate,

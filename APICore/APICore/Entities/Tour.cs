@@ -2,13 +2,15 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Runtime.Serialization;
 using APICore.Models;
 
 namespace APICore.Entities
 {
     public class Tour : IIsDeleted
     {
-        public Tour(string? name, DateTime startDay, DateTime endDay, int maxMember, int createBy, int tourInfoId, int price = 0)
+        public Tour(TourInfo tourInfo, string? name, DateTime startDay, DateTime endDay, int maxMember, int createBy, int tourInfoId, int price = 0)
         {
             Name = name;
             StartDay = startDay;
@@ -20,6 +22,10 @@ namespace APICore.Entities
             DeletedAt = null;
         }
 
+        public Tour()
+        {
+        }
+
         public int Id { get; private set; }
         public int CreateBy { get; private set; }
         public string? Name { get; private set; }
@@ -29,14 +35,18 @@ namespace APICore.Entities
         public int TourInfoId { get; private set; }
         public int Price { get; private set; }
         
+        [NotMapped]
+        public TourInfo TourInfo { get; private set; }
+        
 
-        public JObject ToSimpleJson(User host, string friendType, int totalMember, List<Service> services)
+        public JObject ToSimpleJson(User host, string friendType, int totalMember, List<Service> services, TourInfo tourInfo)
         {
             JObject result = JObject.FromObject(this);
 
             result.Add("TotalMember", totalMember);
             result.Add("Host", host?.ToSimpleJson(friendType));
             result.Add("Services", services!=null? JArray.FromObject(services) : null);
+            result.Add("Images", tourInfo?.Images != null ? JArray.FromObject(tourInfo.Images) : new JArray());
 
             return result;
         }

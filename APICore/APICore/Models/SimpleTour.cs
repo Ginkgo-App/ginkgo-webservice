@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using APICore.Entities;
+using Newtonsoft.Json.Linq;
 
 namespace APICore.Models
 {
@@ -16,8 +18,10 @@ namespace APICore.Models
         public List<SimpleUser> Friends { get; }
         public double Price { get; }
 
+        public TourInfo TourInfo { get; }
+
         public SimpleTour(int id, string name, DateTime startDay, DateTime endDay, int totalMember, SimpleUser host,
-            List<SimpleUser> friends, double price)
+            List<SimpleUser> friends, double price, TourInfo tourInfo)
         {
             Id = id;
             Name = name;
@@ -27,6 +31,18 @@ namespace APICore.Models
             Host = host;
             Friends = friends;
             Price = price;
+            TourInfo = tourInfo;
+        }
+
+        public JObject ToJson()
+        {
+            var json = JObject.FromObject(this);
+
+            json.Remove("TourInfo");
+
+            json.Add("Images", TourInfo?.Images != null ? JArray.FromObject(TourInfo.Images) : new JArray());
+
+            return json;
         }
     }
 }

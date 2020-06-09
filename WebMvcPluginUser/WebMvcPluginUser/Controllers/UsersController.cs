@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using APICore.Entities;
@@ -397,7 +398,9 @@ namespace WebMvcPluginUser.Controllers
                     }
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data = JArray.FromObject(tours);
+                    responseModel.Data = tours.Count > 0 
+                        ? JArray.FromObject(tours.Select(t=>t.ToJson())) 
+                        : new JArray() ;
                     responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
                 } while (false);
             }
@@ -461,16 +464,7 @@ namespace WebMvcPluginUser.Controllers
                 {
                     CoreHelper.ValidatePageSize(ref page, ref pageSize);
 
-                    var identity = HttpContext.User.Identity as ClaimsIdentity;
-                    if (identity == null)
-                    {
-                        responseModel.FromErrorCode(ErrorCode.Fail);
-                        break;
-                    }
-
-                    var claims = identity.Claims;
-                    int.TryParse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value,
-                        out var userId);
+                    var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
 
                     var friendType = type?.ToLower() switch
                     {
@@ -487,7 +481,7 @@ namespace WebMvcPluginUser.Controllers
                         break;
                     }
 
-                    var listFriendSimple = friends.Select(u => u.ToSimpleJson(friendType));
+                    var listFriendSimple = friends.Select(u => u.ToSimpleUser(friendType))?.ToList() ?? new List<SimpleUser>();
 
                     responseModel.FromErrorCode(ErrorCode.Success);
                     responseModel.Data = JArray.FromObject(listFriendSimple);
