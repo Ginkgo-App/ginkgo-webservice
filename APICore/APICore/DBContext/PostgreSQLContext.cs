@@ -49,7 +49,7 @@ namespace APICore.DBContext
         public DbSet<Service> Services { get; set; }
         public DbSet<ServiceDetail> ServiceDetails { get; set; }
         public DbSet<TimeLine> TimeLines { get; set; }
-        public DbSet<TimelinePlace> TimelinePlaces { get; set; }
+        public DbSet<TimelineDetail> TimelineDetails { get; set; }
         public DbSet<Tour> Tours { get; set; }
         public DbSet<TourInfo> TourInfos { get; set; }
         public DbSet<TourMember> TourMembers { get; set; }
@@ -64,7 +64,7 @@ namespace APICore.DBContext
             //    .IsRequired();
 
             modelBuilder.Entity<Feedback>().HasKey(fb => new { fb.AuthorId, fb.TourId });
-            modelBuilder.Entity<TimelinePlace>().HasKey(fb => new { fb.PlaceId, fb.TimelineId });
+            modelBuilder.Entity<TimelineDetail>().HasKey(fb => new { fb.PlaceId, fb.TimelineId });
             modelBuilder.Entity<TourService>().HasKey(fb => new { fb.ServiceId, fb.TourId });
             modelBuilder.Entity<TourMember>().HasKey(fb => new { fb.TourId, fb.UserId });
             modelBuilder.Entity<TourMember>().HasKey(fb => new { fb.TourId, fb.UserId });

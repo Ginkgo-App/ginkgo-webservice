@@ -17,7 +17,7 @@ namespace APICore.Services
             out Pagination pagination);
 
         bool TryGetTour(int id, out Tour tour);
-        bool TryAddTour(Tour tour);
+        bool TryAddTour(Tour tour, List<TimeLine> timeLines);
         bool TryUpdateTour(Tour tour);
         bool TryDeleteTour(int tourId);
         bool TryAddService(int tourId, IEnumerable<int> serviceIds);
@@ -112,13 +112,40 @@ namespace APICore.Services
             return true;
         }
 
-        public bool TryAddTour(Tour tour)
+        public bool TryAddTour(Tour tour, List<TimeLine> timeLines)
         {
             try
-            {
+            {                
                 DbService.ConnectDb(out _context);
+                
+                // Store tour
                 _context.Tours.Add(tour);
                 _context.SaveChanges();
+                
+                // Store Timelines
+                foreach (var timeline in timeLines)
+                {
+                    timeline.TourId = tour.Id;
+                    _context.TimeLines.Add(timeline);
+                    _context.SaveChanges();
+
+                    foreach (var timelineDetail in timeline.TimelineDetails)
+                    {
+                        var place = _context.Places.FirstOrDefault(p => p.Id == timelineDetail.PlaceId);
+
+                        // Check place is exist
+                        if (place == null)
+                        {
+                            continue;
+                        }
+
+                        // Store time line detail
+                        timelineDetail.TimelineId = timeline.Id;
+                        _context.TimelineDetails.Add(timelineDetail);
+                        _context.SaveChanges();
+                    }
+                }
+                
                 DbService.DisconnectDb(out _context);
             }
             finally

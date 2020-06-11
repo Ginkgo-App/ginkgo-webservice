@@ -7,7 +7,6 @@ using APICore.Models;
 using APICore.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using static APICore.Helpers.ErrorList;
 
@@ -99,7 +98,7 @@ namespace WebMvcPluginTourService.Controllers
                     {
                         _ = _tourService.TryGetTotalMember(tour.Id, out var totalMember);
 
-                        data.Add(tour.ToSimpleJson(host, eIsFriend, totalMember, null!, tourInfo));
+                        data.Add(tour.ToSimpleJson(host, eIsFriend, totalMember, tourInfo));
                     }
 
                     responseModel.ErrorCode = (int) ErrorCode.Success;
@@ -124,8 +123,6 @@ namespace WebMvcPluginTourService.Controllers
             {
                 do
                 {
-                    var data = new JArray();
-
                     if (_serviceService.TryGetServiceById(id, out var service))
                     {
                         break;
@@ -149,7 +146,7 @@ namespace WebMvcPluginTourService.Controllers
 
             return responseModel.ToJson();
         }
-        
+
         [HttpPost]
         public object CreateTourService([FromBody] object requestBody)
         {
@@ -165,8 +162,8 @@ namespace WebMvcPluginTourService.Controllers
 
                     if (!CoreHelper.GetParameter(out var jsonName, body, "name",
                             JTokenType.String, ref responseModel)
-                        || !CoreHelper.GetParameter(out var jsonImage, body, "image", 
-                            JTokenType.String, ref responseModel, true)) 
+                        || !CoreHelper.GetParameter(out var jsonImage, body, "image",
+                            JTokenType.String, ref responseModel, true))
                     {
                         break;
                     }
@@ -177,8 +174,8 @@ namespace WebMvcPluginTourService.Controllers
                         name: jsonName.ToString(),
                         image: jsonImage?.ToString(),
                         deletedAt: null
-                        );
-                    
+                    );
+
                     if (!_serviceService.TryAddService(tourService, userId))
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
@@ -228,7 +225,6 @@ namespace WebMvcPluginTourService.Controllers
         [HttpPut("{id}")]
         public object UpdateTourService(int id, [FromBody] object requestBody)
         {
-            var data = new JArray();
             var responseModel = new ResponseModel();
 
             try
@@ -241,7 +237,7 @@ namespace WebMvcPluginTourService.Controllers
 
                     if (!CoreHelper.GetParameter(out var jsonName, body, "Name",
                             JTokenType.String, ref responseModel, isNullable: true)
-                        || !CoreHelper.GetParameter(out var jsonImages , body, "Image",
+                        || !CoreHelper.GetParameter(out var jsonImages, body, "Image",
                             JTokenType.String, ref responseModel, isNullable: true))
                     {
                         break;

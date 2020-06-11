@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using APICore.Entities;
@@ -25,12 +26,13 @@ namespace WebMvcPluginTour.Controllers
         private readonly IServiceService _serviceService;
 
         public TourInfoController(ITourInfoService tourInfoService, IUserService userService,
-            IFriendService friendService, ITourService tourService)
+            IFriendService friendService, ITourService tourService, IServiceService serviceService)
         {
             _tourInfoService = tourInfoService;
             _userService = userService;
             _friendService = friendService;
             _tourService = tourService;
+            _serviceService = serviceService;
         }
 
         [HttpGet("{Id}/tours")]
@@ -98,7 +100,7 @@ namespace WebMvcPluginTour.Controllers
                     {
                         _ = _tourService.TryGetTotalMember(tour.Id, out var totalMember);
 
-                        data.Add(tour.ToSimpleJson(host, eIsFriend, totalMember, null!, tourInfo));
+                        data.Add(tour.ToSimpleJson(host, eIsFriend, totalMember, tourInfo));
                     }
 
                     responseModel.ErrorCode = (int) ErrorCode.Success;
@@ -374,7 +376,6 @@ namespace WebMvcPluginTour.Controllers
         [HttpPost("{id}/tours")]
         public object AddNewTour(int id, [FromBody] object requestBody)
         {
-            var data = new JArray();
             var responseModel = new ResponseModel();
 
             try
@@ -389,11 +390,17 @@ namespace WebMvcPluginTour.Controllers
                             JTokenType.Date, ref responseModel)
                         || !CoreHelper.GetParameter(out var jsonEndDate, body, "EndDay",
                             JTokenType.Date, ref responseModel)
+                        || !CoreHelper.GetParameter(out var jsonTotalDay, body, "TotalDay",
+                            JTokenType.Integer, ref responseModel)
+                        || !CoreHelper.GetParameter(out var jsonTotalNight, body, "TotalNight",
+                            JTokenType.Integer, ref responseModel)
                         || !CoreHelper.GetParameter(out var jsonMaxMember, body, "MaxMember",
                             JTokenType.Integer, ref responseModel)
+                        || !CoreHelper.GetParameter(out var jsonTimelines, body, "Timelines",
+                            JTokenType.Array, ref responseModel)
                         || !CoreHelper.GetParameter(out var jsonName, body, "Name",
                             JTokenType.String, ref responseModel)
-                        || !CoreHelper.GetParameter(out var jsonServiceIds, body, "ServiceIds",
+                        || !CoreHelper.GetParameter(out var jsonServices, body, "Services",
                             JTokenType.Array, ref responseModel, isNullable: true))
                     {
                         break;
@@ -405,57 +412,55 @@ namespace WebMvcPluginTour.Controllers
                         throw new ExceptionWithMessage("Tour info not found.");
                     }
 
+                    // var timelines = jsonTimelines.ToObject<List<TimeLine>>();
+                    var timelines = JsonConvert.DeserializeObject<List<TimeLine>>(jsonTimelines.ToString());
+
                     var name = jsonName?.ToString();
                     _ = DateTime.TryParse(jsonStartDate?.ToString(), out var startDate);
                     _ = DateTime.TryParse(jsonEndDate?.ToString(), out var endDate);
                     _ = int.TryParse(jsonMaxMember?.ToString(), out var maxMember);
-                    var serviceIds = jsonServiceIds != null
-                        ? JsonConvert.DeserializeObject<int[]>(jsonServiceIds.ToString())
+                    _ = int.TryParse(jsonTotalDay?.ToString(), out var totalDay);
+                    _ = int.TryParse(jsonTotalNight?.ToString(), out var totalNight);
+                    var serviceIds = jsonServices != null
+                        ? JsonConvert.DeserializeObject<string[]>(jsonServices.ToString())
                         : null;
 
                     // Get user id
                     var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
-
+                    
                     if (tourInfo.CreateById != userId)
                     {
                         Response.StatusCode = 403;
                         break;
                     }
-
+                    
                     // Check user is exist
                     if (!_userService.TryGetUsers(userId, out var host))
                     {
                         responseModel.FromErrorCode(ErrorCode.UserNotFound);
                         break;
                     }
-
+                    
                     var tour = new Tour(
                         tourInfo: tourInfo,
                         name: name,
                         startDay: startDate,
                         endDay: endDate,
+                        totalDay: totalDay,
+                        totalNight: totalNight,
                         createBy: userId,
                         maxMember: maxMember,
-                        tourInfoId: id
+                        tourInfoId: id,
+                        services: serviceIds ?? new String[0]
                     );
-
+                    
                     // Add tour to tour info
-                    if (!_tourService.TryAddTour(tour))
+                    if (!_tourService.TryAddTour(tour, timelines))
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
                         break;
                     }
-
-                    // Add service id to TourService table
-                    if (serviceIds != null && serviceIds.Length > 0)
-                    {
-                        if (!_tourService.TryAddService(tour.Id, serviceIds))
-                        {
-                            responseModel.FromErrorCode(ErrorCode.Fail);
-                            break;
-                        }
-                    }
-
+                    
                     responseModel.FromErrorCode(ErrorCode.Success);
                     responseModel.Data = new JArray {JObject.FromObject(tour)};
                 } while (false);
@@ -471,7 +476,6 @@ namespace WebMvcPluginTour.Controllers
         [HttpPut("{tourInfoId}/tours/{tourId}")]
         public object UpdateTour(int tourInfoId, int tourId, [FromBody] object requestBody)
         {
-            var data = new JArray();
             var responseModel = new ResponseModel();
 
             try
@@ -488,9 +492,13 @@ namespace WebMvcPluginTour.Controllers
                             JTokenType.Date, ref responseModel, isNullable: true)
                         || !CoreHelper.GetParameter(out var jsonMaxMember, body, "MaxMember",
                             JTokenType.Integer, ref responseModel, isNullable: true)
+                        || !CoreHelper.GetParameter(out var jsonTotalDay, body, "TotalDay",
+                            JTokenType.Integer, ref responseModel, isNullable: true)
+                        || !CoreHelper.GetParameter(out var jsonTotalNight, body, "TotalNight",
+                            JTokenType.Integer, ref responseModel, isNullable: true)
                         || !CoreHelper.GetParameter(out var jsonName, body, "Name",
                             JTokenType.String, ref responseModel, isNullable: true)
-                        || !CoreHelper.GetParameter(out var jsonServiceIds, body, "ServiceIds",
+                        || !CoreHelper.GetParameter(out var jsonServices, body, "Services",
                             JTokenType.Array, ref responseModel, isNullable: true))
                     {
                         break;
@@ -515,8 +523,10 @@ namespace WebMvcPluginTour.Controllers
                     var isStartDayParse = DateTime.TryParse(jsonStartDate?.ToString(), out var startDate);
                     var isEndDayParse = DateTime.TryParse(jsonEndDate?.ToString(), out var endDate);
                     var isMaxMemberParse = int.TryParse(jsonMaxMember?.ToString(), out var maxMember);
-                    var serviceIds = jsonServiceIds != null
-                        ? JsonConvert.DeserializeObject<string[]>(jsonServiceIds.ToString())
+                    var isTotalDayParsed = int.TryParse(jsonTotalDay?.ToString(), out var totalDay);
+                    var isTotalNightParsed = int.TryParse(jsonTotalNight?.ToString(), out var totalNight);
+                    var services = jsonServices != null
+                        ? JsonConvert.DeserializeObject<string[]>(jsonServices.ToString())
                         : null;
 
                     if (!_tourService.TryGetTour(tourId, out var tour) || tour == null)
@@ -528,7 +538,10 @@ namespace WebMvcPluginTour.Controllers
                         name: name!,
                         startDay: isStartDayParse ? startDate : (DateTime?) null,
                         endDay: isEndDayParse ? endDate : (DateTime?) null,
-                        maxMember: isMaxMemberParse ? maxMember : (int?) null
+                        totalDay: isTotalDayParsed ? totalDay : (int?) null,
+                        totalNight: isTotalNightParsed ? totalNight: (int?) null,
+                        maxMember: isMaxMemberParse ? maxMember : (int?) null,
+                        services: services
                     );
 
                     if (!_tourService.TryUpdateTour(tour))
