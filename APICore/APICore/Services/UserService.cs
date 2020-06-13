@@ -213,7 +213,7 @@ namespace APICore.Services
             }
             finally
             {
-                DbService.DisconnectDb(out _context);
+                DbService.DisconnectDb(ref _context);
             }
 
             return true;
@@ -242,7 +242,7 @@ namespace APICore.Services
             }
             finally
             {
-                DbService.DisconnectDb(out _context);
+                DbService.DisconnectDb(ref _context);
             }
 
             return isSuccess;
@@ -255,17 +255,12 @@ namespace APICore.Services
             try
             {
                 DbService.ConnectDb(out _context);
-                user =
-                    (from u
-                            in _context.Users
-                        where (u.Id == userId)
-                        select u)
-                    .FirstOrDefaultAsync()
-                    .Result; // Lấy  Product có  ID  chỉ  ra
+                user = _context.Users.FirstOrDefault(u => u.Id == userId) ??
+                       throw new ExceptionWithMessage("User not found");
             }
             finally
             {
-                DbService.DisconnectDb(out _context);
+                DbService.DisconnectDb(ref _context);
             }
 
             return true;
@@ -281,7 +276,7 @@ namespace APICore.Services
             }
             finally
             {
-                DbService.DisconnectDb(out _context);
+                DbService.DisconnectDb(ref _context);
             }
 
             return true;
@@ -297,7 +292,7 @@ namespace APICore.Services
             }
             finally
             {
-                DbService.DisconnectDb(out _context);
+                DbService.DisconnectDb(ref _context);
             }
 
             return true;
@@ -319,7 +314,7 @@ namespace APICore.Services
             }
             finally
             {
-                DbService.DisconnectDb(out _context);
+                DbService.DisconnectDb(ref _context);
             }
 
             return isSuccess;
@@ -347,7 +342,7 @@ namespace APICore.Services
             }
             finally
             {
-                DbService.DisconnectDb(out _context);
+                DbService.DisconnectDb(ref _context);
             }
 
             return true;
@@ -407,7 +402,7 @@ namespace APICore.Services
             }
             finally
             {
-                DbService.DisconnectDb(out _context);
+                DbService.DisconnectDb(ref _context);
             }
 
             return true;
@@ -477,7 +472,7 @@ namespace APICore.Services
             }
             finally
             {
-                DbService.DisconnectDb(out _context);
+                DbService.DisconnectDb(ref _context);
             }
 
             return isSuccess;
@@ -494,7 +489,7 @@ namespace APICore.Services
             }
             finally
             {
-                DbService.DisconnectDb(out _context);
+                DbService.DisconnectDb(ref _context);
             }
 
             return true;
@@ -510,7 +505,7 @@ namespace APICore.Services
             }
             finally
             {
-                DbService.DisconnectDb(out _context);
+                DbService.DisconnectDb(ref _context);
             }
 
             return true;
@@ -532,7 +527,7 @@ namespace APICore.Services
             }
             finally
             {
-                DbService.DisconnectDb(out _context);
+                DbService.DisconnectDb(ref _context);
             }
 
             return isSuccess;
@@ -592,7 +587,7 @@ namespace APICore.Services
             }
             finally
             {
-                DbService.DisconnectDb(out _context);
+                DbService.DisconnectDb(ref _context);
             }
 
             return isSuccess;

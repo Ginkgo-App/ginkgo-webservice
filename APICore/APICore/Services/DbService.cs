@@ -12,12 +12,13 @@ namespace APICore.Services
             context = new PostgreSQLContext(new DbContextOptions<PostgreSQLContext>());
         }
 
-        public static void DisconnectDb(out PostgreSQLContext context)
+        public static void DisconnectDb(ref PostgreSQLContext context)
         {
             // if (context != null)
             // {
             //     context.Dispose();
             // }
+            context?.Dispose();
             context = null;
         }
     }

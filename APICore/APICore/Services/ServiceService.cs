@@ -63,7 +63,7 @@ namespace APICore.Services
                 }
                 finally
                 {
-                    DbService.DisconnectDb(out _context);
+                    DbService.DisconnectDb(ref _context);
                 }
             } while (false);
 
@@ -90,7 +90,7 @@ namespace APICore.Services
                 }
                 finally
                 {
-                    DbService.DisconnectDb(out _context);
+                    DbService.DisconnectDb(ref _context);
                 }
             } while (false);
 
@@ -108,7 +108,7 @@ namespace APICore.Services
                 }
                 finally
                 {
-                    DbService.DisconnectDb(out _context);
+                    DbService.DisconnectDb(ref _context);
                 }
             } while (false);
 
@@ -127,7 +127,7 @@ namespace APICore.Services
                 }
                 finally
                 {
-                    DbService.DisconnectDb(out _context);
+                    DbService.DisconnectDb(ref _context);
                 }
             } while (false);
 
@@ -146,7 +146,7 @@ namespace APICore.Services
                 }
                 finally
                 {
-                    DbService.DisconnectDb(out _context);
+                    DbService.DisconnectDb(ref _context);
                 }
             } while (false);
 
@@ -167,7 +167,7 @@ namespace APICore.Services
                 }
                 finally
                 {
-                    DbService.DisconnectDb(out _context);
+                    DbService.DisconnectDb(ref _context);
                 }
             } while (false);
 

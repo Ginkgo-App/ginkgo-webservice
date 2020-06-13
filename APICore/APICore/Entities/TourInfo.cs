@@ -15,7 +15,7 @@ namespace APICore.Entities
             Images = images;
             StartPlaceId = startPlaceId;
             DestinatePlaceId = destinatePlaceId;
-            DeleteAt = null;
+            DeletedAt = null;
         }
 
         public int Id { get; private set; }
@@ -24,7 +24,6 @@ namespace APICore.Entities
         public string[]? Images { get; private set; }
         public int StartPlaceId { get; private set; }
         public int DestinatePlaceId { get; private set; }
-        public DateTime? DeleteAt { get; private set; }
         public double? Rating { get; private set; }
         
         [NotMapped]
@@ -33,6 +32,7 @@ namespace APICore.Entities
         public  Place StartPlace { get; set; }
         [NotMapped]
         public  Place DestinatePlace { get; set; }
+        public DateTime? DeletedAt { get; set; }
 
         public JObject ToJson(Place? startPlace = null, Place? destinatePlace = null)
         {
@@ -57,7 +57,6 @@ namespace APICore.Entities
             return this;
         }
 
-        public DateTime? DeletedAt { get; set; }
         public void Delete()
         {
             DeletedAt = DateTime.Now;

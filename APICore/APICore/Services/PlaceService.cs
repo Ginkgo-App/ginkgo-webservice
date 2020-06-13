@@ -95,7 +95,7 @@ namespace APICore.Services
             }
             finally
             {
-                DbService.DisconnectDb(out _context);
+                DbService.DisconnectDb(ref _context);
             }
 
             return isSuccess;
@@ -131,7 +131,7 @@ namespace APICore.Services
             }
             finally
             {
-                DbService.DisconnectDb(out _context);
+                DbService.DisconnectDb(ref _context);
             }
 
             return true;
@@ -148,7 +148,7 @@ namespace APICore.Services
             }
             finally
             {
-                DbService.DisconnectDb(out _context);
+                DbService.DisconnectDb(ref _context);
             }
 
             return true;
@@ -161,11 +161,10 @@ namespace APICore.Services
                 DbService.ConnectDb(out _context);
                 _context.Places.Update(place);
                 _context.SaveChanges();
-                DbService.DisconnectDb(out _context);
             }
             finally
             {
-                DbService.DisconnectDb(out _context);
+                DbService.DisconnectDb(ref _context);
             }
 
             return true;
@@ -193,12 +192,10 @@ namespace APICore.Services
                 {
                     _context.ChildPlaces.Add(new ChildPlace((int) parentId, place.Id));
                 }
-
-                DbService.DisconnectDb(out _context);
             }
             finally
             {
-                DbService.DisconnectDb(out _context);
+                DbService.DisconnectDb(ref _context);
             }
 
             return true;
@@ -221,7 +218,7 @@ namespace APICore.Services
             }
             finally
             {
-                DbService.DisconnectDb(out _context);
+                DbService.DisconnectDb(ref _context);
             }
 
             return isSuccess;
@@ -242,7 +239,7 @@ namespace APICore.Services
             }
             finally
             {
-                DbService.DisconnectDb(out _context);
+                DbService.DisconnectDb(ref _context);
             }
 
             return true;
@@ -257,7 +254,7 @@ namespace APICore.Services
             }
             finally
             {
-                DbService.DisconnectDb(out _context);
+                DbService.DisconnectDb(ref _context);
             }
 
             return true;
@@ -273,7 +270,7 @@ namespace APICore.Services
             }
             finally
             {
-                DbService.DisconnectDb(out _context);
+                DbService.DisconnectDb(ref _context);
             }
 
             return true;
@@ -296,7 +293,7 @@ namespace APICore.Services
             }
             finally
             {
-                DbService.DisconnectDb(out _context);
+                DbService.DisconnectDb(ref _context);
             }
 
             return true;

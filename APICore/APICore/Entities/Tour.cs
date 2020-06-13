@@ -53,7 +53,7 @@ namespace APICore.Entities
         {
             JObject result = JObject.FromObject(this);
 
-            result.Remove("TourInfoId");
+            result.Remove("TourInfo");
             
             result.Add("TotalMember", totalMember);
             result.Add("Host", host?.ToSimpleJson(friendType));

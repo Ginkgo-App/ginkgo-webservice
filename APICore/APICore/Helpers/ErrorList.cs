@@ -27,7 +27,7 @@
             ServiceNotFound = 17,
             PlaceNotFound = 18,
             
-            
+            UserDoesNotHavePermission = 19,
         }
 
         public static string Description(int errorCode)
@@ -56,6 +56,7 @@
                 ErrorCode.FriendNotFound => "Friend not found.",
                 ErrorCode.ServiceNotFound => "Service not found",
                 ErrorCode.PlaceNotFound => "Place not found",
+                ErrorCode.UserDoesNotHavePermission => "You dont have permission",
                 _ => "Error code is invalid"
             };
         }

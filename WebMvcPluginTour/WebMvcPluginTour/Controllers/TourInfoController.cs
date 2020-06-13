@@ -161,6 +161,7 @@ namespace WebMvcPluginTour.Controllers
             return responseModel.ToJson();
         }
 
+        [AllowAnonymous]
         [HttpGet("{Id}")]
         public object GetTourInfo(int id)
         {
