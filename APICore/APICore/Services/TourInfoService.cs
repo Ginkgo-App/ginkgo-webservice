@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using NLog;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using APICore.Models;
 using static APICore.Helpers.CoreHelper;
@@ -14,7 +15,7 @@ namespace APICore.Services
 {
     public interface ITourInfoService
     {
-        ErrorCode TryGetToursByUserId(int userId, int page, int pageSize, out List<TourInfo> tourInfos,
+        ErrorCode TryGetTourInfosByUserId(int userId, int page, int pageSize, out List<TourInfo> tourInfos,
             out Pagination pagination);
 
         ErrorCode TryGetTourInfos(int page, int pageSize, out List<TourInfo> tourInfos,
@@ -43,7 +44,7 @@ namespace APICore.Services
             _appSettings = appSettings.Value;
         }
 
-        public ErrorCode TryGetToursByUserId(int userId, int page, int pageSize, out List<TourInfo> tourInfos,
+        public ErrorCode TryGetTourInfosByUserId(int userId, int page, int pageSize, out List<TourInfo> tourInfos,
             out Pagination pagination)
         {
             tourInfos = null;
@@ -76,6 +77,15 @@ namespace APICore.Services
                 else
                 {
                     tourInfos = new List<TourInfo>();
+                }
+
+                foreach (var tourInfo in tourInfos)
+                {
+                    TryGetPlaceById(tourInfo.StartPlaceId, out var startPlace);
+                    TryGetPlaceById(tourInfo.DestinatePlaceId, out var destinatePlace);
+
+                    tourInfo.StartPlace = startPlace;
+                    tourInfo.DestinatePlace = destinatePlace;
                 }
 
                 pagination = new Pagination(total, page, pageSize > 0 ? pageSize : total);
@@ -123,6 +133,15 @@ namespace APICore.Services
                     tourInfos = new List<TourInfo>();
                 }
 
+                foreach (var tourInfo in tourInfos)
+                {
+                    TryGetPlaceById(tourInfo.StartPlaceId, out var startPlace);
+                    TryGetPlaceById(tourInfo.DestinatePlaceId, out var destinatePlace);
+
+                    tourInfo.StartPlace = startPlace;
+                    tourInfo.DestinatePlace = destinatePlace;
+                }
+
                 pagination = new Pagination(total, page, pageSize > 0 ? pageSize : total);
                 errorCode = ErrorCode.Success;
 
@@ -148,7 +167,7 @@ namespace APICore.Services
                 ValidatePageSize(ref page, ref pageSize);
 
                 DbService.ConnectDb(out _context);
-                var listTours = _context.Tours.Where(t => t.DeletedAt == null).ToList();
+                var listTours = _context.Tours.Where(t => t.DeletedAt == null && t.TourInfoId == tourInfoId).ToList();
 
                 var total = listTours.Count();
                 var skip = pageSize * (page - 1);
@@ -189,25 +208,28 @@ namespace APICore.Services
 
             return errorCode;
         }
-        
+
         public bool TryGetTimelines(int tourId, out List<TimeLine> timelines)
         {
             try
             {
                 DbService.ConnectDb(out _context);
-                var tour = _context.Tours.SingleOrDefault(t => t.Id == tourId && t.DeletedAt == null) ?? throw new ExceptionWithMessage("Tour not found");
+                var tour = _context.Tours.SingleOrDefault(t => t.Id == tourId && t.DeletedAt == null) ??
+                           throw new ExceptionWithMessage("Tour not found");
 
-                timelines = _context.TimeLines.Where(t => t.TourId == tourId && t.DeletedAt == null)?.ToList() ?? new List<TimeLine>();
+                timelines = _context.TimeLines.Where(t => t.TourId == tourId && t.DeletedAt == null)?.ToList() ??
+                            new List<TimeLine>();
 
                 foreach (var timeLine in timelines)
                 {
-                    var timelineDetails = _context.TimelineDetails.Where(td => td.TimelineId == timeLine.Id && td.DeletedAt == null);
+                    var timelineDetails =
+                        _context.TimelineDetails.Where(td => td.TimelineId == timeLine.Id && td.DeletedAt == null);
 
                     timeLine.TimelineDetails ??= new List<TimelineDetail>();
-                    
+
                     timeLine.TimelineDetails.AddRange(timelineDetails);
                 }
-                
+
                 _context.SaveChanges();
                 DbService.DisconnectDb(out _context);
             }
@@ -244,12 +266,12 @@ namespace APICore.Services
             try
             {
                 DbService.ConnectDb(out _context);
-                
+
                 var destinatePlace = _context.Places.FirstOrDefault(p => p.Id == tourInfo.DestinatePlaceId) ??
                                      throw new ExceptionWithMessage("Place not found");
                 var startPlace = _context.Places.FirstOrDefault(p => p.Id == tourInfo.StartPlaceId) ??
-                                     throw new ExceptionWithMessage("Place not found");
-                
+                                 throw new ExceptionWithMessage("Place not found");
+
                 _context.TourInfos.Add(tourInfo);
                 _context.SaveChanges();
                 DbService.DisconnectDb(out _context);
@@ -311,7 +333,8 @@ namespace APICore.Services
             try
             {
                 DbService.ConnectDb(out _context);
-                place = _context.Places.FirstOrDefault(a => a.Id == placeId);
+                place = _context.Places.FirstOrDefault(a => a.Id == placeId) ??
+                        throw new ExceptionWithMessage("Place not found");
                 errorCode = ErrorCode.Success;
                 DbService.DisconnectDb(out _context);
             }

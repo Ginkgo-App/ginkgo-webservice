@@ -1,6 +1,7 @@
 ﻿#nullable enable
 using Newtonsoft.Json.Linq;
 using System;
+using System.ComponentModel.DataAnnotations.Schema;
 using APICore.Models;
 
 namespace APICore.Entities
@@ -25,17 +26,24 @@ namespace APICore.Entities
         public int DestinatePlaceId { get; private set; }
         public DateTime? DeleteAt { get; private set; }
         public double? Rating { get; private set; }
+        
+        [NotMapped]
+        public  User CreateBy { get; set; }
+        [NotMapped]
+        public  Place StartPlace { get; set; }
+        [NotMapped]
+        public  Place DestinatePlace { get; set; }
 
-        public JObject ToJson(Place startPlace, Place destinatePlace )
+        public JObject ToJson(Place? startPlace = null, Place? destinatePlace = null)
         {
             JObject json = JObject.FromObject(this);
 
             json.Remove("StartPlaceId");
-            json.Remove("DestinatePlaceId");
             json.Remove("CreateById");
+            json.Remove("DestinatePlaceId");
 
-            json.Add("StartPlace", startPlace == null ? null : JObject.FromObject(startPlace));
-            json.Add("DestinatePlace", destinatePlace == null ? null : JObject.FromObject(destinatePlace));
+            StartPlace = startPlace ?? StartPlace;
+            DestinatePlace = destinatePlace ?? DestinatePlace;
             return json;
         }
         
