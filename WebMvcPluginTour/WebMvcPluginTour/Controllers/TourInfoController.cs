@@ -256,7 +256,7 @@ namespace WebMvcPluginTour.Controllers
                         destinatePlaceId: destinationPlaceId
                     );
 
-                    if (_tourInfoService.TryAddTourInfo(tourInfo))
+                    if (!_tourInfoService.TryAddTourInfo(tourInfo))
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
                         break;

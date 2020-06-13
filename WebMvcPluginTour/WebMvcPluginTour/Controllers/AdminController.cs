@@ -487,7 +487,7 @@ namespace WebMvcPluginTour.Controllers
 
                     if (!isDestinationParsed || !isStartPlaced)
                     {
-                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        responseModel.FromErrorCode(ErrorCode.InvalidParameter);
                         break;
                     }
 
@@ -504,7 +504,7 @@ namespace WebMvcPluginTour.Controllers
                         destinatePlaceId: destinationPlaceId
                     );
 
-                    if (_tourInfoService.TryAddTourInfo(tourInfo))
+                    if (!_tourInfoService.TryAddTourInfo(tourInfo))
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
                         break;
