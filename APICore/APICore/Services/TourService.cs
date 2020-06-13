@@ -64,9 +64,9 @@ namespace APICore.Services
                 CoreHelper.ValidatePageSize(ref page, ref pageSize);
 
                 DbService.ConnectDb(out _context);
-                var listTours = _context.Tours.ToList();
+                var listTours = _context.Tours.Where(t => t.DeletedAt == null && t.TourInfoId == tourInfoId)?.ToList();
 
-                var total = listTours.Select(p => p.TourInfoId).Count();
+                var total = listTours?.Count() ?? 0;
                 var skip = pageSize * (page - 1);
 
                 var canPage = skip < total;
@@ -75,7 +75,7 @@ namespace APICore.Services
                 {
                     tours = pageSize <= 0
                         ? listTours
-                        : listTours.Where(u => u.TourInfoId == tourInfoId)
+                        : listTours
                             .Skip(skip)
                             .Take(pageSize)
                             .ToList();
@@ -150,6 +150,8 @@ namespace APICore.Services
                 {
                     var timelineDetails = _context.TimelineDetails.Where(td => td.TimelineId == timeLine.Id);
                     
+                    
+                    timeLine.TimelineDetails ??= new List<TimelineDetail>();
                     timeLine.TimelineDetails.AddRange(timelineDetails);
                 }
                 
@@ -180,21 +182,22 @@ namespace APICore.Services
                     _context.TimeLines.Add(timeline);
                     _context.SaveChanges();
 
-                    foreach (var timelineDetail in timeline.TimelineDetails)
-                    {
-                        var place = _context.Places.FirstOrDefault(p => p.Id == timelineDetail.PlaceId);
-
-                        // Check place is exist
-                        if (place == null)
+                    if (timeline.TimelineDetails != null)
+                        foreach (var timelineDetail in timeline.TimelineDetails)
                         {
-                            continue;
-                        }
+                            var place = _context.Places.FirstOrDefault(p => p.Id == timelineDetail.PlaceId);
 
-                        // Store time line detail
-                        timelineDetail.TimelineId = timeline.Id;
-                        _context.TimelineDetails.Add(timelineDetail);
-                        _context.SaveChanges();
-                    }
+                            // Check place is exist
+                            if (place == null)
+                            {
+                                continue;
+                            }
+
+                            // Store time line detail
+                            timelineDetail.TimelineId = timeline.Id;
+                            _context.TimelineDetails.Add(timelineDetail);
+                            _context.SaveChanges();
+                        }
                 }
                 
                 DbService.DisconnectDb(out _context);

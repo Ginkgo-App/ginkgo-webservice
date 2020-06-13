@@ -68,7 +68,7 @@ namespace APICore.Services
                     // If pageSize <= 0 then get all tour info
                     tourInfos = pageSize <= 0
                         ? listTourInfos
-                        : listTourInfos.Select(u => u)
+                        : listTourInfos
                             .Skip(skip)
                             .Take(pageSize)
                             .ToList();
@@ -113,7 +113,7 @@ namespace APICore.Services
                     tourInfos =
                         pageSize <= 0
                             ? listTourInfos
-                            : listTourInfos.Select(u => u)
+                            : listTourInfos
                                 .Skip(skip)
                                 .Take(pageSize)
                                 .ToList();
@@ -195,13 +195,13 @@ namespace APICore.Services
             try
             {
                 DbService.ConnectDb(out _context);
-                var tour = _context.Tours.SingleOrDefault(t => t.Id == tourId) ?? throw new ExceptionWithMessage("Tour not found");
+                var tour = _context.Tours.SingleOrDefault(t => t.Id == tourId && t.DeletedAt == null) ?? throw new ExceptionWithMessage("Tour not found");
 
-                timelines = _context.TimeLines.Where(t => t.TourId == tourId)?.ToList() ?? new List<TimeLine>();
+                timelines = _context.TimeLines.Where(t => t.TourId == tourId && t.DeletedAt == null)?.ToList() ?? new List<TimeLine>();
 
                 foreach (var timeLine in timelines)
                 {
-                    var timelineDetails = _context.TimelineDetails.Where(td => td.TimelineId == timeLine.Id);
+                    var timelineDetails = _context.TimelineDetails.Where(td => td.TimelineId == timeLine.Id && td.DeletedAt == null);
 
                     timeLine.TimelineDetails ??= new List<TimelineDetail>();
                     
