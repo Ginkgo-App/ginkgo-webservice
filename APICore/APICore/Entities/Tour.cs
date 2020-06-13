@@ -10,7 +10,7 @@ namespace APICore.Entities
 {
     public class Tour : IIsDeleted
     {
-        public Tour(TourInfo tourInfo,List<TimeLine> timelines, string? name, DateTime startDay, DateTime endDay, int maxMember, int createBy, int tourInfoId, int totalDay, int totalNight, string[] services,  int price = 0)
+        public Tour(TourInfo tourInfo,List<TimeLine> timelines, string? name, DateTime startDay, DateTime endDay, int maxMember, int createBy, int tourInfoId, int totalDay, int totalNight, string[] services,  float price = 0)
         {
             Name = name;
             StartDay = startDay;
@@ -39,7 +39,7 @@ namespace APICore.Entities
         public int TotalNight { get; private set; }
         public int MaxMember { get; private set; }
         public int TourInfoId { get; private set; }
-        public int Price { get; private set; }
+        public float Price { get; private set; }
         
         public string[] Services { get; private set; }
         
@@ -62,7 +62,7 @@ namespace APICore.Entities
             return result;
         }
 
-        public void Update(string name, in DateTime? startDay, in DateTime? endDay, in int? maxMember, in int? totalDay, in int? totalNight, in string[]? services, in List<TimeLine>? timelines, in int? price)
+        public void Update(string name, in DateTime? startDay, in DateTime? endDay, in int? maxMember, in int? totalDay, in int? totalNight, in string[]? services, in List<TimeLine>? timelines, in float? price)
         {
             Name = name ?? Name;
             StartDay = startDay ?? StartDay;
