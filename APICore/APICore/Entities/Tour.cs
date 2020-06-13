@@ -44,7 +44,7 @@ namespace APICore.Entities
         public string[] Services { get; private set; }
         
         [NotMapped]
-        public TourInfo TourInfo { get; private set; }
+        public TourInfo TourInfo { get; set; }
         [NotMapped]
         public List<TimeLine> TimeLines { get; set; }
         

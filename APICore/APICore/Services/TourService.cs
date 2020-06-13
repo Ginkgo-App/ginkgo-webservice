@@ -102,9 +102,31 @@ namespace APICore.Services
             {
                 DbService.ConnectDb(out _context);
                 tour = _context.Tours.SingleOrDefault(t => t.Id == id) ?? throw  new ExceptionWithMessage("Tour not found");
+                
+                TryGetTourInfo(id, out var tourInfo);
                 TryGetTimelines(id, out var timeLines);
+                
                 tour.TimeLines = timeLines;
+                tour.TourInfo = tourInfo;
                 _context.SaveChanges();
+                DbService.DisconnectDb(out _context);
+            }
+            finally
+            {
+                DbService.DisconnectDb(out _context);
+            }
+
+            return true;
+        }
+        
+        public bool TryGetTourInfo(int tourId, out TourInfo tourInfo)
+        {
+            try
+            {
+                DbService.ConnectDb(out _context);
+                var tour = _context.Tours.SingleOrDefault(t => t.Id == tourId) ?? throw new ExceptionWithMessage("Tour not found");
+                tourInfo = _context.TourInfos.FirstOrDefault(t => t.Id == tour.TourInfoId);
+
                 DbService.DisconnectDb(out _context);
             }
             finally
@@ -131,7 +153,6 @@ namespace APICore.Services
                     timeLine.TimelineDetails.AddRange(timelineDetails);
                 }
                 
-                _context.SaveChanges();
                 DbService.DisconnectDb(out _context);
             }
             finally
