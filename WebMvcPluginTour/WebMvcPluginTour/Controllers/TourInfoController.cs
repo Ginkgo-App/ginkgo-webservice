@@ -221,7 +221,7 @@ namespace WebMvcPluginTour.Controllers
                         ? JObject.Parse(requestBody.ToString() ?? "{}")
                         : null;
 
-                    if (!CoreHelper.GetParameter(out var jsonDestinationPlaceId, body, "DestinationPlaceId",
+                    if (!CoreHelper.GetParameter(out var jsonDestinationPlaceId, body, "DestinatePlaceId",
                             JTokenType.Integer, ref responseModel)
                         || !CoreHelper.GetParameter(out var jsonStartPlaceId, body, "StartPlaceId",
                             JTokenType.Integer, ref responseModel)
@@ -435,7 +435,7 @@ namespace WebMvcPluginTour.Controllers
                     }
                     
                     // Check user is exist
-                    if (!_userService.TryGetUsers(userId, out var host))
+                    if (!_userService.TryGetUsers(userId, out var _))
                     {
                         responseModel.FromErrorCode(ErrorCode.UserNotFound);
                         break;
@@ -443,6 +443,7 @@ namespace WebMvcPluginTour.Controllers
                     
                     var tour = new Tour(
                         tourInfo: tourInfo,
+                        timelines: timelines,
                         name: name,
                         startDay: startDate,
                         endDay: endDate,
@@ -498,6 +499,8 @@ namespace WebMvcPluginTour.Controllers
                             JTokenType.Integer, ref responseModel, isNullable: true)
                         || !CoreHelper.GetParameter(out var jsonName, body, "Name",
                             JTokenType.String, ref responseModel, isNullable: true)
+                        || !CoreHelper.GetParameter(out var jsonTimelines, body, "Timelines",
+                            JTokenType.Array, ref responseModel)
                         || !CoreHelper.GetParameter(out var jsonServices, body, "Services",
                             JTokenType.Array, ref responseModel, isNullable: true))
                     {
@@ -528,6 +531,8 @@ namespace WebMvcPluginTour.Controllers
                     var services = jsonServices != null
                         ? JsonConvert.DeserializeObject<string[]>(jsonServices.ToString())
                         : null;
+                    
+                    var timelines = jsonTimelines?.ToObject<List<TimeLine>>();
 
                     if (!_tourService.TryGetTour(tourId, out var tour) || tour == null)
                     {
@@ -536,6 +541,7 @@ namespace WebMvcPluginTour.Controllers
 
                     tour.Update(
                         name: name!,
+                        timelines: timelines,
                         startDay: isStartDayParse ? startDate : (DateTime?) null,
                         endDay: isEndDayParse ? endDate : (DateTime?) null,
                         totalDay: isTotalDayParsed ? totalDay : (int?) null,
@@ -565,7 +571,6 @@ namespace WebMvcPluginTour.Controllers
         [HttpGet("{tourInfoId}/tours/{tourId}/services")]
         public object GetTourServices(int tourInfoId, int tourId, [FromBody] object requestBody)
         {
-            var data = new JArray();
             var responseModel = new ResponseModel();
 
             try

@@ -17,6 +17,7 @@ namespace APICore.Services
             out Pagination pagination);
 
         bool TryGetTour(int id, out Tour tour);
+        bool TryGetTimelines(int tourId, out List<TimeLine> timelines);
         bool TryAddTour(Tour tour, List<TimeLine> timeLines);
         bool TryUpdateTour(Tour tour);
         bool TryDeleteTour(int tourId);
@@ -100,7 +101,36 @@ namespace APICore.Services
             try
             {
                 DbService.ConnectDb(out _context);
-                tour = _context.Tours.SingleOrDefault(t => t.Id == id);
+                tour = _context.Tours.SingleOrDefault(t => t.Id == id) ?? throw  new ExceptionWithMessage("Tour not found");
+                TryGetTimelines(id, out var timeLines);
+                tour.TimeLines = timeLines;
+                _context.SaveChanges();
+                DbService.DisconnectDb(out _context);
+            }
+            finally
+            {
+                DbService.DisconnectDb(out _context);
+            }
+
+            return true;
+        }
+        
+        public bool TryGetTimelines(int tourId, out List<TimeLine> timelines)
+        {
+            try
+            {
+                DbService.ConnectDb(out _context);
+                var tour = _context.Tours.SingleOrDefault(t => t.Id == tourId) ?? throw new ExceptionWithMessage("Tour not found");
+
+                timelines = _context.TimeLines.Where(t => t.TourId == tourId)?.ToList() ?? new List<TimeLine>();
+
+                foreach (var timeLine in timelines)
+                {
+                    var timelineDetails = _context.TimelineDetails.Where(td => td.TimelineId == timeLine.Id);
+                    
+                    timeLine.TimelineDetails.AddRange(timelineDetails);
+                }
+                
                 _context.SaveChanges();
                 DbService.DisconnectDb(out _context);
             }

@@ -32,7 +32,7 @@ namespace APICore.Entities
         public int TourId { get; set; }
         
         [NotMapped]
-        public List<TimelineDetail> TimelineDetails { get; set; }
+        public List<TimelineDetail>? TimelineDetails { get; set; }
         public DateTime? DeletedAt { get; set; }
         public void Delete()
         {

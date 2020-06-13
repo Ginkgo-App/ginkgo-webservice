@@ -20,7 +20,7 @@ namespace APICore.Services
         ErrorCode TryGetTourInfos(int page, int pageSize, out List<TourInfo> tourInfos,
             out Pagination pagination);
 
-        ErrorCode TryGetTours(int tourInfoId, int page, int pageSize, out List<Tour> tourInfos,
+        ErrorCode TryGetTours(int tourInfoId, int page, int pageSize, out List<Tour> tours,
             out Pagination pagination);
 
         ErrorCode TryGetTourInfoById(int tourId, out TourInfo tourInfos);
@@ -48,7 +48,7 @@ namespace APICore.Services
         {
             tourInfos = null;
             pagination = null;
-            var errorCode = ErrorCode.Fail;
+            ErrorCode errorCode;
 
             try
             {
@@ -94,7 +94,7 @@ namespace APICore.Services
         {
             tourInfos = null;
             pagination = null;
-            var errorCode = ErrorCode.Fail;
+            ErrorCode errorCode;
 
             try
             {
@@ -136,12 +136,12 @@ namespace APICore.Services
             return errorCode;
         }
 
-        public ErrorCode TryGetTours(int tourInfoId, int page, int pageSize, out List<Tour> tourInfos,
+        public ErrorCode TryGetTours(int tourInfoId, int page, int pageSize, out List<Tour> tours,
             out Pagination pagination)
         {
-            tourInfos = null;
+            tours = null;
             pagination = null;
-            ErrorCode errorCode = ErrorCode.Fail;
+            ErrorCode errorCode;
 
             try
             {
@@ -157,7 +157,7 @@ namespace APICore.Services
 
                 if (canPage)
                 {
-                    tourInfos = pageSize <= 0
+                    tours = pageSize <= 0
                         ? listTours
                         : listTours.Where(u => u.TourInfoId == tourInfoId)
                             .Skip(skip)
@@ -166,7 +166,13 @@ namespace APICore.Services
                 }
                 else
                 {
-                    tourInfos = new List<Tour>();
+                    tours = new List<Tour>();
+                }
+
+                foreach (var tour in tours)
+                {
+                    TryGetTimelines(tour.Id, out var timeLines);
+                    tour.TimeLines = timeLines;
                 }
 
                 pagination = new Pagination(total, page, pageSize > 0 ? pageSize : total);
@@ -180,6 +186,35 @@ namespace APICore.Services
             }
 
             return errorCode;
+        }
+        
+        public bool TryGetTimelines(int tourId, out List<TimeLine> timelines)
+        {
+            try
+            {
+                DbService.ConnectDb(out _context);
+                var tour = _context.Tours.SingleOrDefault(t => t.Id == tourId) ?? throw new ExceptionWithMessage("Tour not found");
+
+                timelines = _context.TimeLines.Where(t => t.TourId == tourId)?.ToList() ?? new List<TimeLine>();
+
+                foreach (var timeLine in timelines)
+                {
+                    var timelineDetails = _context.TimelineDetails.Where(td => td.TimelineId == timeLine.Id);
+
+                    timeLine.TimelineDetails ??= new List<TimelineDetail>();
+                    
+                    timeLine.TimelineDetails.AddRange(timelineDetails);
+                }
+                
+                _context.SaveChanges();
+                DbService.DisconnectDb(out _context);
+            }
+            finally
+            {
+                DbService.DisconnectDb(out _context);
+            }
+
+            return true;
         }
 
         public ErrorCode TryGetTourInfoById(int tourId, out TourInfo tourInfos)
@@ -207,6 +242,12 @@ namespace APICore.Services
             try
             {
                 DbService.ConnectDb(out _context);
+                
+                var destinatePlace = _context.Places.FirstOrDefault(p => p.Id == tourInfo.DestinatePlaceId) ??
+                                     throw new ExceptionWithMessage("Place not found");
+                var startPlace = _context.Places.FirstOrDefault(p => p.Id == tourInfo.StartPlaceId) ??
+                                     throw new ExceptionWithMessage("Place not found");
+                
                 _context.TourInfos.Add(tourInfo);
                 _context.SaveChanges();
                 DbService.DisconnectDb(out _context);
@@ -263,7 +304,7 @@ namespace APICore.Services
         public ErrorCode TryGetPlaceById(int placeId, out Place place)
         {
             place = null;
-            var errorCode = ErrorCode.Fail;
+            ErrorCode errorCode;
 
             try
             {
@@ -283,7 +324,7 @@ namespace APICore.Services
         public ErrorCode TryGetUserById(int userId, out User user)
         {
             user = null;
-            var errorCode = ErrorCode.Fail;
+            ErrorCode errorCode;
 
             try
             {
@@ -303,7 +344,7 @@ namespace APICore.Services
         public ErrorCode TryGetServiceById(int serviceId, out Service service)
         {
             service = null;
-            var errorCode = ErrorCode.Fail;
+            ErrorCode errorCode;
 
             try
             {

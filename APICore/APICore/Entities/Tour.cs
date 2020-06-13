@@ -10,7 +10,7 @@ namespace APICore.Entities
 {
     public class Tour : IIsDeleted
     {
-        public Tour(TourInfo tourInfo, string? name, DateTime startDay, DateTime endDay, int maxMember, int createBy, int tourInfoId, int totalDay, int totalNight, string[] services, int price = 0)
+        public Tour(TourInfo tourInfo,List<TimeLine> timelines, string? name, DateTime startDay, DateTime endDay, int maxMember, int createBy, int tourInfoId, int totalDay, int totalNight, string[] services,  int price = 0)
         {
             Name = name;
             StartDay = startDay;
@@ -21,6 +21,7 @@ namespace APICore.Entities
             TotalDay = totalDay;
             TotalNight = totalNight;
             Services = services;
+            TimeLines = timelines;
             Price = price;
             DeletedAt = null;
         }
@@ -44,12 +45,16 @@ namespace APICore.Entities
         
         [NotMapped]
         public TourInfo TourInfo { get; private set; }
+        [NotMapped]
+        public List<TimeLine> TimeLines { get; set; }
         
 
         public JObject ToSimpleJson(User host, string friendType, int totalMember, TourInfo tourInfo)
         {
             JObject result = JObject.FromObject(this);
 
+            result.Remove("TourInfoId");
+            
             result.Add("TotalMember", totalMember);
             result.Add("Host", host?.ToSimpleJson(friendType));
             result.Add("Images", tourInfo?.Images != null ? JArray.FromObject(tourInfo.Images) : new JArray());
@@ -57,7 +62,7 @@ namespace APICore.Entities
             return result;
         }
 
-        public void Update(string name, in DateTime? startDay, in DateTime? endDay, in int? maxMember, in int? totalDay, in int? totalNight, in string[] services)
+        public void Update(string name, in DateTime? startDay, in DateTime? endDay, in int? maxMember, in int? totalDay, in int? totalNight, in string[]? services, in List<TimeLine>? timelines)
         {
             Name = name ?? Name;
             StartDay = startDay ?? StartDay;
@@ -66,6 +71,7 @@ namespace APICore.Entities
             TotalDay = totalDay ?? TotalDay;
             TotalNight = totalNight ?? TotalNight;
             Services = services ?? Services;
+            TimeLines = timelines ?? TimeLines;
         }
 
         public DateTime? DeletedAt { get; set; }
