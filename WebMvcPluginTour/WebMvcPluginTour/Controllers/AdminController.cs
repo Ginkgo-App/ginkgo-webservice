@@ -389,10 +389,12 @@ namespace WebMvcPluginTour.Controllers
                         break;
                     }
 
+                    var myUserId = CoreHelper.GetUserId(HttpContext, ref responseModel);
+
                     // Add data to Response
                     foreach (var tourInfo in tourInfos)
                     {
-                        data.Add(AddTourFullInfo(tourInfo));
+                        data.Add(AddTourFullInfo(tourInfo, myUserId));
                     }
 
                     responseModel.ErrorCode = (int) ErrorCode.Success;
@@ -430,9 +432,11 @@ namespace WebMvcPluginTour.Controllers
                         responseModel.FromErrorCode(ErrorCode.TourNotFound);
                         break;
                     }
+                    
+                    var myUserId = CoreHelper.GetUserId(HttpContext, ref responseModel);
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data = new JArray {AddTourFullInfo(tourInfo)};
+                    responseModel.Data = new JArray {AddTourFullInfo(tourInfo, myUserId)};
                 } while (false);
             }
             catch (Exception ex)
@@ -457,13 +461,8 @@ namespace WebMvcPluginTour.Controllers
                     {
                         break;
                     }
-
-                    var claims = identity.Claims;
-
-                    var userId = int.Parse(
-                        claims
-                            .FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)
-                            ?.Value ?? "0");
+                    
+                    var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
 
                     var body = requestBody != null
                         ? JObject.Parse(requestBody.ToString() ?? "{}")
@@ -511,7 +510,7 @@ namespace WebMvcPluginTour.Controllers
                     }
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data = new JArray {AddTourFullInfo(tourInfo)};
+                    responseModel.Data = new JArray {AddTourFullInfo(tourInfo, userId)};
                 } while (false);
             }
             catch (Exception ex)
@@ -580,9 +579,11 @@ namespace WebMvcPluginTour.Controllers
                         responseModel.FromErrorCode(ErrorCode.Fail);
                         break;
                     }
+                    
+                    var myUserId = CoreHelper.GetUserId(HttpContext, ref responseModel);
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data = new JArray {AddTourFullInfo(tourInfo)};
+                    responseModel.Data = new JArray {AddTourFullInfo(tourInfo, myUserId)};
                 } while (false);
             }
             catch (Exception ex)
@@ -621,7 +622,7 @@ namespace WebMvcPluginTour.Controllers
             return responseModel.ToJson();
         }
 
-        private JObject AddTourFullInfo(TourInfo tourInfo)
+        private JObject AddTourFullInfo(TourInfo tourInfo, int myUserId)
         {
             JObject result = null;
             do
@@ -631,10 +632,12 @@ namespace WebMvcPluginTour.Controllers
                     break;
                 }
 
+                _userService.TryGetUsers(tourInfo.CreateById, out var user);
+                var friendType = _friendService.CalculateIsFriend(myUserId, tourInfo.CreateById);
                 _tourInfoService.TryGetPlaceById(tourInfo.StartPlaceId, out var starPlace);
                 _tourInfoService.TryGetPlaceById(tourInfo.DestinatePlaceId, out var destinationPlace);
 
-                result = tourInfo.ToJson(starPlace, destinationPlace);
+                result = tourInfo.ToJson(user.ToSimpleUser(friendType),starPlace, destinationPlace);
             } while (false);
 
             return result;

@@ -27,23 +27,25 @@ namespace APICore.Entities
         public double? Rating { get; private set; }
         
         [NotMapped]
-        public  User CreateBy { get; set; }
+        public  SimpleUser CreateBy { get; set; }
         [NotMapped]
         public  Place StartPlace { get; set; }
         [NotMapped]
         public  Place DestinatePlace { get; set; }
         public DateTime? DeletedAt { get; set; }
 
-        public JObject ToJson(Place? startPlace = null, Place? destinatePlace = null)
+        public JObject ToJson(SimpleUser? createBy = null,Place? startPlace = null, Place? destinatePlace = null)
         {
+            
+            CreateBy = createBy ?? CreateBy;
+            StartPlace = startPlace ?? StartPlace;
+            DestinatePlace = destinatePlace ?? DestinatePlace;
+            
             JObject json = JObject.FromObject(this);
 
             json.Remove("StartPlaceId");
             json.Remove("CreateById");
             json.Remove("DestinatePlaceId");
-
-            StartPlace = startPlace ?? StartPlace;
-            DestinatePlace = destinatePlace ?? DestinatePlace;
             return json;
         }
         
