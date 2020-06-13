@@ -62,7 +62,7 @@ namespace APICore.Entities
             return result;
         }
 
-        public void Update(string name, in DateTime? startDay, in DateTime? endDay, in int? maxMember, in int? totalDay, in int? totalNight, in string[]? services, in List<TimeLine>? timelines)
+        public void Update(string name, in DateTime? startDay, in DateTime? endDay, in int? maxMember, in int? totalDay, in int? totalNight, in string[]? services, in List<TimeLine>? timelines, in int? price)
         {
             Name = name ?? Name;
             StartDay = startDay ?? StartDay;
@@ -72,6 +72,7 @@ namespace APICore.Entities
             TotalNight = totalNight ?? TotalNight;
             Services = services ?? Services;
             TimeLines = timelines ?? TimeLines;
+            Price = price ?? Price;
         }
 
         public DateTime? DeletedAt { get; set; }

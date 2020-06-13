@@ -44,6 +44,10 @@ namespace APICore.Helpers
                 {
                     response.ErrorCode = (int)ErrorList.ErrorCode.InvalidParameter;
                     response.Message = ErrorList.Description(response.ErrorCode);
+                    response.Data = new JArray
+                    {
+                       new JObject{{"Field", fieldName}}
+                    };
                     Vars.Logger.Debug("Field '" + fieldName + "' is missing or incorrect");
                     break;
                 }

@@ -269,6 +269,8 @@ namespace WebMvcPluginTour.Controllers
                             JTokenType.Integer, ref responseModel, isNullable: true)
                         || !CoreHelper.GetParameter(out var jsonTotalNight, body, "TotalNight",
                             JTokenType.Integer, ref responseModel, isNullable: true)
+                        || !CoreHelper.GetParameter(out var jsonPrice, body, "Price",
+                            JTokenType.Integer, ref responseModel, isNullable: true)
                         || !CoreHelper.GetParameter(out var jsonName, body, "Name",
                             JTokenType.String, ref responseModel, isNullable: true)
                         || !CoreHelper.GetParameter(out var jsonTimelines, body, "Timelines",
@@ -291,6 +293,7 @@ namespace WebMvcPluginTour.Controllers
                     var isMaxMemberParse = int.TryParse(jsonMaxMember?.ToString(), out var maxMember);
                     var isTotalDayParsed = int.TryParse(jsonTotalDay?.ToString(), out var totalDay);
                     var isTotalNightParsed = int.TryParse(jsonTotalNight?.ToString(), out var totalNight);
+                    var isPriceParsed = int.TryParse(jsonPrice?.ToString(), out var price);
                     var services = jsonServices != null
                         ? JsonConvert.DeserializeObject<string[]>(jsonServices.ToString())
                         : null;
@@ -308,6 +311,7 @@ namespace WebMvcPluginTour.Controllers
                         endDay: isEndDayParse ? endDate : (DateTime?) null,
                         totalDay: isTotalDayParsed ? totalDay : (int?) null,
                         totalNight: isTotalNightParsed ? totalNight: (int?) null,
+                        price: isPriceParsed ? price: (int?) null,
                         maxMember: isMaxMemberParse ? maxMember : (int?) null,
                         services: services
                     );
