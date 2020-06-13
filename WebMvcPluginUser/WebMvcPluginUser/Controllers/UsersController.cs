@@ -454,6 +454,40 @@ namespace WebMvcPluginUser.Controllers
 
             return responseModel.ToJson();
         }
+        
+        [HttpGet("{userId}/tour-infos")]
+        public object GetMyTourInfos(int userId, [FromQuery] int page, [FromQuery] int pageSize)
+        {
+            var responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
+                    CoreHelper.ValidatePageSize(ref page, ref pageSize);
+
+                    _tourInfoService.TryGetTourInfosByUserId(userId, page, pageSize, out var tourInfos, out var pagination);
+
+                    if (tourInfos == null)
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    responseModel.FromErrorCode(ErrorCode.Success);
+                    responseModel.Data = tourInfos.Count > 0 
+                        ? JArray.FromObject(tourInfos.Select(t=>t.ToJson())) 
+                        : new JArray() ;
+                    responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
 
         [HttpGet("{id}/friends")]
         public object GetUserFriends(int id, [FromQuery] int page, [FromQuery] int pageSize)
