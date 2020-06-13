@@ -400,6 +400,8 @@ namespace WebMvcPluginTour.Controllers
                             JTokenType.Array, ref responseModel)
                         || !CoreHelper.GetParameter(out var jsonName, body, "Name",
                             JTokenType.String, ref responseModel)
+                        || !CoreHelper.GetParameter(out var jsonPrice, body, "Price",
+                            JTokenType.Integer, ref responseModel)
                         || !CoreHelper.GetParameter(out var jsonServices, body, "Services",
                             JTokenType.Array, ref responseModel, isNullable: true))
                     {
@@ -421,18 +423,13 @@ namespace WebMvcPluginTour.Controllers
                     _ = int.TryParse(jsonMaxMember?.ToString(), out var maxMember);
                     _ = int.TryParse(jsonTotalDay?.ToString(), out var totalDay);
                     _ = int.TryParse(jsonTotalNight?.ToString(), out var totalNight);
+                    _ = int.TryParse(jsonPrice?.ToString(), out var price);
                     var serviceIds = jsonServices != null
                         ? JsonConvert.DeserializeObject<string[]>(jsonServices.ToString())
                         : null;
 
                     // Get user id
                     var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
-                    
-                    if (tourInfo.CreateById != userId)
-                    {
-                        Response.StatusCode = 403;
-                        break;
-                    }
                     
                     // Check user is exist
                     if (!_userService.TryGetUsers(userId, out var _))
@@ -452,7 +449,8 @@ namespace WebMvcPluginTour.Controllers
                         createBy: userId,
                         maxMember: maxMember,
                         tourInfoId: id,
-                        services: serviceIds ?? new String[0]
+                        services: serviceIds ?? new string[0],
+                        price: price
                     );
                     
                     // Add tour to tour info

@@ -170,13 +170,13 @@ namespace WebMvcPluginTour.Controllers
                             JTokenType.Integer, ref responseModel)
                         || !CoreHelper.GetParameter(out var jsonMaxMember, body, "MaxMember",
                             JTokenType.Integer, ref responseModel)
-                        || !CoreHelper.GetParameter(out var jsonPrice, body, "Price",
-                            JTokenType.Integer, ref responseModel)
                         || !CoreHelper.GetParameter(out var jsonTimelines, body, "Timelines",
                             JTokenType.Array, ref responseModel)
                         || !CoreHelper.GetParameter(out var jsonName, body, "Name",
                             JTokenType.String, ref responseModel)
-                        || !CoreHelper.GetParameter(out var servicesJson, body, "Services",
+                        || !CoreHelper.GetParameter(out var jsonPrice, body, "Price",
+                            JTokenType.Integer, ref responseModel)
+                        || !CoreHelper.GetParameter(out var jsonServices, body, "Services",
                             JTokenType.Array, ref responseModel, isNullable: true))
                     {
                         break;
@@ -188,30 +188,33 @@ namespace WebMvcPluginTour.Controllers
                         throw new ExceptionWithMessage("Tour info not found.");
                     }
 
+                    // var timelines = jsonTimelines.ToObject<List<TimeLine>>();
+                    var timelines = JsonConvert.DeserializeObject<List<TimeLine>>(jsonTimelines.ToString());
+
                     var name = jsonName?.ToString();
                     _ = DateTime.TryParse(jsonStartDate?.ToString(), out var startDate);
                     _ = DateTime.TryParse(jsonEndDate?.ToString(), out var endDate);
                     _ = int.TryParse(jsonMaxMember?.ToString(), out var maxMember);
-                    _ = int.TryParse(jsonPrice?.ToString(), out var price);
                     _ = int.TryParse(jsonTotalDay?.ToString(), out var totalDay);
                     _ = int.TryParse(jsonTotalNight?.ToString(), out var totalNight);
-                    var services = servicesJson != null
-                        ? JsonConvert.DeserializeObject<string[]>(servicesJson.ToString())
+                    _ = int.TryParse(jsonPrice?.ToString(), out var price);
+                    var serviceIds = jsonServices != null
+                        ? JsonConvert.DeserializeObject<string[]>(jsonServices.ToString())
                         : null;
-                    var timelines = jsonTimelines.ToObject<List<TimeLine>>();
 
-                    // claim userId
+                    // Get user id
                     var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
-
+                    
+                    // Check user is exist
                     if (!_userService.TryGetUsers(userId, out var _))
                     {
                         responseModel.FromErrorCode(ErrorCode.UserNotFound);
                         break;
                     }
-
+                    
                     var tour = new Tour(
                         tourInfo: tourInfo,
-                        timelines: timelines!,
+                        timelines: timelines,
                         name: name,
                         startDay: startDate,
                         endDay: endDate,
@@ -220,16 +223,17 @@ namespace WebMvcPluginTour.Controllers
                         createBy: userId,
                         maxMember: maxMember,
                         tourInfoId: id,
-                        services: services!,
+                        services: serviceIds ?? new string[0],
                         price: price
                     );
-
+                    
+                    // Add tour to tour info
                     if (!_tourService.TryAddTour(tour, timelines))
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
                         break;
                     }
-
+                    
                     responseModel.FromErrorCode(ErrorCode.Success);
                     responseModel.Data = new JArray {JObject.FromObject(tour)};
                 } while (false);
