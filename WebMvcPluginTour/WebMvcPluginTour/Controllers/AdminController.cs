@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security;
 using System.Security.Claims;
 using APICore.Entities;
 using APICore.Helpers;
@@ -23,14 +24,16 @@ namespace WebMvcPluginTour.Controllers
         private readonly IUserService _userService;
         private readonly IFriendService _friendService;
         private readonly ITourService _tourService;
+        private readonly IPostService _postService;
 
         public AdminController(ITourInfoService tourInfoService, IUserService userService, IFriendService friendService,
-            ITourService tourService)
+            ITourService tourService, IPostService postService)
         {
             _tourInfoService = tourInfoService;
             _userService = userService;
             _friendService = friendService;
             _tourService = tourService;
+            _postService = postService;
         }
 
         [HttpGet("{id}/tours")]
@@ -148,7 +151,7 @@ namespace WebMvcPluginTour.Controllers
         }
 
         [HttpPost("{id}/tours")]
-        public object AddNewTour(int id, [FromBody] object requestBody)
+        public object CreateTour(int id, [FromBody] object requestBody)
         {
             var responseModel = new ResponseModel();
 
@@ -229,6 +232,21 @@ namespace WebMvcPluginTour.Controllers
                     
                     // Add tour to tour info
                     if (!_tourService.TryAddTour(tour, timelines))
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+                    
+                    var post = new Post(
+                        content: string.Empty,
+                        images: new string[0], 
+                        authorId: userId,
+                        at: DateTime.Now, 
+                        tourId: tour.Id
+                        );
+                    
+                    //Add post for tour
+                    if (!_postService.AddNewPost(post))
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
                         break;

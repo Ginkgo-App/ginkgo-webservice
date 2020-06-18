@@ -6,12 +6,13 @@ namespace APICore.Entities
 {
     public class Post : IIsDeleted
     {
-        public Post(string? content, string[]? images, int authorId, DateTime at)
+        public Post(string? content, string[]? images, int authorId, DateTime at, int? tourId)
         {
             Content = content;
             Images = images;
             AuthorId = authorId;
             CreateAt = at;
+            TourId = tourId;
             TotalComment = 0;
             TotalLike = 0;
         }
@@ -28,6 +29,7 @@ namespace APICore.Entities
         }
 
         public int Id { get; private set; }
+        public int? TourId { get; private set; }
         public string? Content { get; private set; }
         public string[]? Images { get; private set; }
         public int TotalLike { get;  set; }

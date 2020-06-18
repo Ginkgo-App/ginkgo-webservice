@@ -49,6 +49,7 @@ namespace APICore
             services.AddSingleton<ITourService, TourService>();
             services.AddSingleton<IPlaceService, PlaceService>();
             services.AddSingleton<IServiceService, ServiceService>();
+            services.AddSingleton<IPostService, PostService>();
             
             services.AddExtCore(this._pluginsPath);
 
