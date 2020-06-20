@@ -135,6 +135,8 @@ namespace WebMvcPluginTour.Controllers
                         || !CoreHelper.GetParameter(out var jsonImages, body, "Images",
                             JTokenType.Array, ref responseModel, true)
                         || !CoreHelper.GetParameter(out var jsonTourId, body, "TourId", 
+                            JTokenType.Integer, ref responseModel, isNullable: true)
+                        || !CoreHelper.GetParameter(out var jsonRating, body, "Rating", 
                             JTokenType.Integer, ref responseModel, isNullable: true))
                     {
                         break;
@@ -142,11 +144,21 @@ namespace WebMvcPluginTour.Controllers
 
                     var isTourIdParsed =
                         int.TryParse(jsonTourId?.ToString(), out var tourId);
+                    var isRatingParsed =
+                        int.TryParse(jsonTourId?.ToString(), out var rating);
                     
                     var content = jsonContent?.ToString();
                     var images = jsonImages != null
                         ? JsonConvert.DeserializeObject<string[]>(jsonImages.ToString())
                         : null;
+
+                    if (isTourIdParsed)
+                    {
+                        if (!isRatingParsed || rating < 1 || rating > 5)
+                        {
+                            throw new ExceptionWithMessage("Rating is invalid");
+                        }
+                    }
 
                     var post = new Post(
                         content: content,

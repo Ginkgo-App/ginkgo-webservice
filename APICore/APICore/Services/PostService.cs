@@ -40,9 +40,16 @@ namespace APICore.Services
             {
                 DbService.ConnectDb(out _context);
 
-                var _ = _context.Tours.FirstOrDefault(t => t.Id == post.TourId && t.DeletedAt == null) ??
-                        throw new ExceptionWithMessage("Tour not found");
-
+                if (post.TourId != null)
+                {
+                    var _ = _context.Tours.FirstOrDefault(t => t.Id == post.TourId && t.DeletedAt == null) ??
+                            throw new ExceptionWithMessage("Tour not found");
+                }
+                else
+                {
+                    post.Rating = null;
+                }
+                
                 _context.Posts.Add(post);
                 _context.SaveChanges();
             }
