@@ -466,8 +466,9 @@ namespace WebMvcPluginTour.Controllers
                         content: string.Empty,
                         images: new string[0], 
                         authorId: userId,
-                        at: DateTime.Now, 
-                        tourId: tour.Id
+                        createAt: DateTime.Now, 
+                        tourId: tour.Id,
+                        rating: null
                     );
                     
                     //Add post for tour

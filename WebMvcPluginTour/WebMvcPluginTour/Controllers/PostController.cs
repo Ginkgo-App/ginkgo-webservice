@@ -152,8 +152,9 @@ namespace WebMvcPluginTour.Controllers
                         content: content,
                         tourId: isTourIdParsed ? tourId : (int?) null,
                         images: images!,
-                        at: DateTime.Now, 
-                        authorId: CoreHelper.GetUserId(HttpContext, ref  responseModel)
+                        createAt: DateTime.Now, 
+                        authorId: CoreHelper.GetUserId(HttpContext, ref  responseModel),
+                        rating: null
                     );
 
                     if (!_postService.AddNewPost(post))
@@ -192,14 +193,14 @@ namespace WebMvcPluginTour.Controllers
                             JTokenType.String, ref responseModel, true)
                         || !CoreHelper.GetParameter(out var jsonImages, body, "Images",
                             JTokenType.Array, ref responseModel, true)
-                        || !CoreHelper.GetParameter(out var jsonTourId, body, "TourId", 
-                            JTokenType.Integer, ref responseModel, isNullable: true))
+                        || !CoreHelper.GetParameter(out var jsonRating, body, "Rating", 
+                            JTokenType.Float, ref responseModel, isNullable: true))
                     {
                         break;
                     }
 
-                    var isTourIdParsed =
-                        int.TryParse(jsonTourId?.ToString(), out var tourId);
+                    var isRatingParsed =
+                        float.TryParse(jsonRating?.ToString(), out var rating);
                     
                     var content = jsonContent?.ToString();
                     var images = jsonImages != null
@@ -215,7 +216,7 @@ namespace WebMvcPluginTour.Controllers
                     post.Update(
                         content: content,
                         images: images!,
-                        at: DateTime.Now
+                        rating: isRatingParsed ? rating : (float?) null
                     );
 
                     if (!_postService.Update(post))
