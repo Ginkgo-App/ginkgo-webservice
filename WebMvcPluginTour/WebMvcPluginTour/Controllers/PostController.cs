@@ -13,7 +13,7 @@ namespace WebMvcPluginTour.Controllers
 {
     [Authorize]
     [ApiController]
-    [Route("api/" + TourVars.Version + "/post")]
+    [Route("api/" + TourVars.Version + "/posts")]
     public class PostController : ControllerBase
     {
         private readonly ITourInfoService _tourInfoService;
