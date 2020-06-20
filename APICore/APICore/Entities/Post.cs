@@ -33,7 +33,7 @@ namespace APICore.Entities
         public int Id { get; private set; }
         public int? TourId { get; private set; }
         
-        public double? Rating { get; private set; }
+        public double? Rating { get;  set; }
         public string? Content { get; private set; }
         public string[]? Images { get; private set; }
         public int TotalLike { get;  set; }

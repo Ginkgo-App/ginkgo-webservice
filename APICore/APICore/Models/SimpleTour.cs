@@ -17,11 +17,12 @@ namespace APICore.Models
         public SimpleUser Host { get; }
         public List<SimpleUser> Friends { get; }
         public double Price { get; }
-
+        public DateTime? JoinAt { get; }
+        public DateTime? AcceptedAt { get; }
         public TourInfo TourInfo { get; }
 
         public SimpleTour(int id, string name, DateTime startDay, DateTime endDay, int totalMember, SimpleUser host,
-            List<SimpleUser> friends, double price, TourInfo tourInfo)
+            List<SimpleUser> friends, double price, TourInfo tourInfo, DateTime? joinAt, DateTime? acceptedAt)
         {
             Id = id;
             Name = name;
@@ -32,6 +33,8 @@ namespace APICore.Models
             Friends = friends;
             Price = price;
             TourInfo = tourInfo;
+            JoinAt = joinAt;
+            AcceptedAt = acceptedAt;
         }
 
         public JObject ToJson()

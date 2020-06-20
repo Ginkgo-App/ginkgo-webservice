@@ -386,7 +386,7 @@ namespace WebMvcPluginUser.Controllers
         }
 
         [HttpGet("me/tours")]
-        public object GetMyTours([FromQuery] int page, [FromQuery] int pageSize)
+        public object GetMyTours([FromQuery] int page, [FromQuery] int pageSize, [FromQuery] string type)
         {
             var responseModel = new ResponseModel();
 
@@ -397,7 +397,7 @@ namespace WebMvcPluginUser.Controllers
                     CoreHelper.ValidatePageSize(ref page, ref pageSize);
 
                     var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
-                    _userService.TryGetTours(userId, page, pageSize, out var tours, out var pagination);
+                    _userService.TryGetTours(userId, page, pageSize, type, out var tours, out var pagination);
 
                     if (tours == null)
                     {
@@ -406,9 +406,9 @@ namespace WebMvcPluginUser.Controllers
                     }
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data = tours.Count > 0 
-                        ? JArray.FromObject(tours.Select(t=>t.ToJson())) 
-                        : new JArray() ;
+                    responseModel.Data = tours.Count > 0
+                        ? JArray.FromObject(tours.Select(t => t.ToJson()))
+                        : new JArray();
                     responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
                 } while (false);
             }
@@ -419,7 +419,7 @@ namespace WebMvcPluginUser.Controllers
 
             return responseModel.ToJson();
         }
-        
+
         [HttpGet("me/tour-infos")]
         public object GetMyTourInfos([FromQuery] int page, [FromQuery] int pageSize)
         {
@@ -432,7 +432,8 @@ namespace WebMvcPluginUser.Controllers
                     CoreHelper.ValidatePageSize(ref page, ref pageSize);
 
                     var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
-                    _tourInfoService.TryGetTourInfosByUserId(userId, page, pageSize, out var tourInfos, out var pagination);
+                    _tourInfoService.TryGetTourInfosByUserId(userId, page, pageSize, out var tourInfos,
+                        out var pagination);
 
                     if (tourInfos == null)
                     {
@@ -441,9 +442,9 @@ namespace WebMvcPluginUser.Controllers
                     }
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data = tourInfos.Count > 0 
-                        ? JArray.FromObject(tourInfos.Select(t=>t.ToJson())) 
-                        : new JArray() ;
+                    responseModel.Data = tourInfos.Count > 0
+                        ? JArray.FromObject(tourInfos.Select(t => t.ToJson()))
+                        : new JArray();
                     responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
                 } while (false);
             }
@@ -454,7 +455,7 @@ namespace WebMvcPluginUser.Controllers
 
             return responseModel.ToJson();
         }
-        
+
         [HttpGet("{userId}/tour-infos")]
         public object GetMyTourInfos(int userId, [FromQuery] int page, [FromQuery] int pageSize)
         {
@@ -466,7 +467,8 @@ namespace WebMvcPluginUser.Controllers
                 {
                     CoreHelper.ValidatePageSize(ref page, ref pageSize);
 
-                    _tourInfoService.TryGetTourInfosByUserId(userId, page, pageSize, out var tourInfos, out var pagination);
+                    _tourInfoService.TryGetTourInfosByUserId(userId, page, pageSize, out var tourInfos,
+                        out var pagination);
 
                     if (tourInfos == null)
                     {
@@ -475,9 +477,9 @@ namespace WebMvcPluginUser.Controllers
                     }
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data = tourInfos.Count > 0 
-                        ? JArray.FromObject(tourInfos.Select(t=>t.ToJson())) 
-                        : new JArray() ;
+                    responseModel.Data = tourInfos.Count > 0
+                        ? JArray.FromObject(tourInfos.Select(t => t.ToJson()))
+                        : new JArray();
                     responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
                 } while (false);
             }
@@ -558,7 +560,8 @@ namespace WebMvcPluginUser.Controllers
                         break;
                     }
 
-                    var listFriendSimple = friends.Select(u => u.ToSimpleUser(friendType))?.ToList() ?? new List<SimpleUser>();
+                    var listFriendSimple = friends.Select(u => u.ToSimpleUser(friendType))?.ToList() ??
+                                           new List<SimpleUser>();
 
                     responseModel.FromErrorCode(ErrorCode.Success);
                     responseModel.Data = JArray.FromObject(listFriendSimple);

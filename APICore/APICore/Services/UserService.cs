@@ -11,6 +11,7 @@ using APICore.Helpers;
 using APICore.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
@@ -34,7 +35,7 @@ namespace APICore.Services
         bool TryAddAuthProvider(AuthProvider authProvider, User user);
         bool TryGetFacebookInfo(string accessToken, out AuthProvider authProvider);
 
-        bool TryGetTours(int userId, int page, int pageSize, out List<SimpleTour> tours,
+        bool TryGetTours(int userId, int page, int pageSize, string type, out List<SimpleTour> tours,
             out Pagination pagination);
 
         bool TryGetTourInfoById(int tourId, out TourInfo tourInfos);
@@ -408,20 +409,33 @@ namespace APICore.Services
             return true;
         }
 
-        public bool TryGetTours(int userId, int page, int pageSize, out List<SimpleTour> tours,
+        public bool TryGetTours(int userId, int page, int pageSize, string type, out List<SimpleTour> tours,
             out Pagination pagination)
         {
             tours = null;
             pagination = null;
-            var isSuccess = false;
+            bool isSuccess;
+            type = type?.ToLower();
 
             try
             {
                 DbService.ConnectDb(out _context);
 
-                var toursDb = (from t in _context.Tours
+                var test = from t in _context.Tours
                     join ti in _context.TourInfos on t.TourInfoId equals ti.Id
-                    join tm in _context.TourMembers on t.Id equals tm.TourId
+                    join tm in _context.TourMembers on t.Id equals tm.TourId into tourInfoMember
+                    from tim in tourInfoMember.DefaultIfEmpty()
+                    join host in _context.Users on t.CreateBy equals host.Id
+                    where (type != null && type.Equals("owner") && host.Id == userId)
+                          || (type != null && type.Equals("member") && tim != null && tim.UserId == userId)
+                          || ((type == null || (!type.Equals("owner") && !type.Equals("member"))
+                              && (t.CreateBy == userId || (tim != null && tim.UserId == userId))))
+                    select tim;
+                
+                var toursDb = (from t in _context.Tours 
+                    join ti in _context.TourInfos on t.TourInfoId equals ti.Id
+                    join tm in _context.TourMembers on t.Id equals tm.TourId into tourInfoMember
+                    from tim in tourInfoMember.DefaultIfEmpty()
                     join host in _context.Users on t.CreateBy equals host.Id
                     let f = (from tourMember in _context.TourMembers
                             join friend in (from fr in _context.Friends.Where(fr =>
@@ -434,18 +448,23 @@ namespace APICore.Services
                             join user in _context.Users on friend.Id equals user.Id
                             select user
                         )
-                    where t.CreateBy == userId || tm.UserId == userId
+                    where (type != null && type.Equals("owner") && host.Id == userId)
+                          || (type != null && type.Equals("member") && tim != null && tim.UserId == userId)
+                          || ((type == null || (!type.Equals("owner") && !type.Equals("member"))
+                              && (t.CreateBy == userId || (tim != null && tim.UserId == userId))))
                     select new
                     {
-                        Id = t.Id,
-                        Name = t.Name,
-                        StartDay = t.StartDay,
-                        EndDay = t.EndDay,
-                        Price = t.Price,
+                        t.Id,
+                        t.Name,
+                        t.StartDay,
+                        t.EndDay,
+                        t.Price,
                         Host = host,
                         Friends = f.ToList(),
-                        TourInfo = ti
-                    }).AsEnumerable().Distinct((a, b) => a.Id == b.Id).ToList();
+                        TourInfo = ti,
+                        tim.JoinAt,
+                        tim.AcceptedAt
+                    }).AsEnumerable()?.Distinct((a, b) => a.Id == b.Id).ToList();
 
                 var total = toursDb.Count();
                 var skip = pageSize * (page - 1);
@@ -461,9 +480,18 @@ namespace APICore.Services
                             ? e.Friends.Select(u => u.ToSimpleUser(FriendType.Accepted)).ToList()
                             : new List<SimpleUser>();
 
-                        return new SimpleTour(e.Id, e.Name, e.StartDay, e.EndDay, totalMember,
-                            e.Host.ToSimpleUser(_friendService.CalculateIsFriend(userId, e.Host.Id)), listFriend,
-                            e.Price, e.TourInfo);
+                        return new SimpleTour(
+                            e.Id, 
+                            e.Name, 
+                            e.StartDay, 
+                            e.EndDay, 
+                            totalMember,
+                            e.Host.ToSimpleUser(_friendService.CalculateIsFriend(userId, e.Host.Id)), 
+                            listFriend,
+                            e.Price, 
+                            e.TourInfo,
+                            e.JoinAt,
+                            e.AcceptedAt);
                     })
                     .ToList();
 
