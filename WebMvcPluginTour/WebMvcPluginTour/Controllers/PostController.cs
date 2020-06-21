@@ -176,7 +176,10 @@ namespace WebMvcPluginTour.Controllers
                     }
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data =JArray.FromObject(post);
+                    responseModel.Data = new JArray()
+                    {
+                        JObject.FromObject(post)
+                    };
                 } while (false);
             }
             catch (Exception ex)
