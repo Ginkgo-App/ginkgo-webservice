@@ -1,6 +1,8 @@
 ﻿#nullable enable
 using System;
+using System.ComponentModel.DataAnnotations.Schema;
 using APICore.Models;
+using Newtonsoft.Json.Linq;
 
 namespace APICore.Entities
 {
@@ -25,9 +27,21 @@ namespace APICore.Entities
         public int PostId { get; private set; }
         public DateTime CreateAt { get; private set; }
         public DateTime? DeletedAt { get; set; }
+        
+        [NotMapped]
+        public SimpleUser SimpleUser { get; set; }
         public void Delete()
         {
             DeletedAt = DateTime.Now;
+        }
+        
+        public JObject ToJson()
+        {
+            var result = JObject.FromObject(this);
+
+            result.Remove("UserId");
+
+            return result;
         }
     }
 }

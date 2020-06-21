@@ -24,7 +24,8 @@ namespace WebMvcPluginTour.Controllers
         private readonly IPostService _postService;
 
         public PostController(ITourInfoService tourInfoService, IUserService userService,
-            IFriendService friendService, ITourService tourService, IServiceService serviceService, IPostService postService)
+            IFriendService friendService, ITourService tourService, IServiceService serviceService,
+            IPostService postService)
         {
             _tourInfoService = tourInfoService;
             _userService = userService;
@@ -33,7 +34,7 @@ namespace WebMvcPluginTour.Controllers
             _serviceService = serviceService;
             _postService = postService;
         }
-        
+
         [HttpGet]
         public object GetMyPosts([FromQuery] int page, [FromQuery] int pageSize)
         {
@@ -47,12 +48,72 @@ namespace WebMvcPluginTour.Controllers
 
                     if (_postService.GetPostByUserId(userId, page, pageSize, out var posts, out var pagination))
                     {
-                        responseModel.FromErrorCode(ErrorCode.Fail); 
+                        responseModel.FromErrorCode(ErrorCode.Fail);
                         break;
                     }
 
                     responseModel.FromErrorCode(ErrorCode.Success);
                     responseModel.Data = JArray.FromObject(posts);
+                    responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
+
+        [HttpGet("{id}/users-liked")]
+        public object GetUserLikePost(int id, [FromQuery] int page, [FromQuery] int pageSize)
+        {
+            var responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
+                    var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
+
+                    if (!_postService.GetUserLike(userId, id, page, pageSize, out var users, out var pagination))
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    responseModel.FromErrorCode(ErrorCode.Success);
+                    responseModel.Data = JArray.FromObject(users);
+                    responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
+        
+        [HttpGet("{id}/comments")]
+        public object GetPostComment(int id, [FromQuery] int page, [FromQuery] int pageSize)
+        {
+            var responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
+                    var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
+
+                    if (!_postService.GetUserComment(userId, id, page, pageSize, out var postComments, out var pagination))
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    responseModel.FromErrorCode(ErrorCode.Success);
+                    responseModel.Data = JArray.FromObject(postComments);
                     responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
                 } while (false);
             }
@@ -74,12 +135,15 @@ namespace WebMvcPluginTour.Controllers
                 {
                     if (_postService.GetPostByTourId(tourId, out var post))
                     {
-                        responseModel.FromErrorCode(ErrorCode.Fail); 
+                        responseModel.FromErrorCode(ErrorCode.Fail);
                         break;
                     }
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data = JArray.FromObject(post);
+                    responseModel.Data = new JArray()
+                    {
+                        JObject.FromObject(post)
+                    };
                 } while (false);
             }
             catch (Exception ex)
@@ -89,7 +153,7 @@ namespace WebMvcPluginTour.Controllers
 
             return responseModel.ToJson();
         }
-        
+
         [HttpGet("{id}")]
         public object GetPostById(int id)
         {
@@ -100,12 +164,15 @@ namespace WebMvcPluginTour.Controllers
                 {
                     if (_postService.GetPostById(id, out var post))
                     {
-                        responseModel.FromErrorCode(ErrorCode.Fail); 
+                        responseModel.FromErrorCode(ErrorCode.Fail);
                         break;
                     }
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data = JArray.FromObject(post);
+                    responseModel.Data = new JArray()
+                    {
+                        JObject.FromObject(post)
+                    };
                 } while (false);
             }
             catch (Exception ex)
@@ -117,7 +184,7 @@ namespace WebMvcPluginTour.Controllers
         }
 
         [HttpPost]
-        public object CreateNewPost(int id, [FromBody]object requestBody)
+        public object CreateNewPost(int id, [FromBody] object requestBody)
         {
             var responseModel = new ResponseModel();
             try
@@ -134,9 +201,9 @@ namespace WebMvcPluginTour.Controllers
                             JTokenType.String, ref responseModel)
                         || !CoreHelper.GetParameter(out var jsonImages, body, "Images",
                             JTokenType.Array, ref responseModel, true)
-                        || !CoreHelper.GetParameter(out var jsonTourId, body, "TourId", 
+                        || !CoreHelper.GetParameter(out var jsonTourId, body, "TourId",
                             JTokenType.Integer, ref responseModel, isNullable: true)
-                        || !CoreHelper.GetParameter(out var jsonRating, body, "Rating", 
+                        || !CoreHelper.GetParameter(out var jsonRating, body, "Rating",
                             JTokenType.Integer, ref responseModel, isNullable: true))
                     {
                         break;
@@ -146,7 +213,7 @@ namespace WebMvcPluginTour.Controllers
                         int.TryParse(jsonTourId?.ToString(), out var tourId);
                     var isRatingParsed =
                         int.TryParse(jsonTourId?.ToString(), out var rating);
-                    
+
                     var content = jsonContent?.ToString();
                     var images = jsonImages != null
                         ? JsonConvert.DeserializeObject<string[]>(jsonImages.ToString())
@@ -164,9 +231,9 @@ namespace WebMvcPluginTour.Controllers
                         content: content,
                         tourId: isTourIdParsed ? tourId : (int?) null,
                         images: images!,
-                        createAt: DateTime.Now, 
-                        authorId: CoreHelper.GetUserId(HttpContext, ref  responseModel),
-                        rating: null
+                        createAt: DateTime.Now,
+                        authorId: userId,
+                        rating: isRatingParsed ? rating : (int?) null
                     );
 
                     if (!_postService.AddNewPost(post))
@@ -189,9 +256,9 @@ namespace WebMvcPluginTour.Controllers
 
             return responseModel.ToJson();
         }
-        
+
         [HttpPut("{id}")]
-        public object UpdatePost(int id, [FromBody]object requestBody)
+        public object UpdatePost(int id, [FromBody] object requestBody)
         {
             var responseModel = new ResponseModel();
             try
@@ -208,7 +275,7 @@ namespace WebMvcPluginTour.Controllers
                             JTokenType.String, ref responseModel, true)
                         || !CoreHelper.GetParameter(out var jsonImages, body, "Images",
                             JTokenType.Array, ref responseModel, true)
-                        || !CoreHelper.GetParameter(out var jsonRating, body, "Rating", 
+                        || !CoreHelper.GetParameter(out var jsonRating, body, "Rating",
                             JTokenType.Float, ref responseModel, isNullable: true))
                     {
                         break;
@@ -216,16 +283,21 @@ namespace WebMvcPluginTour.Controllers
 
                     var isRatingParsed =
                         float.TryParse(jsonRating?.ToString(), out var rating);
-                    
+
                     var content = jsonContent?.ToString();
                     var images = jsonImages != null
                         ? JsonConvert.DeserializeObject<string[]>(jsonImages.ToString())
                         : null;
-                    
+
                     if (!_postService.GetPostById(id, out var post))
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
                         break;
+                    }
+
+                    if (post.AuthorId != userId)
+                    {
+                        throw new ExceptionWithMessage("You dont have permission");
                     }
 
                     post.Update(
@@ -241,7 +313,10 @@ namespace WebMvcPluginTour.Controllers
                     }
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data =JArray.FromObject(post);
+                    responseModel.Data = new JArray()
+                    {
+                        JObject.FromObject(post)
+                    };
                 } while (false);
             }
             catch (Exception ex)
@@ -251,9 +326,9 @@ namespace WebMvcPluginTour.Controllers
 
             return responseModel.ToJson();
         }
-        
+
         [HttpDelete("{id}")]
-        public object DeletePost(int id, [FromBody]object requestBody)
+        public object DeletePost(int id, [FromBody] object requestBody)
         {
             var responseModel = new ResponseModel();
             try
@@ -275,7 +350,10 @@ namespace WebMvcPluginTour.Controllers
                     }
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data =JArray.FromObject(post);
+                    responseModel.Data = new JArray()
+                    {
+                        JObject.FromObject(post)
+                    };
                 } while (false);
             }
             catch (Exception ex)
@@ -285,9 +363,9 @@ namespace WebMvcPluginTour.Controllers
 
             return responseModel.ToJson();
         }
-        
+
         [HttpPost("{id}/like")]
-        public object LikePost(int id, [FromBody]object requestBody)
+        public object LikePost(int id, [FromBody] object requestBody)
         {
             var responseModel = new ResponseModel();
             try
@@ -295,7 +373,7 @@ namespace WebMvcPluginTour.Controllers
                 do
                 {
                     var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
-                    
+
                     if (!_postService.GetPostById(id, out var post))
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
@@ -309,7 +387,10 @@ namespace WebMvcPluginTour.Controllers
                     }
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data =JArray.FromObject(post);
+                    responseModel.Data = new JArray()
+                    {
+                        JObject.FromObject(post)
+                    };
                 } while (false);
             }
             catch (Exception ex)
@@ -319,9 +400,9 @@ namespace WebMvcPluginTour.Controllers
 
             return responseModel.ToJson();
         }
-        
+
         [HttpDelete("{id}/like")]
-        public object DislikePost(int id, [FromBody]object requestBody)
+        public object DislikePost(int id, [FromBody] object requestBody)
         {
             var responseModel = new ResponseModel();
             try
@@ -329,7 +410,7 @@ namespace WebMvcPluginTour.Controllers
                 do
                 {
                     var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
-                    
+
                     if (!_postService.GetPostById(id, out var post))
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
@@ -343,7 +424,10 @@ namespace WebMvcPluginTour.Controllers
                     }
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data =JArray.FromObject(post);
+                    responseModel.Data = new JArray()
+                    {
+                        JObject.FromObject(post)
+                    };
                 } while (false);
             }
             catch (Exception ex)

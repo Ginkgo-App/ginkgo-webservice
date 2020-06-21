@@ -16,6 +16,13 @@ namespace APICore.Services
         bool DeletePost(int postId);
         bool GetPostByTourId(int tourId, out Post post);
         bool GetPostByUserId(int userId, int page, int pageSize, out List<Post> posts, out Pagination pagination);
+
+        bool GetUserLike(int userId, int postId, int page, int pageSize, out List<SimpleUser> simpleUsers,
+            out Pagination pagination);
+
+        bool GetUserComment(int userId, int postId, int page, int pageSize, out List<PostComment> postComments,
+            out Pagination pagination);
+
         bool GetPostById(int id, out Post post);
         bool LikePost(int postId, int userId);
         bool DislikePost(int postId, int userId);
@@ -28,10 +35,12 @@ namespace APICore.Services
         private PostgreSQLContext _context;
         private readonly AppSettings _appSettings;
         private readonly Logger _logger = Vars.Logger;
+        private FriendService _friendService;
 
         public PostService(IOptions<AppSettings> appSettings)
         {
             _appSettings = appSettings.Value;
+            _friendService = new FriendService(appSettings);
         }
 
         public bool AddNewPost(Post post)
@@ -49,7 +58,7 @@ namespace APICore.Services
                 {
                     post.Rating = null;
                 }
-                
+
                 _context.Posts.Add(post);
                 _context.SaveChanges();
             }
@@ -161,6 +170,115 @@ namespace APICore.Services
             return true;
         }
 
+        public bool GetUserLike(int userId, int postId, int page, int pageSize, out List<SimpleUser> simpleUsers,
+            out Pagination pagination)
+        {
+            try
+            {
+                DbService.ConnectDb(out _context);
+
+                var _ = _context.Posts.FirstOrDefault(t => t.Id == postId && t.DeletedAt == null) ??
+                        throw new ExceptionWithMessage("Post not found");
+
+                var users = (from pl in _context.PostLikes
+                    join user in _context.Users on pl.UserId equals user.Id
+                    select user).ToList();
+
+                var total = users.Count();
+                var skip = pageSize * (page - 1);
+
+                var canPage = skip < total;
+                List<User> resultUsers;
+
+                if (canPage)
+                {
+                    resultUsers = pageSize <= 0
+                        ? users
+                        : users
+                            .Skip(skip)
+                            .Take(pageSize)
+                            .ToList();
+                }
+                else
+                {
+                    resultUsers = new List<User>();
+                }
+
+                simpleUsers = new List<SimpleUser>();
+
+                foreach (var user in resultUsers)
+                {
+                    var friendType = _friendService.CalculateIsFriend(userId, user.Id);
+                    simpleUsers.Add(user.ToSimpleUser(friendType));
+                }
+
+                pagination = new Pagination(total, page, pageSize > 0 ? pageSize : total);
+            }
+            finally
+            {
+                DbService.DisconnectDb(ref _context);
+            }
+
+            return true;
+        }
+
+        public bool GetUserComment(int userId, int postId, int page, int pageSize, out List<PostComment> postComments,
+            out Pagination pagination)
+        {
+            try
+            {
+                DbService.ConnectDb(out _context);
+
+                var _ = _context.Posts.FirstOrDefault(t => t.Id == postId && t.DeletedAt == null) ??
+                        throw new ExceptionWithMessage("Post not found");
+
+                var userComments = (from pc in _context.PostComments
+                    join user in _context.Users on pc.UserId equals user.Id
+                    select new
+                    {
+                        user,
+                        pc
+                    }).ToList();
+
+                var postCommentDb = new List<PostComment>();
+
+                foreach (var userComment in userComments)
+                {
+                    var friendType = _friendService.CalculateIsFriend(userId, userComment.user.Id);
+                    userComment.pc.SimpleUser = userComment.user.ToSimpleUser(friendType);
+                    postCommentDb.Add(userComment.pc);
+                }
+
+                var total = postCommentDb.Count();
+                var skip = pageSize * (page - 1);
+
+                var canPage = skip < total;
+                List<User> resultUsers;
+
+                if (canPage)
+                {
+                    postComments = pageSize <= 0
+                        ? postCommentDb
+                        : postCommentDb
+                            .Skip(skip)
+                            .Take(pageSize)
+                            .ToList();
+                }
+                else
+                {
+                    postComments = new List<PostComment>();
+                }
+
+                pagination = new Pagination(total, page, pageSize > 0 ? pageSize : total);
+            }
+            finally
+            {
+                DbService.DisconnectDb(ref _context);
+            }
+
+            return true;
+        }
+
         public bool GetPostById(int id, out Post post)
         {
             try
@@ -192,15 +310,19 @@ namespace APICore.Services
 
                 if (postLike == null)
                 {
-                    var newPostLike = new PostLike(postId, userId);
+                    var newPostLike = new PostLike(userId, postId);
                     _context.PostLikes.Add(newPostLike);
                     post.TotalLike++;
                 }
-                else
+                else if (postLike.DeletedAt != null)
                 {
                     postLike.CreateAt = DateTime.Now;
                     postLike.DeletedAt = null;
                     post.TotalLike++;
+                }
+                else
+                {
+                    throw new ExceptionWithMessage("You already like this post");
                 }
 
                 _context.SaveChanges();
@@ -226,8 +348,15 @@ namespace APICore.Services
                 var postLike = _context.PostLikes.FirstOrDefault(p => p.PostId == postId && p.UserId == userId) ??
                                throw new ExceptionWithMessage("You did not like the post yet");
 
-                postLike.DeletedAt = DateTime.Now;
-                post.TotalLike--;
+                if (postLike.DeletedAt == null)
+                {
+                    postLike.DeletedAt = DateTime.Now;
+                    post.TotalLike--;
+                }
+                else
+                {
+                    throw new ExceptionWithMessage("You did not like the post yet");
+                }
 
                 _context.SaveChanges();
             }
