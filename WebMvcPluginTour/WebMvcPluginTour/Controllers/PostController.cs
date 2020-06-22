@@ -212,8 +212,7 @@ namespace WebMvcPluginTour.Controllers
                     var isTourIdParsed =
                         int.TryParse(jsonTourId?.ToString(), out var tourId);
                     var isRatingParsed =
-                        int.TryParse(jsonTourId?.ToString(), out var rating);
-
+                        int.TryParse(jsonRating?.ToString(), out var rating);
                     var content = jsonContent?.ToString();
                     var images = jsonImages != null
                         ? JsonConvert.DeserializeObject<string[]>(jsonImages.ToString())
