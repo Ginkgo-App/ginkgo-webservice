@@ -87,6 +87,8 @@ namespace APICore.Services
                     tourInfo.StartPlace = startPlace;
                     tourInfo.DestinatePlace = destinatePlace;
                 }
+                
+                tourInfos = tourInfos.OrderByDescending(t => t.Id).ToList();
 
                 pagination = new Pagination(total, page, pageSize > 0 ? pageSize : total);
                 errorCode = ErrorCode.Success;
@@ -141,6 +143,8 @@ namespace APICore.Services
                     tourInfo.StartPlace = startPlace;
                     tourInfo.DestinatePlace = destinatePlace;
                 }
+
+                tourInfos = tourInfos.OrderByDescending(t => t.Id).ToList();
 
                 pagination = new Pagination(total, page, pageSize > 0 ? pageSize : total);
                 errorCode = ErrorCode.Success;

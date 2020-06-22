@@ -25,22 +25,18 @@ namespace APICore.Entities
         public int StartPlaceId { get; private set; }
         public int DestinatePlaceId { get; private set; }
         public double? Rating { get; private set; }
-        
-        [NotMapped]
-        public  SimpleUser CreateBy { get; set; }
-        [NotMapped]
-        public  Place StartPlace { get; set; }
-        [NotMapped]
-        public  Place DestinatePlace { get; set; }
+
+        [NotMapped] public SimpleUser CreateBy { get; set; }
+        [NotMapped] public Place StartPlace { get; set; }
+        [NotMapped] public Place DestinatePlace { get; set; }
         public DateTime? DeletedAt { get; set; }
 
-        public JObject ToJson(SimpleUser? createBy = null,Place? startPlace = null, Place? destinatePlace = null)
+        public JObject ToJson(SimpleUser? createBy = null, Place? startPlace = null, Place? destinatePlace = null)
         {
-            
             CreateBy = createBy ?? CreateBy;
             StartPlace = startPlace ?? StartPlace;
             DestinatePlace = destinatePlace ?? DestinatePlace;
-            
+
             JObject json = JObject.FromObject(this);
 
             json.Remove("StartPlaceId");
@@ -48,8 +44,9 @@ namespace APICore.Entities
             json.Remove("DestinatePlaceId");
             return json;
         }
-        
-        public TourInfo Update(int? createById = null, string? name = null, string[] images = null, int? startPlaceId = null, int? destinatePlaceId = null)
+
+        public TourInfo Update(int? createById = null, string? name = null, string[] images = null,
+            int? startPlaceId = null, int? destinatePlaceId = null)
         {
             CreateById = createById ?? CreateById;
             Name = name ?? Name;
