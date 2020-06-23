@@ -17,7 +17,6 @@ namespace WebMvcPluginPlace.Controllers
     {
         private readonly IPlaceService _placeService;
 
-
         public AdminController(IPlaceService placeService)
         {
             _placeService = placeService;
@@ -110,10 +109,14 @@ namespace WebMvcPluginPlace.Controllers
                         || !CoreHelper.GetParameter(out var jsonTypeId, body, "TypeId", JTokenType.Integer,
                             ref responseModel)
                         || !CoreHelper.GetParameter(out var jsonParentId, body, "ParentId", JTokenType.Integer,
-                            ref responseModel)
+                            ref responseModel, true)
                         || !CoreHelper.GetParameter(out var jsonImages, body, "Images", JTokenType.Array,
                             ref responseModel, true)
                         || !CoreHelper.GetParameter(out var jsonDescription, body, "Description", JTokenType.String,
+                            ref responseModel, true)
+                        || !CoreHelper.GetParameter(out var jsonLongitude, body, "Longitude", JTokenType.Float,
+                            ref responseModel, true)
+                        || !CoreHelper.GetParameter(out var jsonLatitude, body, "Latitude", JTokenType.Float,
                             ref responseModel, true))
                     {
                         break;
@@ -131,6 +134,13 @@ namespace WebMvcPluginPlace.Controllers
                     var parentId = jsonParentId != null
                         ? int.Parse(jsonParentId.ToString())
                         : (int?) null;
+                    
+                    var longitude = jsonLongitude != null
+                        ? double.Parse(jsonLongitude.ToString())
+                        : (double?) null;
+                    var latitude = jsonLatitude != null
+                        ? double.Parse(jsonLatitude.ToString())
+                        : (double?) null;
 
                     if (typeId == null)
                     {
@@ -138,7 +148,7 @@ namespace WebMvcPluginPlace.Controllers
                         break;
                     }
 
-                    var place = new Place((int) typeId, name, images, description);
+                    var place = new Place((int) typeId, name, images, description, longitude, latitude);
 
                     if (!_placeService.TryAddPlace(place, parentId))
                     {
@@ -177,14 +187,18 @@ namespace WebMvcPluginPlace.Controllers
                         ? JObject.Parse(requestBody.ToString() ?? "{}")
                         : null;
 
-                    if (!CoreHelper.GetParameter(out var jsonName, body, "Name", JTokenType.String,
-                            ref responseModel)
-                        || !CoreHelper.GetParameter(out var jsonImages, body, "Images", JTokenType.Array,
-                            ref responseModel, true)
-                        || !CoreHelper.GetParameter(out var jsonDescription, body, "Description", JTokenType.String,
-                            ref responseModel, true)
-                        || !CoreHelper.GetParameter(out var jsonTypeId, body, "TypeId", JTokenType.Integer,
-                            ref responseModel, true))
+                    if (!CoreHelper.GetParameter(out var jsonName, body, "Name",
+                            JTokenType.String, ref responseModel)
+                        || !CoreHelper.GetParameter(out var jsonImages, body, "Images", 
+                            JTokenType.Array, ref responseModel, true)
+                        || !CoreHelper.GetParameter(out var jsonDescription, body, "Description", 
+                            JTokenType.String, ref responseModel, true)
+                        || !CoreHelper.GetParameter(out var jsonTypeId, body, "TypeId", 
+                            JTokenType.Integer, ref responseModel, true)
+                        || !CoreHelper.GetParameter(out var jsonLongitude, body, "Longitude", 
+                            JTokenType.Float, ref responseModel, true)
+                        || !CoreHelper.GetParameter(out var jsonLatitude, body, "Latitude", 
+                            JTokenType.Float, ref responseModel, true))
                     {
                         break;
                     }
@@ -196,8 +210,15 @@ namespace WebMvcPluginPlace.Controllers
                     var typeId = jsonTypeId != null
                         ? int.Parse(jsonTypeId.ToString())
                         : (int?) null;
+                    
+                    var longitude = jsonLongitude != null
+                        ? double.Parse(jsonLongitude.ToString())
+                        : (double?) null;
+                    var latitude = jsonLatitude != null
+                        ? double.Parse(jsonLatitude.ToString())
+                        : (double?) null;
 
-                    place.Update(jsonName?.ToString(), images, jsonDescription?.ToString(), typeId);
+                    place.Update(jsonName?.ToString(), images, jsonDescription?.ToString(), typeId, longitude, latitude);
 
                     if (!_placeService.TryUpdatePlace(place))
                     {

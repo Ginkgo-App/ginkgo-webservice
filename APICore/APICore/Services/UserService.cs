@@ -51,7 +51,7 @@ namespace APICore.Services
         private readonly AppSettings _appSettings;
         private readonly Logger _logger = Vars.Logger;
         private PostgreSQLContext _context;
-        private FriendService _friendService;
+        private readonly FriendService _friendService;
 
         public UserService(IOptions<AppSettings> appSettings)
         {
