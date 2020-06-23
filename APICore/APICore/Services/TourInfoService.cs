@@ -57,6 +57,7 @@ namespace APICore.Services
 
                 DbService.ConnectDb(out _context);
                 var listTourInfos = _context.TourInfos.Where(a => a.CreateById == userId && a.DeletedAt == null)
+                    .OrderByDescending(a=>a.Id)
                     .ToList();
 
                 var total = listTourInfos.Select(p => p.Id).Count();
@@ -87,8 +88,6 @@ namespace APICore.Services
                     tourInfo.StartPlace = startPlace;
                     tourInfo.DestinatePlace = destinatePlace;
                 }
-                
-                tourInfos = tourInfos.OrderByDescending(t => t.Id).ToList();
 
                 pagination = new Pagination(total, page, pageSize > 0 ? pageSize : total);
                 errorCode = ErrorCode.Success;
