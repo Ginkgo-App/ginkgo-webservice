@@ -13,6 +13,8 @@ namespace APICore.Models
             Name = place.Name;
             Images = place.Images;
             Description = place.Description;
+            Longitude = place.Longitude;
+            Latitude = place.Latitude;
             Type = type;
             ChildPlaces = childPlaces;
         }
@@ -21,6 +23,8 @@ namespace APICore.Models
         public string? Name { get; private set; }
         public string[]? Images { get; private set; }
         public string? Description { get; private set; }
+        public double? Longitude { get; private set; }
+        public double? Latitude { get; private set; }
         public PlaceType Type { get; private set; }
         public List<PlaceInfo> ChildPlaces { get; private set; }
         
