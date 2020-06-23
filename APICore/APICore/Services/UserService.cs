@@ -420,17 +420,6 @@ namespace APICore.Services
             try
             {
                 DbService.ConnectDb(out _context);
-
-                var test = from t in _context.Tours
-                    join ti in _context.TourInfos on t.TourInfoId equals ti.Id
-                    join tm in _context.TourMembers on t.Id equals tm.TourId into tourInfoMember
-                    from tim in tourInfoMember.DefaultIfEmpty()
-                    join host in _context.Users on t.CreateBy equals host.Id
-                    where (type != null && type.Equals("owner") && host.Id == userId)
-                          || (type != null && type.Equals("member") && tim != null && tim.UserId == userId)
-                          || ((type == null || (!type.Equals("owner") && !type.Equals("member"))
-                              && (t.CreateBy == userId || (tim != null && tim.UserId == userId))))
-                    select tim;
                 
                 var toursDb = (from t in _context.Tours 
                     join ti in _context.TourInfos on t.TourInfoId equals ti.Id
