@@ -29,7 +29,7 @@ namespace APICore.Entities
         public DateTime? DeletedAt { get; set; }
         
         [NotMapped]
-        public SimpleUser SimpleUser { get; set; }
+        public SimpleUser Author { get; set; }
         public void Delete()
         {
             DeletedAt = DateTime.Now;

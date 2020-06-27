@@ -248,6 +248,7 @@ namespace APICore.Services
 
                 var userComments = (from pc in _context.PostComments
                     join user in _context.Users on pc.UserId equals user.Id
+                    where pc.DeletedAt == null && pc.PostId == postId
                     select new
                     {
                         user,
@@ -259,7 +260,7 @@ namespace APICore.Services
                 foreach (var userComment in userComments)
                 {
                     var friendType = _friendService.CalculateIsFriend(userId, userComment.user.Id);
-                    userComment.pc.SimpleUser = userComment.user.ToSimpleUser(friendType);
+                    userComment.pc.Author = userComment.user.ToSimpleUser(friendType);
                     postCommentDb.Add(userComment.pc);
                 }
 
@@ -307,7 +308,7 @@ namespace APICore.Services
                 var postComments = _context.PostComments.Where(pc => pc.PostId == postDb.Id)
                     .OrderByDescending(pc => pc.CreateAt)?.ToList();
 
-                post.FeaturedComment = postComments != null ? postComments[0] : null;
+                post.FeaturedComment = postComments != null && postComments.Count > 0 ? postComments[0] : null;
             }
             finally
             {
@@ -404,6 +405,9 @@ namespace APICore.Services
                 post.TotalComment++;
 
                 _context.SaveChanges();
+
+                var friendType = _friendService.CalculateIsFriend(post.AuthorId, post.AuthorId);
+                postComment.Author = user.ToSimpleUser(friendType);
             }
             finally
             {
@@ -454,8 +458,7 @@ namespace APICore.Services
             post.FeaturedComment = postComments.Count > 0 ? postComments[0] : null;
 
             var tour = _context.Tours.FirstOrDefault(t => t.Id == post.TourId && t.DeletedAt == null);
-            
-            
+
 
             post.Tour = tour;
 
@@ -466,5 +469,35 @@ namespace APICore.Services
 
             return;
         }
+
+        // private void GetPostAdditionalData_join(int userId, out Post result)
+        // {
+        //     var rs = from post in _context.Posts
+        //         join user in _context.Users on post.AuthorId equals user.Id
+        //         join tour in _context.Tours on post.TourId equals tour.Id
+        //         join tourInfo in _context.TourInfos on tour.TourInfoId equals tourInfo.Id
+        //         join plContexts in _context.PostLikes on new {post.Id, post.AuthorId} equals new
+        //             {plContexts.PostId, plContexts.UserId} into pl
+        //         from subPl in pl.DefaultIfEmpty()
+        //         select new
+        //         {
+        //         };
+        //
+        //     post.Author = author?.ToSimpleUser(_friendService.CalculateIsFriend(userId, authorId));
+        //
+        //     var postComments = _context.PostComments.Where(pc => pc.PostId == post.Id)
+        //         .OrderByDescending(pc => pc.CreateAt)?.ToList();
+        //
+        //     post.FeaturedComment = postComments.Count > 0 ? postComments[0] : null;
+        //
+        //     post.Tour = tour;
+        //
+        //     var isLike = _context.PostLikes.FirstOrDefault(pl =>
+        //         pl.PostId == post.Id && pl.UserId == userId && pl.DeletedAt == null) != null;
+        //
+        //     post.IsLike = isLike;
+        //
+        //     return;
+        // }
     }
 }

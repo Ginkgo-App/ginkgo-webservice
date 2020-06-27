@@ -94,7 +94,7 @@ namespace WebMvcPluginTour.Controllers
 
             return responseModel.ToJson();
         }
-        
+
         [HttpGet("{id}/comments")]
         public object GetPostComment(int id, [FromQuery] int page, [FromQuery] int pageSize)
         {
@@ -106,7 +106,8 @@ namespace WebMvcPluginTour.Controllers
                 {
                     var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
 
-                    if (!_postService.GetUserComment(userId, id, page, pageSize, out var postComments, out var pagination))
+                    if (!_postService.GetUserComment(userId, id, page, pageSize, out var postComments,
+                        out var pagination))
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
                         break;
@@ -427,6 +428,91 @@ namespace WebMvcPluginTour.Controllers
                     {
                         JObject.FromObject(post)
                     };
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
+
+        [HttpPost("{id}/comments")]
+        public object CommentPost(int id, [FromBody] object requestBody)
+        {
+            var responseModel = new ResponseModel();
+            try
+            {
+                do
+                {
+                    var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
+
+                    var body = requestBody != null
+                        ? JObject.Parse(requestBody.ToString() ?? "{}")
+                        : null;
+
+                    if (!CoreHelper.GetParameter(out var jsonContent, body, "Content",
+                        JTokenType.String, ref responseModel, true))
+                    {
+                        break;
+                    }
+
+                    var content = jsonContent?.ToString();
+
+                    if (!_postService.GetPostById(id, out var post))
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    var postComment = new PostComment(content, userId, id, DateTime.Now);
+
+                    if (!_postService.CommentPost(postComment))
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    responseModel.FromErrorCode(ErrorCode.Success);
+                    responseModel.Data = new JArray()
+                    {
+                        JObject.FromObject(postComment)
+                    };
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
+        
+        [HttpDelete("{id}/comments/{commentId}")]
+        public object CommentPost(int id, int commentId)
+        {
+            var responseModel = new ResponseModel();
+            try
+            {
+                do
+                {
+                    var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
+
+                    if (!_postService.GetPostById(id, out var post))
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    if (!_postService.RemoveComment(commentId))
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    responseModel.FromErrorCode(ErrorCode.Success);
+                    responseModel.Data = new JArray();
                 } while (false);
             }
             catch (Exception ex)
