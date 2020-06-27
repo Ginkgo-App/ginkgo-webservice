@@ -25,15 +25,18 @@ namespace WebMvcPluginUser.Controllers
         private readonly IFriendService _friendService;
         private readonly ITourService _tourService;
         private readonly IServiceService _serviceService;
+        private readonly IPostService _postService;
 
         public UsersController(ITourInfoService tourInfoService, IUserService userService,
-            IFriendService friendService, ITourService tourService, IServiceService serviceService)
+            IFriendService friendService, ITourService tourService, IServiceService serviceService,
+            IPostService postService)
         {
             _tourInfoService = tourInfoService;
             _userService = userService;
             _friendService = friendService;
             _tourService = tourService;
             _serviceService = serviceService;
+            _postService = postService;
         }
 
         [AllowAnonymous]
@@ -409,6 +412,36 @@ namespace WebMvcPluginUser.Controllers
                     responseModel.Data = tours.Count > 0
                         ? JArray.FromObject(tours.Select(t => t.ToJson()))
                         : new JArray();
+                    responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
+
+        [HttpGet("me/posts")]
+        public object GetMyPosts([FromQuery] int page, [FromQuery] int pageSize)
+        {
+            var responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
+                    var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
+
+                    if (!_postService.GetPostByUserId(userId, page, pageSize, out var posts, out var pagination))
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    responseModel.FromErrorCode(ErrorCode.Success);
+                    responseModel.Data = JArray.FromObject(posts);
                     responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
                 } while (false);
             }
