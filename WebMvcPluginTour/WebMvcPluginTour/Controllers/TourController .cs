@@ -30,6 +30,33 @@ namespace WebMvcPluginTour.Controllers
             _serviceService = serviceService;
         }
         
+        [HttpGet("{tourId}")]
+        public object GetTourDetail(int tourId)
+        {
+            var responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {                    
+                    if (!_tourService.TryGetTour(tourId, out var tour))
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+                    
+                    responseModel.FromErrorCode(ErrorCode.Success);
+                    responseModel.Data = new JArray {JObject.FromObject(tour)};
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
+        
         [HttpPost("{tourId}/join")]
         public object JoinTour(int tourId)
         {
