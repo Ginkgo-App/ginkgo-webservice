@@ -1,5 +1,6 @@
 ﻿#nullable enable
 using System;
+using System.ComponentModel.DataAnnotations.Schema;
 using APICore.Models;
 
 namespace APICore.Entities
@@ -41,6 +42,14 @@ namespace APICore.Entities
         public int AuthorId { get; private set; }
         public DateTime CreateAt { get; private set; }
         public DateTime? DeletedAt { get; set; }
+        [NotMapped]
+        public PostComment? FeaturedComment { get; set; }
+        [NotMapped]
+        public SimpleUser? Author { get; set; }
+        [NotMapped]
+        public Tour? Tour { get; set; }
+        [NotMapped]
+        public bool? IsLike { get; set; }
 
         public void Delete()
         {

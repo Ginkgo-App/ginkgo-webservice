@@ -35,7 +35,7 @@ namespace APICore.Services
         private PostgreSQLContext _context;
         private readonly AppSettings _appSettings;
         private readonly Logger _logger = Vars.Logger;
-        private FriendService _friendService;
+        private readonly FriendService _friendService;
 
         public PostService(IOptions<AppSettings> appSettings)
         {
@@ -120,8 +120,15 @@ namespace APICore.Services
 
                 var _ = _context.Tours.FirstOrDefault(t => t.Id == tourId && t.DeletedAt == null) ??
                         throw new ExceptionWithMessage("Tour not found");
-                post = _context.Posts.FirstOrDefault(p => p.TourId == tourId && p.DeletedAt == null) ??
-                       throw new ExceptionWithMessage("Post not found");
+                var postDb = _context.Posts.FirstOrDefault(p => p.TourId == tourId && p.DeletedAt == null) ??
+                             throw new ExceptionWithMessage("Post not found");
+
+                post = postDb;
+
+                var postComments = _context.PostComments.Where(pc => pc.PostId == postDb.Id)
+                    .OrderByDescending(pc => pc.CreateAt)?.ToList();
+
+                post.FeaturedComment = postComments != null ? postComments[0] : null;
             }
             finally
             {
@@ -139,7 +146,9 @@ namespace APICore.Services
 
                 var _ = _context.Users.FirstOrDefault(t => t.Id == userId && t.DeletedAt == null) ??
                         throw new ExceptionWithMessage("Tour not found");
-                var allPosts = _context.Posts.Where(p => p.AuthorId == userId && p.DeletedAt == null).ToList();
+                var allPosts = _context.Posts.Where(p => p.AuthorId == userId && p.DeletedAt == null)
+                    .OrderByDescending(p => p.CreateAt)
+                    .ToList();
 
                 var total = allPosts.Count();
                 var skip = pageSize * (page - 1);
@@ -158,6 +167,11 @@ namespace APICore.Services
                 else
                 {
                     posts = new List<Post>();
+                }
+
+                foreach (var post in posts)
+                {
+                    GetPostAdditionalData(userId, post);
                 }
 
                 pagination = new Pagination(total, page, pageSize > 0 ? pageSize : total);
@@ -285,8 +299,15 @@ namespace APICore.Services
             {
                 DbService.ConnectDb(out _context);
 
-                post = _context.Posts.FirstOrDefault(p => p.Id == id && p.DeletedAt == null) ??
-                       throw new ExceptionWithMessage("Post not found");
+                var postDb = _context.Posts.FirstOrDefault(p => p.Id == id && p.DeletedAt == null) ??
+                             throw new ExceptionWithMessage("Post not found");
+
+                post = postDb;
+
+                var postComments = _context.PostComments.Where(pc => pc.PostId == postDb.Id)
+                    .OrderByDescending(pc => pc.CreateAt)?.ToList();
+
+                post.FeaturedComment = postComments != null ? postComments[0] : null;
             }
             finally
             {
@@ -419,6 +440,31 @@ namespace APICore.Services
             }
 
             return true;
+        }
+
+        private void GetPostAdditionalData(int userId, Post post)
+        {
+            var authorId = post.AuthorId;
+            var author = _context.Users.FirstOrDefault(u => u.Id == authorId && u.DeletedAt == null);
+            post.Author = author?.ToSimpleUser(_friendService.CalculateIsFriend(userId, authorId));
+
+            var postComments = _context.PostComments.Where(pc => pc.PostId == post.Id)
+                .OrderByDescending(pc => pc.CreateAt)?.ToList();
+
+            post.FeaturedComment = postComments.Count > 0 ? postComments[0] : null;
+
+            var tour = _context.Tours.FirstOrDefault(t => t.Id == post.TourId && t.DeletedAt == null);
+            
+            
+
+            post.Tour = tour;
+
+            var isLike = _context.PostLikes.FirstOrDefault(pl =>
+                pl.PostId == post.Id && pl.UserId == userId && pl.DeletedAt == null) != null;
+
+            post.IsLike = isLike;
+
+            return;
         }
     }
 }
