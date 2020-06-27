@@ -455,6 +455,9 @@ namespace APICore.Services
                         tim.AcceptedAt
                     }).AsEnumerable()?.Distinct((a, b) => a.Id == b.Id).ToList();
 
+                // Sort by start date
+                toursDb = toursDb.OrderByDescending(t => t.Id).ToList();
+                
                 var total = toursDb.Count();
                 var skip = pageSize * (page - 1);
                 pageSize = pageSize <= 0 ? total : pageSize;
