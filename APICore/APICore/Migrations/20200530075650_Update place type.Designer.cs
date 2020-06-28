@@ -338,7 +338,7 @@ namespace APICore.Migrations
                         .HasColumnType("integer")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
-                    b.Property<int>("CreateBy")
+                    b.Property<int>("CreateById")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("EndDay")

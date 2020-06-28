@@ -10,13 +10,13 @@ namespace APICore.Entities
 {
     public class Tour : IIsDeleted
     {
-        public Tour(TourInfo tourInfo,List<TimeLine> timelines, string? name, DateTime startDay, DateTime endDay, int maxMember, int createBy, int tourInfoId, int totalDay, int totalNight, string[] services,  float price = 0)
+        public Tour(TourInfo tourInfo,List<TimeLine> timelines, string? name, DateTime startDay, DateTime endDay, int maxMember, int createById, int tourInfoId, int totalDay, int totalNight, string[] services,  float price = 0)
         {
             Name = name;
             StartDay = startDay;
             EndDay = endDay;
             MaxMember = maxMember;
-            CreateBy = createBy;
+            CreateById = createById;
             TourInfoId = tourInfoId;
             TotalDay = totalDay;
             TotalNight = totalNight;
@@ -31,7 +31,7 @@ namespace APICore.Entities
         }
 
         public int Id { get; private set; }
-        public int CreateBy { get; private set; }
+        public int CreateById { get; private set; }
         public string? Name { get; private set; }
         public DateTime StartDay { get; private set; }
         public DateTime EndDay { get; private set; }
@@ -45,6 +45,8 @@ namespace APICore.Entities
         
         [NotMapped]
         public TourInfo TourInfo { get; set; }
+        [NotMapped]
+        public SimpleUser CreateBy { get; set; }
         [NotMapped]
         public List<TimeLine> TimeLines { get; set; }
         

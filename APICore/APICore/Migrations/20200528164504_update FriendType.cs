@@ -11,7 +11,7 @@ namespace APICore.Migrations
                 table: "TourMembers");
 
             migrationBuilder.AddColumn<int>(
-                name: "CreateBy",
+                name: "CreateById",
                 table: "Tours",
                 nullable: false,
                 defaultValue: 0);
@@ -26,7 +26,7 @@ namespace APICore.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "CreateBy",
+                name: "CreateById",
                 table: "Tours");
 
             migrationBuilder.DropColumn(

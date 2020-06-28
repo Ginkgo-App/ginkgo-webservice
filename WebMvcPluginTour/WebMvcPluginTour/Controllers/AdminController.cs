@@ -223,7 +223,7 @@ namespace WebMvcPluginTour.Controllers
                         endDay: endDate,
                         totalDay: totalDay,
                         totalNight: totalNight,
-                        createBy: userId,
+                        createById: userId,
                         maxMember: maxMember,
                         tourInfoId: id,
                         services: serviceIds ?? new string[0],

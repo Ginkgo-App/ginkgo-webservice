@@ -10,8 +10,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace APICore.Migrations
 {
     [DbContext(typeof(PostgreSQLContext))]
-    [Migration("20200601174323_Add soft delete")]
-    partial class Addsoftdelete
+    [Migration("20200628085819_Change CreateBy to CreateById in tour")]
+    partial class ChangeCreateBytoCreateByIdintour
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -198,6 +198,9 @@ namespace APICore.Migrations
                         .HasColumnType("integer")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
+                    b.Property<string>("Address")
+                        .HasColumnType("text");
+
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp without time zone");
 
@@ -206,6 +209,12 @@ namespace APICore.Migrations
 
                     b.Property<string[]>("Images")
                         .HasColumnType("text[]");
+
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("double precision");
 
                     b.Property<string>("Name")
                         .HasColumnType("text");
@@ -261,6 +270,18 @@ namespace APICore.Migrations
 
                     b.Property<string[]>("Images")
                         .HasColumnType("text[]");
+
+                    b.Property<double?>("Rating")
+                        .HasColumnType("double precision");
+
+                    b.Property<int>("TotalComment")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TotalLike")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("TourId")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -379,7 +400,7 @@ namespace APICore.Migrations
                     b.ToTable("TimeLines");
                 });
 
-            modelBuilder.Entity("APICore.Entities.TimelinePlace", b =>
+            modelBuilder.Entity("APICore.Entities.TimelineDetail", b =>
                 {
                     b.Property<int>("PlaceId")
                         .HasColumnType("integer");
@@ -390,9 +411,15 @@ namespace APICore.Migrations
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp without time zone");
 
+                    b.Property<string>("Detail")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Time")
+                        .HasColumnType("text");
+
                     b.HasKey("PlaceId", "TimelineId");
 
-                    b.ToTable("TimelinePlaces");
+                    b.ToTable("TimelineDetails");
                 });
 
             modelBuilder.Entity("APICore.Entities.Tour", b =>
@@ -417,11 +444,21 @@ namespace APICore.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
-                    b.Property<int>("Price")
-                        .HasColumnType("integer");
+                    b.Property<float>("Price")
+                        .HasColumnType("real");
+
+                    b.Property<string[]>("Services")
+                        .IsRequired()
+                        .HasColumnType("text[]");
 
                     b.Property<DateTime>("StartDay")
                         .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("TotalDay")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TotalNight")
+                        .HasColumnType("integer");
 
                     b.Property<int>("TourInfoId")
                         .HasColumnType("integer");
@@ -440,9 +477,6 @@ namespace APICore.Migrations
 
                     b.Property<int>("CreateById")
                         .HasColumnType("integer");
-
-                    b.Property<DateTime?>("DeleteAt")
-                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp without time zone");
@@ -474,6 +508,9 @@ namespace APICore.Migrations
 
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
+
+                    b.Property<DateTime?>("AcceptedAt")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp without time zone");

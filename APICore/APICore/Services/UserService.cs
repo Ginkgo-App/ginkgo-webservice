@@ -425,7 +425,7 @@ namespace APICore.Services
                     join ti in _context.TourInfos on t.TourInfoId equals ti.Id
                     join tm in _context.TourMembers on t.Id equals tm.TourId into tourInfoMember
                     from tim in tourInfoMember.DefaultIfEmpty()
-                    join host in _context.Users on t.CreateBy equals host.Id
+                    join host in _context.Users on t.CreateById equals host.Id
                     let f = (from tourMember in _context.TourMembers
                             join friend in (from fr in _context.Friends.Where(fr =>
                                         fr.AcceptedAt != null && (fr.UserId == userId || fr.RequestedUserId == userId))
@@ -440,7 +440,7 @@ namespace APICore.Services
                     where (type != null && type.Equals("owner") && host.Id == userId)
                           || (type != null && type.Equals("member") && tim != null && tim.UserId == userId)
                           || ((type == null || (!type.Equals("owner") && !type.Equals("member"))
-                              && (t.CreateBy == userId || (tim != null && tim.UserId == userId))))
+                              && (t.CreateById == userId || (tim != null && tim.UserId == userId))))
                     select new
                     {
                         t.Id,

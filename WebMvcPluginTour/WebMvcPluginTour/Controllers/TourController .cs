@@ -132,7 +132,7 @@ namespace WebMvcPluginTour.Controllers
                     }
 
                     // User doest not have permission
-                    if (myUserId != tour.CreateBy)
+                    if (myUserId != tour.CreateById)
                     {
                         Response.StatusCode = 403;
                         responseModel.FromErrorCode(ErrorCode.UserDoesNotHavePermission);

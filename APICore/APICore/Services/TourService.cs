@@ -215,7 +215,7 @@ namespace APICore.Services
                 var tourMember = _context.TourMembers.FirstOrDefault(t =>
                     t.TourId == tour.Id && t.UserId == user.Id && t.DeletedAt == null);
 
-                if (tour.CreateBy == user.Id)
+                if (tour.CreateById == user.Id)
                 {
                     throw new ExceptionWithMessage("Cannot perform request, you are creator");
                 }
