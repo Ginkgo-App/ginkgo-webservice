@@ -456,7 +456,7 @@ namespace APICore.Services
                 .OrderByDescending(pc => pc.CreateAt)?.ToList();
 
             post.FeaturedComment = postComments.Count > 0 ? postComments[0] : null;
-            var commentAuthor = _context.Users.FirstOrDefault(u => u.Id == authorId && u.DeletedAt == null);
+            var commentAuthor = _context.Users.FirstOrDefault(u => u.Id == post.FeaturedComment.UserId && u.DeletedAt == null);
             post.FeaturedComment.Author = commentAuthor?.ToSimpleUser(_friendService.CalculateIsFriend(userId, authorId));
 
             var tour = _context.Tours.FirstOrDefault(t => t.Id == post.TourId && t.DeletedAt == null);
