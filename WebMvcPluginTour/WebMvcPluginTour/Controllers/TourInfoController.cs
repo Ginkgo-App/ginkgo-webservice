@@ -553,7 +553,7 @@ namespace WebMvcPluginTour.Controllers
                     
                     var timelines = jsonTimelines?.ToObject<List<TimeLine>>();
 
-                    if (!_tourService.TryGetTour(tourId, out var tour) || tour == null)
+                    if (!_tourService.TryGetTour(userId, tourId, out var tour) || tour == null)
                     {
                         throw new ExceptionWithMessage("Tour not found.");
                     }

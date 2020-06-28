@@ -42,7 +42,9 @@ namespace WebMvcPluginTour.Controllers
             {
                 do
                 {
-                    if (!_tourService.TryGetTour(tourId, out var tour))
+                    var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
+
+                    if (!_tourService.TryGetTour(userId, tourId, out var tour))
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
                         break;
@@ -80,7 +82,7 @@ namespace WebMvcPluginTour.Controllers
                     }
 
                     // Add tour to tour info
-                    if (!_tourService.TryGetTour(tourId, out var tour))
+                    if (!_tourService.TryGetTour(userId, tourId, out var tour))
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
                         break;
@@ -125,7 +127,7 @@ namespace WebMvcPluginTour.Controllers
                     }
 
                     // Add tour to tour info
-                    if (!_tourService.TryGetTour(tourId, out var tour))
+                    if (!_tourService.TryGetTour(myUserId, tourId, out var tour))
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
                         break;
@@ -220,7 +222,7 @@ namespace WebMvcPluginTour.Controllers
 
                     var timelines = jsonTimelines?.ToObject<List<TimeLine>>();
 
-                    if (!_tourService.TryGetTour(tourId, out var tour) || tour == null)
+                    if (!_tourService.TryGetTour(userId, tourId, out var tour) || tour == null)
                     {
                         throw new ExceptionWithMessage("Tour not found.");
                     }

@@ -17,8 +17,8 @@ namespace APICore.Services
         bool TryGetAllTours(int tourInfoId, int page, int pageSize, out List<Tour> tours,
             out Pagination pagination);
 
-        bool TryGetTour(int id, out Tour tour);
-        bool TryGetTourInfo(int tourId, out TourInfo tourInfo);
+        bool TryGetTour(int userId, int id, out Tour tour);
+        bool TryGetTourInfo(int userId, int tourId, out TourInfo tourInfo);
         bool TryGetTimelines(int tourId, out List<TimeLine> timelines);
         bool TryAddTour(Tour tour, List<TimeLine> timeLines);
         bool TryJoinTour(Tour tour, User user);
@@ -33,10 +33,12 @@ namespace APICore.Services
         private PostgreSQLContext _context;
         private readonly AppSettings _appSettings;
         private readonly Logger _logger = Vars.Logger;
+        private readonly FriendService _friendService;
 
         public TourService(IOptions<AppSettings> appSettings)
         {
             _appSettings = appSettings.Value;
+            _friendService = new FriendService(appSettings);
         }
 
         public bool TryGetTotalMember(int tourId, out int totalMember)
@@ -98,19 +100,23 @@ namespace APICore.Services
             return true;
         }
 
-        public bool TryGetTour(int id, out Tour tour)
+        public bool TryGetTour(int userId, int id, out Tour tour)
         {
             try
             {
                 DbService.ConnectDb(out _context);
-                tour = _context.Tours.SingleOrDefault(t => t.Id == id) ??
+                tour = _context.Tours.SingleOrDefault(t => t.Id == id && t.DeletedAt == null) ??
                        throw new ExceptionWithMessage("Tour not found");
+                var createById = tour.CreateById;
+                var createBy = _context.Users.FirstOrDefault(u => u.Id == createById);
+                var friendType = _friendService.CalculateIsFriend(userId, createById);
 
-                TryGetTourInfo(id, out var tourInfo);
+                TryGetTourInfo(userId, id, out var tourInfo);
                 TryGetTimelines(id, out var timeLines);
 
                 tour.TimeLines = timeLines;
                 tour.TourInfo = tourInfo;
+                tour.CreateBy = createBy?.ToSimpleUser(friendType);
             }
             finally
             {
@@ -120,7 +126,7 @@ namespace APICore.Services
             return true;
         }
 
-        public bool TryGetTourInfo(int tourId, out TourInfo tourInfo)
+        public bool TryGetTourInfo(int userId, int tourId, out TourInfo tourInfo)
         {
             try
             {
@@ -128,6 +134,17 @@ namespace APICore.Services
                 var tour = _context.Tours.SingleOrDefault(t => t.Id == tourId) ??
                            throw new ExceptionWithMessage("Tour not found");
                 tourInfo = _context.TourInfos.FirstOrDefault(t => t.Id == tour.TourInfoId);
+
+                var tourInfoDb = tourInfo;
+                var startPlace = _context.Places.FirstOrDefault(p => p.Id == tourInfoDb.StartPlaceId);
+                var destinationPlace = _context.Places.FirstOrDefault(p => p.Id == tourInfoDb.DestinatePlaceId);
+                var createBy = _context.Users.FirstOrDefault(u => u.Id == tourInfoDb.CreateById);
+
+                var friendType = _friendService.CalculateIsFriend(userId, createBy.Id);
+
+                tourInfo.StartPlace = startPlace;
+                tourInfo.DestinatePlace = destinationPlace;
+                tourInfo.CreateBy = createBy.ToSimpleUser(friendType);
             }
             finally
             {
@@ -143,7 +160,7 @@ namespace APICore.Services
             {
                 DbService.ConnectDb(out _context);
                 var _ = _context.Tours.SingleOrDefault(t => t.Id == tourId) ??
-                           throw new ExceptionWithMessage("Tour not found");
+                        throw new ExceptionWithMessage("Tour not found");
 
                 timelines = _context.TimeLines.Where(t => t.TourId == tourId)?.ToList() ?? new List<TimeLine>();
 
@@ -219,7 +236,7 @@ namespace APICore.Services
                 {
                     throw new ExceptionWithMessage("Cannot perform request, you are creator");
                 }
-                
+
                 if (tourMember != null)
                 {
                     var exception = tourMember.AcceptedAt != null
@@ -227,7 +244,7 @@ namespace APICore.Services
                         : new ExceptionWithMessage("You have already requested to join the tour");
                     throw exception;
                 }
-                
+
                 _context.TourMembers.Add(new TourMember(tour.Id, user.Id));
                 _context.SaveChanges();
             }
