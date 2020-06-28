@@ -52,14 +52,14 @@ namespace WebMvcPluginUser.Controllers
 
                 if (user == null || errorCode != ErrorCode.Success)
                 {
-                    responseModel.ErrorCode = (int) ErrorCode.UsernamePasswordIncorrect;
+                    responseModel.ErrorCode = (int)ErrorCode.UsernamePasswordIncorrect;
                     responseModel.Message = Description(responseModel.ErrorCode);
                 }
                 else
                 {
                     data.Add(UserResponseJson(user));
 
-                    responseModel.ErrorCode = (int) ErrorCode.Success;
+                    responseModel.ErrorCode = (int)ErrorCode.Success;
                     responseModel.Message = Description(responseModel.ErrorCode);
                     responseModel.Data = data;
                 }
@@ -112,7 +112,7 @@ namespace WebMvcPluginUser.Controllers
                         data.Add(UserResponseJson(user));
                     }
 
-                    response.ErrorCode = (int) statusCode;
+                    response.ErrorCode = (int)statusCode;
                     response.Message = Description(response.ErrorCode);
                     response.Data = data;
                 } while (false);
@@ -167,7 +167,7 @@ namespace WebMvcPluginUser.Controllers
                         if (errorCode == ErrorCode.Success)
                         {
                             data.Add(UserResponseJson(user));
-                            responseModel.ErrorCode = (int) ErrorCode.Success;
+                            responseModel.ErrorCode = (int)ErrorCode.Success;
                             responseModel.Message = Description(responseModel.ErrorCode);
                             responseModel.Data = data;
                         }
@@ -210,7 +210,7 @@ namespace WebMvcPluginUser.Controllers
 
                     if (user == null)
                     {
-                        responseModel.ErrorCode = (int) ErrorCode.UserNotFound;
+                        responseModel.ErrorCode = (int)ErrorCode.UserNotFound;
                         responseModel.Message = Description(responseModel.ErrorCode);
                         break;
                     }
@@ -218,7 +218,7 @@ namespace WebMvcPluginUser.Controllers
                     var friendType = _friendService.CalculateIsFriend(myUserId, userId);
 
                     data.Add(user.ToSimpleJson(friendType));
-                    responseModel.ErrorCode = (int) ErrorCode.Success;
+                    responseModel.ErrorCode = (int)ErrorCode.Success;
                     responseModel.Message = Description(responseModel.ErrorCode);
                     responseModel.Data = data;
                 } while (false);
@@ -242,12 +242,12 @@ namespace WebMvcPluginUser.Controllers
                 {
                     if (!_userService.TryRemoveUser(userId))
                     {
-                        responseModel.ErrorCode = (int) ErrorCode.Fail;
+                        responseModel.ErrorCode = (int)ErrorCode.Fail;
                         responseModel.Message = "Remove user fail";
                         break;
                     }
 
-                    responseModel.ErrorCode = (int) ErrorCode.Success;
+                    responseModel.ErrorCode = (int)ErrorCode.Success;
                     responseModel.Message = Description(responseModel.ErrorCode);
                 } while (false);
             }
@@ -324,7 +324,7 @@ namespace WebMvcPluginUser.Controllers
                         password: jsonPassword?.ToString(),
                         email: null!, phoneNumber: jsonPhoneNumber?.ToString(), avatar: jsonAvatar?.ToString(),
                         bio: jsonBio?.ToString(), slogan: jsonSlogan?.ToString(), job: jsonJob?.ToString(),
-                        birthday: isParseBirthday ? birthday : (DateTime?) null, gender: jsonGender?.ToString(),
+                        birthday: isParseBirthday ? birthday : (DateTime?)null, gender: jsonGender?.ToString(),
                         address: jsonAddress?.ToString(), role: null);
 
                     var isSuccess = _userService.TryUpdateUser(user);
@@ -335,7 +335,7 @@ namespace WebMvcPluginUser.Controllers
                     }
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data = new JArray {JObject.FromObject(user)};
+                    responseModel.Data = new JArray { JObject.FromObject(user) };
                 } while (false);
             }
             catch (Exception ex)
@@ -434,6 +434,34 @@ namespace WebMvcPluginUser.Controllers
                 {
                     var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
 
+                    if (!_postService.GetPostByUserId(userId, page, pageSize, out var posts, out var pagination))
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    responseModel.FromErrorCode(ErrorCode.Success);
+                    responseModel.Data = JArray.FromObject(posts);
+                    responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
+
+        [HttpGet("{userId}/posts")]
+        public object GetMyPosts(int userId, [FromQuery] int page, [FromQuery] int pageSize)
+        {
+            var responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
                     if (!_postService.GetPostByUserId(userId, page, pageSize, out var posts, out var pagination))
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
@@ -707,7 +735,7 @@ namespace WebMvcPluginUser.Controllers
 
         private static JObject UserResponseJson(User user)
         {
-            var jObject = new JObject {{"Id", user.Id}, {"Token", user.Token}};
+            var jObject = new JObject { { "Id", user.Id }, { "Token", user.Token } };
 
             return jObject;
         }
