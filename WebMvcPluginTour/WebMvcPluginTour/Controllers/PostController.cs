@@ -328,7 +328,7 @@ namespace WebMvcPluginTour.Controllers
         }
 
         [HttpDelete("{id}")]
-        public object DeletePost(int id, [FromBody] object requestBody)
+        public object DeletePost(int id)
         {
             var responseModel = new ResponseModel();
             try
@@ -365,7 +365,7 @@ namespace WebMvcPluginTour.Controllers
         }
 
         [HttpPost("{id}/like")]
-        public object LikePost(int id, [FromBody] object requestBody)
+        public object LikePost(int id)
         {
             var responseModel = new ResponseModel();
             try
@@ -402,7 +402,7 @@ namespace WebMvcPluginTour.Controllers
         }
 
         [HttpDelete("{id}/like")]
-        public object DislikePost(int id, [FromBody] object requestBody)
+        public object DislikePost(int id)
         {
             var responseModel = new ResponseModel();
             try
@@ -490,7 +490,7 @@ namespace WebMvcPluginTour.Controllers
         }
         
         [HttpDelete("{id}/comments/{commentId}")]
-        public object CommentPost(int id, int commentId)
+        public object DeleteCommentPost(int id, int commentId)
         {
             var responseModel = new ResponseModel();
             try
