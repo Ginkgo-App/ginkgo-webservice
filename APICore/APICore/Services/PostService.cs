@@ -195,8 +195,8 @@ namespace APICore.Services
                         throw new ExceptionWithMessage("Post not found");
 
                 var users = (from pl in _context.PostLikes
-                    join user in _context.Users on pl.UserId equals user.Id
-                    select user).ToList();
+                             join user in _context.Users on pl.UserId equals user.Id
+                             select user).ToList();
 
                 var total = users.Count();
                 var skip = pageSize * (page - 1);
@@ -247,13 +247,13 @@ namespace APICore.Services
                         throw new ExceptionWithMessage("Post not found");
 
                 var userComments = (from pc in _context.PostComments
-                    join user in _context.Users on pc.UserId equals user.Id
-                    where pc.DeletedAt == null && pc.PostId == postId
-                    select new
-                    {
-                        user,
-                        pc
-                    }).ToList();
+                                    join user in _context.Users on pc.UserId equals user.Id
+                                    where pc.DeletedAt == null && pc.PostId == postId
+                                    select new
+                                    {
+                                        user,
+                                        pc
+                                    }).ToList();
 
                 var postCommentDb = new List<PostComment>();
 
@@ -456,6 +456,11 @@ namespace APICore.Services
                 .OrderByDescending(pc => pc.CreateAt)?.ToList();
 
             post.FeaturedComment = postComments.Count > 0 ? postComments[0] : null;
+            if (post.FeaturedComment != null)
+            {
+                var commentAuthor = _context.Users.FirstOrDefault(u => u.Id == post.FeaturedComment.UserId && u.DeletedAt == null);
+                post.FeaturedComment.Author = commentAuthor?.ToSimpleUser(_friendService.CalculateIsFriend(userId, authorId));
+            }
 
             var tour = _context.Tours.FirstOrDefault(t => t.Id == post.TourId && t.DeletedAt == null);
 
