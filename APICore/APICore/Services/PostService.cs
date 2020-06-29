@@ -253,7 +253,7 @@ namespace APICore.Services
                                     {
                                         user,
                                         pc
-                                    }).ToList();
+                                    }).OrderByDescending(a=>a.pc.Id).ToList();
 
                 var postCommentDb = new List<PostComment>();
 
