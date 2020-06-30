@@ -434,7 +434,7 @@ namespace WebMvcPluginUser.Controllers
                 {
                     var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
 
-                    if (!_postService.GetPostByUserId(userId, page, pageSize, out var posts, out var pagination))
+                    if (!_postService.GetPostByUserId(userId,userId, page, pageSize, out var posts, out var pagination))
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
                         break;
@@ -462,7 +462,9 @@ namespace WebMvcPluginUser.Controllers
             {
                 do
                 {
-                    if (!_postService.GetPostByUserId(userId, page, pageSize, out var posts, out var pagination))
+                    var myUserId = CoreHelper.GetUserId(HttpContext, ref responseModel);
+                    
+                    if (!_postService.GetPostByUserId_join(myUserId,userId, page, pageSize, out var posts, out var pagination))
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
                         break;

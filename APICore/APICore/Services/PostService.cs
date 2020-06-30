@@ -15,7 +15,9 @@ namespace APICore.Services
         bool Update(Post post);
         bool DeletePost(int postId);
         bool GetPostByTourId(int tourId, out Post post);
-        bool GetPostByUserId(int userId, int page, int pageSize, out List<Post> posts, out Pagination pagination);
+
+        bool GetPostByUserId(int myUserId, int userId, int page, int pageSize, out List<Post> posts,
+            out Pagination pagination);
 
         bool GetUserLike(int userId, int postId, int page, int pageSize, out List<SimpleUser> simpleUsers,
             out Pagination pagination);
@@ -28,6 +30,9 @@ namespace APICore.Services
         bool DislikePost(int postId, int userId);
         bool CommentPost(PostComment postComment);
         bool RemoveComment(int postCommentId);
+
+        bool GetPostByUserId_join(int myUserId, int userId, int page, int pageSize, out List<Post> result,
+            out Pagination pagination);
     }
 
     public class PostService : IPostService
@@ -138,7 +143,8 @@ namespace APICore.Services
             return true;
         }
 
-        public bool GetPostByUserId(int userId, int page, int pageSize, out List<Post> posts, out Pagination pagination)
+        public bool GetPostByUserId(int myUserId, int userId, int page, int pageSize, out List<Post> posts,
+            out Pagination pagination)
         {
             try
             {
@@ -195,8 +201,8 @@ namespace APICore.Services
                         throw new ExceptionWithMessage("Post not found");
 
                 var users = (from pl in _context.PostLikes
-                             join user in _context.Users on pl.UserId equals user.Id
-                             select user).ToList();
+                    join user in _context.Users on pl.UserId equals user.Id
+                    select user).ToList();
 
                 var total = users.Count();
                 var skip = pageSize * (page - 1);
@@ -247,13 +253,13 @@ namespace APICore.Services
                         throw new ExceptionWithMessage("Post not found");
 
                 var userComments = (from pc in _context.PostComments
-                                    join user in _context.Users on pc.UserId equals user.Id
-                                    where pc.DeletedAt == null && pc.PostId == postId
-                                    select new
-                                    {
-                                        user,
-                                        pc
-                                    }).ToList();
+                    join user in _context.Users on pc.UserId equals user.Id
+                    where pc.DeletedAt == null && pc.PostId == postId
+                    select new
+                    {
+                        user,
+                        pc
+                    }).ToList();
 
                 var postCommentDb = new List<PostComment>();
 
@@ -448,61 +454,202 @@ namespace APICore.Services
 
         private void GetPostAdditionalData(int userId, Post post)
         {
-            var authorId = post.AuthorId;
-            var author = _context.Users.FirstOrDefault(u => u.Id == authorId && u.DeletedAt == null);
-            post.Author = author?.ToSimpleUser(_friendService.CalculateIsFriend(userId, authorId));
+            // var authorId = post.AuthorId;
+            // var author = _context.Users.FirstOrDefault(u => u.Id == authorId && u.DeletedAt == null);
+            // post.Author = author?.ToSimpleUser(_friendService.CalculateIsFriend(userId, authorId));
+            //
+            // var postComments = _context.PostComments.Where(pc => pc.PostId == post.Id)
+            //     .OrderByDescending(pc => pc.CreateAt)?.ToList();
+            //
+            //
+            //
+            // var tour = _context.Tours.FirstOrDefault(t => t.Id == post.TourId && t.DeletedAt == null);
+            // var tourHost = _context.Users.FirstOrDefault(u => u.Id == tour.CreateById);
+            // var friendType = _friendService.CalculateIsFriend(userId, tourHost.Id);
+            // var totalMember =
+            //     _context.TourMembers.Count(t => t.TourId == tour.Id && t.AcceptedAt != null && t.DeletedAt == null);
+            // var tourInfo = _context.TourInfos.FirstOrDefault(t => t.Id == tour.Id);
 
-            var postComments = _context.PostComments.Where(pc => pc.PostId == post.Id)
-                .OrderByDescending(pc => pc.CreateAt)?.ToList();
+            // var result = 
 
-            post.FeaturedComment = postComments.Count > 0 ? postComments[0] : null;
-            if (post.FeaturedComment != null)
-            {
-                var commentAuthor = _context.Users.FirstOrDefault(u => u.Id == post.FeaturedComment.UserId && u.DeletedAt == null);
-                post.FeaturedComment.Author = commentAuthor?.ToSimpleUser(_friendService.CalculateIsFriend(userId, authorId));
-            }
-
-            var tour = _context.Tours.FirstOrDefault(t => t.Id == post.TourId && t.DeletedAt == null);
-
-
-            post.Tour = tour;
-
-            var isLike = _context.PostLikes.FirstOrDefault(pl =>
-                pl.PostId == post.Id && pl.UserId == userId && pl.DeletedAt == null) != null;
-
-            post.IsLike = isLike;
+            // post.Tour = new SimpleTour(
+            //     tour.Id,
+            //     tour.Name,
+            //     tour.StartDay,
+            //     tour.EndDay,
+            //     totalMember,
+            //     tourHost,
+            //     null,
+            //     tour.Price,
+            //     tourInfo,
+            //     );
+            //
+            // var isLike = _context.PostLikes.FirstOrDefault(pl =>
+            //     pl.PostId == post.Id && pl.UserId == userId && pl.DeletedAt == null) != null;
+            //
+            //  post.FeaturedComment = postComments.Count > 0 ? postComments[0] : null;
+            //             if (post.FeaturedComment != null)
+            //             {
+            //                 var commentAuthor = _context.Users.FirstOrDefault(u => u.Id == post.FeaturedComment.UserId && u.DeletedAt == null);
+            //                 post.FeaturedComment.Author = commentAuthor?.ToSimpleUser(_friendService.CalculateIsFriend(userId, authorId));
+            //             }
+            //
+            // post.IsLike = isLike;
 
             return;
         }
 
-        // private void GetPostAdditionalData_join(int userId, out Post result)
-        // {
-        //     var rs = from post in _context.Posts
-        //         join user in _context.Users on post.AuthorId equals user.Id
-        //         join tour in _context.Tours on post.TourId equals tour.Id
-        //         join tourInfo in _context.TourInfos on tour.TourInfoId equals tourInfo.Id
-        //         join plContexts in _context.PostLikes on new {post.Id, post.AuthorId} equals new
-        //             {plContexts.PostId, plContexts.UserId} into pl
-        //         from subPl in pl.DefaultIfEmpty()
-        //         select new
-        //         {
-        //         };
-        //
-        //     post.Author = author?.ToSimpleUser(_friendService.CalculateIsFriend(userId, authorId));
-        //
-        //     var postComments = _context.PostComments.Where(pc => pc.PostId == post.Id)
-        //         .OrderByDescending(pc => pc.CreateAt)?.ToList();
-        //
-        //     post.FeaturedComment = postComments.Count > 0 ? postComments[0] : null;
-        //
-        //     post.Tour = tour;
-        //
-        //     var isLike = _context.PostLikes.FirstOrDefault(pl =>
-        //         pl.PostId == post.Id && pl.UserId == userId && pl.DeletedAt == null) != null;
-        //
-        //     post.IsLike = isLike;
-        //
-        //     return;
-        // }
+        public bool GetPostByUserId_join(int myUserId, int userId, int page, int pageSize, out List<Post> result,
+            out Pagination pagination)
+        {
+            try
+            {
+                DbService.ConnectDb(out _context);
+
+                var rs = (from post in _context.Posts
+                    join author in _context.Users on post.AuthorId equals author.Id
+                    join tour in _context.Tours on post.TourId equals tour.Id
+                    join tourInfo in _context.TourInfos on tour.TourInfoId equals tourInfo.Id
+                    join host in _context.Users on tourInfo.CreateById equals host.Id
+                    join plContexts in _context.PostLikes on new {PostId = post.Id, UserId = myUserId} equals new
+                        {PostId = plContexts.PostId, UserId = plContexts.UserId} into pl
+                    from subPl in pl.DefaultIfEmpty()
+                    join tmContexts in _context.TourMembers on new {TourId = post.Id, UserId = myUserId} equals new
+                        {TourId = tmContexts.TourId, UserId = tmContexts.UserId} into tm
+                    from subTm in tm.DefaultIfEmpty()
+                    let f = (from tourMember in _context.TourMembers
+                            join friend in (from fr in _context.Friends.Where(fr =>
+                                        fr.AcceptedAt != null &&
+                                        (fr.UserId == myUserId || fr.RequestedUserId == myUserId))
+                                    select new
+                                    {
+                                        Id = fr.UserId == myUserId ? fr.RequestedUserId : fr.UserId
+                                    }
+                                ) on tourMember.UserId equals friend.Id
+                            join user in _context.Users on friend.Id equals user.Id
+                            select user
+                        )
+                    // where (author.Id == userId)
+                    select new
+                    {
+                        Id = post.Id,
+                        Post = post,
+                        Author = author,
+                        Host = host,
+                        Tour = tour,
+                        TourInfo = tourInfo,
+                        PostLike = subPl,
+                        Friends = f.ToList(),
+                        TourMember = subTm,
+                    })?.AsEnumerable()?.ToList();
+
+                result = new List<Post>();
+
+                // Sort by start date
+                rs = rs.OrderByDescending(t => t.Id).ToList();
+
+                var total = rs.Count();
+                var skip = pageSize * (page - 1);
+                pageSize = pageSize <= 0 ? total : pageSize;
+
+                result = rs
+                    .Skip(skip)
+                    .Take(pageSize)
+                    .Select((e) =>
+                    {
+                        var listFriend = e.Friends.Any()
+                            ? e.Friends.Select(u => u.ToSimpleUser(FriendType.Accepted)).ToList()
+                            : new List<SimpleUser>();
+
+                        var post = e.Post;
+
+                        var friendType = _friendService.CalculateIsFriend(userId, e.Author.Id);
+                        var hostFriendType = _friendService.CalculateIsFriend(userId, e.Host.Id);
+
+                        var postComments = _context.PostComments.Where(pc => pc.PostId == post.Id)
+                            .OrderByDescending(pc => pc.CreateAt)?.ToList();
+                        var totalMember = _context.TourMembers.Count(u =>
+                            u.TourId == e.Post.TourId && u.DeletedAt == null && u.AcceptedAt != null);
+
+                        post.Author = e.Author.ToSimpleUser(friendType);
+                        post.IsLike = e.PostLike != null && e.PostLike.DeletedAt == null;
+                        post.FeaturedComment = postComments.Count > 0 ? postComments[0] : null;
+
+                        post.Tour = new SimpleTour(
+                            e.Tour.Id,
+                            e.Tour.Name,
+                            e.Tour.StartDay,
+                            e.Tour.EndDay,
+                            totalMember,
+                            e.Host.ToSimpleUser(hostFriendType),
+                            listFriend,
+                            e.Tour.Price,
+                            e.TourInfo,
+                            e.TourMember?.JoinAt,
+                            e.TourMember?.AcceptedAt
+                        );
+                        return post;
+                    })
+                    .ToList();
+
+                pagination = new Pagination(total, page, pageSize);
+            }
+            finally
+            {
+                DbService.DisconnectDb(ref _context);
+            }
+
+
+            //
+            // foreach (var r in rs)
+            // {
+            //     var post = r.Post;
+            //     
+            //     var friendType = _friendService.CalculateIsFriend(userId, r.Author.Id);
+            //     var hostFriendType = _friendService.CalculateIsFriend(userId, r.Host.Id);
+            //     
+            //     var postComments = _context.PostComments.Where(pc => pc.PostId == post.Id)
+            //         .OrderByDescending(pc => pc.CreateAt)?.ToList();
+            //     var totalMember = _context.TourMembers.Count(u =>
+            //         u.TourId == r.Post.TourId && u.DeletedAt == null && u.AcceptedAt != null);
+            //    
+            //     post.Author = r.Author.ToSimpleUser(friendType);
+            //     post.IsLike = r.PostLike != null && r.PostLike.DeletedAt == null;
+            //     post.FeaturedComment = postComments.Count > 0 ? postComments[0] : null;
+            //     
+            //     post.Tour = new SimpleTour(
+            //         r.Tour.Id,
+            //         r.Tour.Name,
+            //         r.Tour.StartDay,
+            //         r.Tour.EndDay,
+            //         totalMember,
+            //         r.Host.ToSimpleUser(hostFriendType),
+            //         r.Friends.Select(f =>
+            //         {
+            //             var type = _friendService.CalculateIsFriend(userId, f.Id);
+            //             return f.ToSimpleUser(type);
+            //         }).ToList(),
+            //         r.Tour.Price,
+            //         r.TourInfo,
+            //         r.TourMember.JoinAt,
+            //         r.TourMember.AcceptedAt
+            //         );
+            // }
+
+            // post.Author = rs?.ToSimpleUser(_friendService.CalculateIsFriend(userId, authorId));
+            //
+            //
+            //
+            // post.FeaturedComment = postComments.Count > 0 ? postComments[0] : null;
+            //
+            // post.Tour = tour;
+            //
+            // var isLike = _context.PostLikes.FirstOrDefault(pl =>
+            //     pl.PostId == post.Id && pl.UserId == userId && pl.DeletedAt == null) != null;
+            //
+            // post.IsLike = isLike;
+
+            return true;
+        }
     }
 }

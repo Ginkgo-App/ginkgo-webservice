@@ -47,7 +47,7 @@ namespace APICore.Entities
         [NotMapped]
         public SimpleUser? Author { get; set; }
         [NotMapped]
-        public Tour? Tour { get; set; }
+        public SimpleTour? Tour { get; set; }
         [NotMapped]
         public bool? IsLike { get; set; }
 
