@@ -253,13 +253,13 @@ namespace APICore.Services
                         throw new ExceptionWithMessage("Post not found");
 
                 var userComments = (from pc in _context.PostComments
-                    join user in _context.Users on pc.UserId equals user.Id
-                    where pc.DeletedAt == null && pc.PostId == postId
-                    select new
-                    {
-                        user,
-                        pc
-                    }).ToList();
+                                    join user in _context.Users on pc.UserId equals user.Id
+                                    where pc.DeletedAt == null && pc.PostId == postId
+                                    select new
+                                    {
+                                        user,
+                                        pc
+                                    }).OrderByDescending(a=>a.pc.Id).ToList();
 
                 var postCommentDb = new List<PostComment>();
 
