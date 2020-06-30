@@ -454,24 +454,24 @@ namespace APICore.Services
 
         private void GetPostAdditionalData(int userId, Post post)
         {
-            // var authorId = post.AuthorId;
-            // var author = _context.Users.FirstOrDefault(u => u.Id == authorId && u.DeletedAt == null);
-            // post.Author = author?.ToSimpleUser(_friendService.CalculateIsFriend(userId, authorId));
-            //
-            // var postComments = _context.PostComments.Where(pc => pc.PostId == post.Id)
-            //     .OrderByDescending(pc => pc.CreateAt)?.ToList();
-            //
-            //
-            //
-            // var tour = _context.Tours.FirstOrDefault(t => t.Id == post.TourId && t.DeletedAt == null);
-            // var tourHost = _context.Users.FirstOrDefault(u => u.Id == tour.CreateById);
-            // var friendType = _friendService.CalculateIsFriend(userId, tourHost.Id);
-            // var totalMember =
-            //     _context.TourMembers.Count(t => t.TourId == tour.Id && t.AcceptedAt != null && t.DeletedAt == null);
-            // var tourInfo = _context.TourInfos.FirstOrDefault(t => t.Id == tour.Id);
+            var authorId = post.AuthorId;
+            var author = _context.Users.FirstOrDefault(u => u.Id == authorId && u.DeletedAt == null);
+            post.Author = author?.ToSimpleUser(_friendService.CalculateIsFriend(userId, authorId));
+            
+            var postComments = _context.PostComments.Where(pc => pc.PostId == post.Id)
+                .OrderByDescending(pc => pc.CreateAt)?.ToList();
+            
+            
+            
+            var tour = _context.Tours.FirstOrDefault(t => t.Id == post.TourId && t.DeletedAt == null);
+            var tourHost = _context.Users.FirstOrDefault(u => u.Id == tour.CreateById);
+            var friendType = _friendService.CalculateIsFriend(userId, tourHost.Id);
+            var totalMember =
+                _context.TourMembers.Count(t => t.TourId == tour.Id && t.AcceptedAt != null && t.DeletedAt == null);
+            var tourInfo = _context.TourInfos.FirstOrDefault(t => t.Id == tour.Id);
 
             // var result = 
-
+            //
             // post.Tour = new SimpleTour(
             //     tour.Id,
             //     tour.Name,
@@ -483,18 +483,18 @@ namespace APICore.Services
             //     tour.Price,
             //     tourInfo,
             //     );
-            //
-            // var isLike = _context.PostLikes.FirstOrDefault(pl =>
-            //     pl.PostId == post.Id && pl.UserId == userId && pl.DeletedAt == null) != null;
-            //
-            //  post.FeaturedComment = postComments.Count > 0 ? postComments[0] : null;
-            //             if (post.FeaturedComment != null)
-            //             {
-            //                 var commentAuthor = _context.Users.FirstOrDefault(u => u.Id == post.FeaturedComment.UserId && u.DeletedAt == null);
-            //                 post.FeaturedComment.Author = commentAuthor?.ToSimpleUser(_friendService.CalculateIsFriend(userId, authorId));
-            //             }
-            //
-            // post.IsLike = isLike;
+            
+            var isLike = _context.PostLikes.FirstOrDefault(pl =>
+                pl.PostId == post.Id && pl.UserId == userId && pl.DeletedAt == null) != null;
+            
+             post.FeaturedComment = postComments.Count > 0 ? postComments[0] : null;
+                        if (post.FeaturedComment != null)
+                        {
+                            var commentAuthor = _context.Users.FirstOrDefault(u => u.Id == post.FeaturedComment.UserId && u.DeletedAt == null);
+                            post.FeaturedComment.Author = commentAuthor?.ToSimpleUser(_friendService.CalculateIsFriend(userId, authorId));
+                        }
+            
+            post.IsLike = isLike;
 
             return;
         }
