@@ -36,7 +36,7 @@ namespace WebMvcPluginTour.Controllers
         }
 
         [HttpGet]
-        public object GetMyPosts([FromQuery] int page, [FromQuery] int pageSize)
+        public object GetNewFeed([FromQuery] int page, [FromQuery] int pageSize)
         {
             var responseModel = new ResponseModel();
 
@@ -46,7 +46,7 @@ namespace WebMvcPluginTour.Controllers
                 {
                     var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
 
-                    if (!_postService.GetPostByUserId_join(userId,userId, page, pageSize, out var posts, out var pagination))
+                    if (!_postService.GetNewFeed(userId, page, pageSize, out var posts, out var pagination))
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
                         break;
