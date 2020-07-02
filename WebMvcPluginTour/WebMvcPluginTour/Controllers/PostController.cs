@@ -46,7 +46,7 @@ namespace WebMvcPluginTour.Controllers
                 {
                     var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
 
-                    if (!_postService.GetPostByUserId(userId,userId, page, pageSize, out var posts, out var pagination))
+                    if (!_postService.GetPostByUserId_join(userId,userId, page, pageSize, out var posts, out var pagination))
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
                         break;
