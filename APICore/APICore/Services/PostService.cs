@@ -511,6 +511,9 @@ namespace APICore.Services
                     join author in _context.Users on post.AuthorId equals author.Id
                     join tour in _context.Tours on post.TourId equals tour.Id
                     join tourInfo in _context.TourInfos on tour.TourInfoId equals tourInfo.Id
+                    join tourInfoAuthor in _context.Users on tourInfo.CreateById equals tourInfoAuthor.Id
+                    join startPlace in _context.Places on tourInfo.StartPlaceId equals startPlace.Id
+                    join destinationPlace in _context.Places on tourInfo.DestinatePlaceId equals destinationPlace.Id
                     join host in _context.Users on tourInfo.CreateById equals host.Id
                     join plContexts in _context.PostLikes on new {PostId = post.Id, UserId = myUserId} equals new
                         {PostId = plContexts.PostId, UserId = plContexts.UserId} into pl
@@ -542,6 +545,9 @@ namespace APICore.Services
                         PostLike = subPl,
                         Friends = f.ToList(),
                         TourMember = subTm,
+                        StartPlace = startPlace,
+                        DestinationPlace = destinationPlace,
+                        TourInfoAuthor = tourInfoAuthor,
                     })?.AsEnumerable()?.ToList();
 
                 var rswn = (from post in _context.Posts
@@ -561,6 +567,9 @@ namespace APICore.Services
                         PostLike = subPl,
                         Friends = (List<User>) null,
                         TourMember = (TourMember) null,
+                        StartPlace = (Place) null,
+                        DestinationPlace = (Place) null,
+                        TourInfoAuthor = (User) null,
                     })?.AsEnumerable()?.ToList();
 
                 rs.AddRange(rswn);
@@ -583,15 +592,17 @@ namespace APICore.Services
 
                         if (post.TourId != null)
                         {
-                            var friendType = _friendService.CalculateIsFriend(userId, e.Author.Id);
-                            var hostFriendType = _friendService.CalculateIsFriend(userId, e.Host.Id);
+                            var friendType = _friendService.CalculateIsFriend(myUserId, e.Author.Id);
+                            var hostFriendType = _friendService.CalculateIsFriend(myUserId, e.Host.Id);
+                            var tourInfoAuthorFriendType =
+                                _friendService.CalculateIsFriend(myUserId, e.TourInfo.CreateById);
 
                             var postComments = _context.PostComments.Where(pc => pc.PostId == post.Id)
                                 .OrderByDescending(pc => pc.CreateAt)?.ToList();
                             var totalMember = _context.TourMembers.Count(u =>
                                 u.TourId == e.Post.TourId && u.DeletedAt == null && u.AcceptedAt != null);
                             var featuredComment = postComments.Count > 0 ? postComments[0] : null;
-                            
+
                             if (featuredComment != null)
                             {
                                 var commentAuthorFriendType =
@@ -607,6 +618,11 @@ namespace APICore.Services
                             var listFriend = e.Friends.Any()
                                 ? e.Friends.Select(u => u.ToSimpleUser(FriendType.Accepted)).ToList()
                                 : new List<SimpleUser>();
+
+                            // Add info for tour info
+                            e.TourInfo.StartPlace = e.StartPlace;
+                            e.TourInfo.DestinatePlace = e.DestinationPlace;
+                            e.TourInfo.CreateBy = e.TourInfoAuthor.ToSimpleUser(tourInfoAuthorFriendType);
 
                             post.Tour = new SimpleTour(
                                 e.Tour.Id,
@@ -625,11 +641,11 @@ namespace APICore.Services
                         // Post dont have tour
                         else
                         {
-                            var friendType = _friendService.CalculateIsFriend(userId, e.Author.Id);
+                            var friendType = _friendService.CalculateIsFriend(myUserId, e.Author.Id);
                             var postComments = _context.PostComments.Where(pc => pc.PostId == post.Id)
                                 .OrderByDescending(pc => pc.CreateAt)?.ToList();
                             var featuredComment = postComments.Count > 0 ? postComments[0] : null;
-                            
+
                             if (featuredComment != null)
                             {
                                 var commentAuthorFriendType =
@@ -637,7 +653,7 @@ namespace APICore.Services
                                 var commentAuthor = _context.Users.FirstOrDefault(u => u.Id == featuredComment.UserId);
                                 featuredComment.Author = commentAuthor?.ToSimpleUser(commentAuthorFriendType);
                             }
-                            
+
                             post.Author = e.Author.ToSimpleUser(friendType);
                             post.IsLike = e.PostLike != null && e.PostLike.DeletedAt == null;
                             post.FeaturedComment = featuredComment;
