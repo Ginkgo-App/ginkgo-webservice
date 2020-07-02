@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using APICore.Models;
 
 namespace APICore.Entities
@@ -19,6 +20,8 @@ namespace APICore.Entities
         public int TimelineId { get; set; }
         public string Time { get; private set; }
         public string Detail { get; private set; }
+        [NotMapped]
+        public Place Place { get; set; }
 
         public DateTime? DeletedAt { get; set; }
         public void Delete()

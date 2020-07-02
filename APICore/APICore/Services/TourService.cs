@@ -166,9 +166,12 @@ namespace APICore.Services
 
                 foreach (var timeLine in timelines)
                 {
-                    var timelineDetails = _context.TimelineDetails.Where(td => td.TimelineId == timeLine.Id);
-
-
+                    var timelineDetails = _context.TimelineDetails.Where(td => td.TimelineId == timeLine.Id).ToList();
+                    for (int i = 0; i < timelineDetails.Count; i++)
+                    {
+                        var place = _context.Places.FirstOrDefault(p => p.Id == timelineDetails[i].PlaceId);
+                        timelineDetails[i].Place = place;
+                    }
                     timeLine.TimelineDetails ??= new List<TimelineDetail>();
                     timeLine.TimelineDetails.AddRange(timelineDetails);
                 }
