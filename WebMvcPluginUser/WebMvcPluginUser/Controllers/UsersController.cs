@@ -423,6 +423,40 @@ namespace WebMvcPluginUser.Controllers
             return responseModel.ToJson();
         }
 
+        [HttpGet("{userId}/tours")]
+        public object GetUserTours(int userId, [FromQuery] int page, [FromQuery] int pageSize, [FromQuery] string type)
+        {
+            var responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
+                    CoreHelper.ValidatePageSize(ref page, ref pageSize);
+
+                    _userService.TryGetTours(userId, page, pageSize, type, out var tours, out var pagination);
+
+                    if (tours == null)
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    responseModel.FromErrorCode(ErrorCode.Success);
+                    responseModel.Data = tours.Count > 0
+                        ? JArray.FromObject(tours.Select(t => t.ToJson()))
+                        : new JArray();
+                    responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
+
         [HttpGet("me/posts")]
         public object GetMyPosts([FromQuery] int page, [FromQuery] int pageSize)
         {
@@ -434,7 +468,7 @@ namespace WebMvcPluginUser.Controllers
                 {
                     var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
 
-                    if (!_postService.GetPostByUserId_join(userId,userId, page, pageSize, out var posts, out var pagination))
+                    if (!_postService.GetPostByUserId_join(userId, userId, page, pageSize, out var posts, out var pagination))
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
                         break;
@@ -463,8 +497,8 @@ namespace WebMvcPluginUser.Controllers
                 do
                 {
                     var myUserId = CoreHelper.GetUserId(HttpContext, ref responseModel);
-                    
-                    if (!_postService.GetPostByUserId_join(myUserId,userId, page, pageSize, out var posts, out var pagination))
+
+                    if (!_postService.GetPostByUserId_join(myUserId, userId, page, pageSize, out var posts, out var pagination))
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
                         break;
