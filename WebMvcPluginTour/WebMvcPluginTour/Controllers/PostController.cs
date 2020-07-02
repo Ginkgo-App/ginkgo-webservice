@@ -64,6 +64,36 @@ namespace WebMvcPluginTour.Controllers
 
             return responseModel.ToJson();
         }
+        
+        [HttpGet("top-users")]
+        public object GetTopUSer([FromQuery] int page, [FromQuery] int pageSize)
+        {
+            var responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
+                    var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
+
+                    if (!_postService.GetTopUser(userId, page, pageSize, out var posts, out var pagination))
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    responseModel.FromErrorCode(ErrorCode.Success);
+                    responseModel.Data = JArray.FromObject(posts);
+                    responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
 
         [HttpGet("{id}/users-liked")]
         public object GetUserLikePost(int id, [FromQuery] int page, [FromQuery] int pageSize)

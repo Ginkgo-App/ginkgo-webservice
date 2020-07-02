@@ -69,15 +69,15 @@ namespace APICore.Entities
         public string Role { get; private set; }
 
 
-        public JObject ToSimpleJson(string friendType)
+        public JObject ToSimpleJson(string friendType, int totalPost = -1)
         {
-            var simpleUser = new SimpleUser(Id, Name, Avatar, Job, FriendType.TryParse(friendType));
+            var simpleUser = new SimpleUser(Id, Name, Avatar, Job, FriendType.TryParse(friendType), totalPost);
             return JObject.FromObject(simpleUser);
         }
 
-        public SimpleUser ToSimpleUser(string friendType)
+        public SimpleUser ToSimpleUser(string friendType, int totalPost = -1)
         {
-            var simpleUser = new SimpleUser(Id, Name, Avatar, Job, FriendType.TryParse(friendType));
+            var simpleUser = new SimpleUser(Id, Name, Avatar, Job, FriendType.TryParse(friendType), totalPost);
             return simpleUser;
         }
 

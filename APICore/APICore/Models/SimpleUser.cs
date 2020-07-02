@@ -12,14 +12,16 @@ namespace APICore.Models
         public string Avatar { get; }
         public string Job { get; }
         public string FriendType { get; }
+        public int TotalPost { get; }
 
-        public SimpleUser(int id, string name, string avatar, string job, string friendType)
+        public SimpleUser(int id, string name, string avatar, string job, string friendType, int totalPost)
         {
             Id = id;
             Name = name;
             Avatar = avatar;
             Job = job;
             FriendType = friendType;
+            TotalPost = totalPost;
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security;
 using APICore.DBContext;
 using APICore.Entities;
 using APICore.Models;
@@ -33,7 +34,11 @@ namespace APICore.Services
 
         bool GetPostByUserId_join(int myUserId, int userId, int page, int pageSize, out List<Post> result,
             out Pagination pagination);
+
         bool GetNewFeed(int myUserId, int page, int pageSize, out List<Post> result,
+            out Pagination pagination);
+
+        bool GetTopUser(int myUserId, int page, int pageSize, out List<SimpleUser> result,
             out Pagination pagination);
     }
 
@@ -894,6 +899,54 @@ namespace APICore.Services
             {
                 DbService.DisconnectDb(ref _context);
             }
+
+            return true;
+        }
+
+        public bool GetTopUser(int myUserId, int page, int pageSize, out List<SimpleUser> result,
+            out Pagination pagination)
+        {
+            try
+            {
+                DbService.ConnectDb(out _context);
+
+                result = new List<SimpleUser>();
+
+                var postGroup = from p in _context.Posts
+                    group p by p.AuthorId
+                    into pg
+                    select new
+                    {
+                        Key = pg.Key,
+                        Count = pg.Count()
+                    };
+
+                var total = postGroup.Count();
+                var skip = pageSize * (page - 1);
+                pageSize = pageSize <= 0 ? total : pageSize;
+
+                result = postGroup
+                    .AsEnumerable()
+                    .ToList()
+                    .Skip(skip)
+                    .Take(pageSize)
+                    .Select((e) =>
+                    {
+                        var author = _context.Users.FirstOrDefault(u => u.Id == e.Key);
+                        var friendType = _friendService.CalculateIsFriend(myUserId, author.Id);
+                        var simpleAuthor = author.ToSimpleUser(friendType, e.Count);
+                        return simpleAuthor;
+                    }).ToList();
+
+                result = result.OrderByDescending(e => e.TotalPost).ToList();
+
+                pagination = new Pagination(total, page, pageSize);
+            }
+            finally
+            {
+                DbService.DisconnectDb(ref _context);
+            }
+
             return true;
         }
     }
