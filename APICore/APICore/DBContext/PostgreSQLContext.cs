@@ -64,7 +64,6 @@ namespace APICore.DBContext
             //    .IsRequired();
 
             modelBuilder.Entity<Feedback>().HasKey(fb => new { fb.AuthorId, fb.TourId });
-            modelBuilder.Entity<TimelineDetail>().HasKey(fb => new { fb.PlaceId, fb.TimelineId });
             modelBuilder.Entity<TourService>().HasKey(fb => new { fb.ServiceId, fb.TourId });
             modelBuilder.Entity<TourMember>().HasKey(fb => new { fb.TourId, fb.UserId });
             modelBuilder.Entity<TourMember>().HasKey(fb => new { fb.TourId, fb.UserId });

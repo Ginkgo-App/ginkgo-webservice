@@ -14,9 +14,8 @@ namespace APICore.Entities
             Detail = detail;
         }
 
-        [Key]
+        public int Id { get; private set; }
         public int PlaceId { get; private set; }
-        [Key]
         public int TimelineId { get; set; }
         public string Time { get; private set; }
         public string Detail { get; private set; }
