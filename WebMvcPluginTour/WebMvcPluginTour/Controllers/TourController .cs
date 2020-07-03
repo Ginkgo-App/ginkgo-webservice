@@ -52,28 +52,24 @@ namespace WebMvcPluginTour.Controllers
                             if (!_tourService.GetTourListRecommend(userId, page, pageSize, out tours, out pagination))
                             {
                                 responseModel.FromErrorCode(ErrorCode.Fail);
-                                break;
                             }
                             break;
                         case  "friend":
-                            if (!_tourService.GetTourListRecommend(userId, page, pageSize, out tours, out pagination))
+                            if (!_tourService.GetTourListFriend(userId, page, pageSize, out tours, out pagination))
                             {
                                 responseModel.FromErrorCode(ErrorCode.Fail);
-                                break;
                             }
                             break;
                         case "foryou":
                             if (!_tourService.GetTourListForYou(userId, page, pageSize, out tours, out pagination))
                             {
                                 responseModel.FromErrorCode(ErrorCode.Fail);
-                                break;
                             }
                             break;
                         default:
                             if (!_tourService.GetTourListRecommend(userId, page, pageSize, out tours, out pagination))
                             {
                                 responseModel.FromErrorCode(ErrorCode.Fail);
-                                break;
                             }
                             break;
                     }
