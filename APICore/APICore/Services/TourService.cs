@@ -453,17 +453,6 @@ namespace APICore.Services
                         } into tourInfoMember
                     from tim in tourInfoMember.DefaultIfEmpty()
                     join host in _context.Users on t.CreateById equals host.Id
-                    let f = (from tourMember in _context.TourMembers
-                            join friend in (from fr in _context.Friends.Where(fr =>
-                                        fr.AcceptedAt != null && (fr.UserId == userId || fr.RequestedUserId == userId))
-                                    select new
-                                    {
-                                        Id = fr.UserId == userId ? fr.RequestedUserId : fr.UserId
-                                    }
-                                ) on tourMember.UserId equals friend.Id
-                            join user in _context.Users on friend.Id equals user.Id
-                            select user
-                        )
                     where (t.StartDay > DateTime.Now && t.CreateById != userId && tim == null)
                     select new
                     {
@@ -473,7 +462,6 @@ namespace APICore.Services
                         t.EndDay,
                         t.Price,
                         Host = host,
-                        Friends = f.ToList(),
                         TourInfo = ti,
                         tim.JoinAt,
                         tim.AcceptedAt
@@ -492,8 +480,23 @@ namespace APICore.Services
                     .Select((e) =>
                     {
                         var totalMember = _context.TourMembers.Count(t => t.TourId == e.Id);
-                        var listFriend = e.Friends.Any()
-                            ? e.Friends.Select(u => u.ToSimpleUser(FriendType.Accepted)).ToList()
+
+                        var friends = (from tourMember in _context.TourMembers
+                                join friend in (from fr in _context.Friends.Where(fr =>
+                                            fr.AcceptedAt != null &&
+                                            (fr.UserId == userId || fr.RequestedUserId == userId))
+                                        select new
+                                        {
+                                            Id = fr.UserId == userId ? fr.RequestedUserId : fr.UserId
+                                        }
+                                    ) on tourMember.UserId equals friend.Id
+                                join user in _context.Users on friend.Id equals user.Id
+                                where tourMember.TourId == e.Id
+                                select user
+                            )?.AsEnumerable().ToList();
+                        
+                        var listFriend = friends.Any()
+                            ? friends.Select(u => u.ToSimpleUser(FriendType.Accepted)).ToList()
                             : new List<SimpleUser>();
 
                         return new SimpleTour(
@@ -549,17 +552,6 @@ namespace APICore.Services
                         } into tourInfoMember
                     from tim in tourInfoMember.DefaultIfEmpty()
                     join host in _context.Users on t.CreateById equals host.Id
-                    let f = (from tourMember in _context.TourMembers
-                            join friend in (from fr in _context.Friends.Where(fr =>
-                                        fr.AcceptedAt != null && (fr.UserId == userId || fr.RequestedUserId == userId))
-                                    select new
-                                    {
-                                        Id = fr.UserId == userId ? fr.RequestedUserId : fr.UserId
-                                    }
-                                ) on tourMember.UserId equals friend.Id
-                            join user in _context.Users on friend.Id equals user.Id
-                            select user
-                        )
                     where (t.StartDay > DateTime.Now && t.CreateById != userId && tim == null)
                     select new
                     {
@@ -569,7 +561,6 @@ namespace APICore.Services
                         t.EndDay,
                         t.Price,
                         Host = host,
-                        Friends = f.ToList(),
                         TourInfo = ti,
                         tim.JoinAt,
                         tim.AcceptedAt
@@ -589,8 +580,22 @@ namespace APICore.Services
                     .Select((e) =>
                     {
                         var totalMember = _context.TourMembers.Count(t => t.TourId == e.Id);
-                        var listFriend = e.Friends.Any()
-                            ? e.Friends.Select(u => u.ToSimpleUser(FriendType.Accepted)).ToList()
+                        var friends = (from tourMember in _context.TourMembers
+                                join friend in (from fr in _context.Friends.Where(fr =>
+                                            fr.AcceptedAt != null &&
+                                            (fr.UserId == userId || fr.RequestedUserId == userId))
+                                        select new
+                                        {
+                                            Id = fr.UserId == userId ? fr.RequestedUserId : fr.UserId
+                                        }
+                                    ) on tourMember.UserId equals friend.Id
+                                join user in _context.Users on friend.Id equals user.Id
+                                where tourMember.TourId == e.Id
+                                select user
+                            )?.AsEnumerable().ToList();
+                        
+                        var listFriend =friends.Any()
+                            ? friends.Select(u => u.ToSimpleUser(FriendType.Accepted)).ToList()
                             : new List<SimpleUser>();
 
                         return new SimpleTour(
@@ -646,17 +651,6 @@ namespace APICore.Services
                         } into tourInfoMember
                     from tim in tourInfoMember.DefaultIfEmpty()
                     join host in _context.Users on t.CreateById equals host.Id
-                    let f = (from tourMember in _context.TourMembers
-                            join friend in (from fr in _context.Friends.Where(fr =>
-                                        fr.AcceptedAt != null && (fr.UserId == userId || fr.RequestedUserId == userId))
-                                    select new
-                                    {
-                                        Id = fr.UserId == userId ? fr.RequestedUserId : fr.UserId
-                                    }
-                                ) on tourMember.UserId equals friend.Id
-                            join user in _context.Users on friend.Id equals user.Id
-                            select user
-                        )
                     where (t.StartDay > DateTime.Now
                            && t.CreateById != userId
                            && tim == null)
@@ -668,31 +662,31 @@ namespace APICore.Services
                         t.EndDay,
                         t.Price,
                         Host = host,
-                        Friends = f.ToList(),
                         TourInfo = ti,
                         tim.JoinAt,
                         tim.AcceptedAt
                     }).AsEnumerable()?.Distinct((a, b) => a.Id == b.Id).ToList();
 
-                // Random list
-                var rnd = new Random();
-                toursDb = toursDb
-                    .Where(e=> e.Friends?.Count() > 0)
-                    .OrderBy(x => rnd.Next())
-                    .ToList();
-
-                var total = toursDb.Count();
-                var skip = pageSize * (page - 1);
-                pageSize = pageSize <= 0 ? total : pageSize;
-
-                tours = toursDb
-                    .Skip(skip)
-                    .Take(pageSize)
-                    .Select((e) =>
+                // Get list friends
+                tours = toursDb.Select((e) =>
                     {
                         var totalMember = _context.TourMembers.Count(t => t.TourId == e.Id);
-                        var listFriend = e.Friends.Any()
-                            ? e.Friends.Select(u => u.ToSimpleUser(FriendType.Accepted)).ToList()
+                        var friends = (from tourMember in _context.TourMembers
+                                join friend in (from fr in _context.Friends.Where(fr =>
+                                            fr.AcceptedAt != null &&
+                                            (fr.UserId == userId || fr.RequestedUserId == userId))
+                                        select new
+                                        {
+                                            Id = fr.UserId == userId ? fr.RequestedUserId : fr.UserId
+                                        }
+                                    ) on tourMember.UserId equals friend.Id
+                                join user in _context.Users on friend.Id equals user.Id
+                                where tourMember.TourId == e.Id
+                                select user
+                            )?.AsEnumerable().ToList();
+                        
+                        var listFriend =friends.Any()
+                            ? friends.Select(u => u.ToSimpleUser(FriendType.Accepted)).ToList()
                             : new List<SimpleUser>();
 
                         return new SimpleTour(
@@ -709,7 +703,23 @@ namespace APICore.Services
                             e.AcceptedAt);
                     })
                     .ToList();
+                
+                // Random list
+                var rnd = new Random();
+                tours = tours
+                    .Where(e => e.Friends.Count > 0)
+                    .OrderBy(x => rnd.Next())
+                    .ToList();
 
+                var total = tours.Count();
+                var skip = pageSize * (page - 1);
+                pageSize = pageSize <= 0 ? total : pageSize;
+
+                tours = tours
+                    .Skip(skip)
+                    .Take(pageSize)
+                    .ToList();
+                    
                 pagination = new Pagination(total, page, pageSize);
                 isSuccess = true;
             }
