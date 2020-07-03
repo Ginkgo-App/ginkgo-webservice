@@ -27,10 +27,14 @@ namespace APICore.Services
         bool TryUpdateTour(Tour tour);
         bool TryDeleteTour(int tourId);
         bool TryAddService(int tourId, IEnumerable<int> serviceIds);
+
         bool GetTopUser(int myUserId, int page, int pageSize, out List<SimpleUser> result,
             out Pagination pagination);
 
         public bool GetTourListRecommend(int userId, int page, int pageSize, out List<SimpleTour> tours,
+            out Pagination pagination);
+
+        public bool GetTourListForYou(int userId, int page, int pageSize, out List<SimpleTour> tours,
             out Pagination pagination);
     }
 
@@ -178,6 +182,7 @@ namespace APICore.Services
                         var place = _context.Places.FirstOrDefault(p => p.Id == timelineDetails[i].PlaceId);
                         timelineDetails[i].Place = place;
                     }
+
                     timeLine.TimelineDetails ??= new List<TimelineDetail>();
                     timeLine.TimelineDetails.AddRange(timelineDetails);
                 }
@@ -370,7 +375,7 @@ namespace APICore.Services
 
             return true;
         }
-        
+
         public bool GetTopUser(int myUserId, int page, int pageSize, out List<SimpleUser> result,
             out Pagination pagination)
         {
@@ -418,7 +423,8 @@ namespace APICore.Services
             return true;
         }
 
-        public bool GetTourListRecommend(int userId, int page, int pageSize, out List<SimpleTour> tours, out Pagination pagination)
+        public bool GetTourListRecommend(int userId, int page, int pageSize, out List<SimpleTour> tours,
+            out Pagination pagination)
         {
             tours = null;
             pagination = null;
@@ -427,19 +433,19 @@ namespace APICore.Services
             try
             {
                 DbService.ConnectDb(out _context);
-                
-                var toursDb = (from t in _context.Tours 
+
+                var toursDb = (from t in _context.Tours
                     join ti in _context.TourInfos on t.TourInfoId equals ti.Id
-                    join tm in _context.TourMembers on 
+                    join tm in _context.TourMembers on
                         new
                         {
-                            Id= t.Id,
+                            Id = t.Id,
                             UserId = userId
-                        } 
-                        equals 
+                        }
+                        equals
                         new
                         {
-                            Id= tm.TourId,
+                            Id = tm.TourId,
                             UserId = tm.UserId
                         } into tourInfoMember
                     from tim in tourInfoMember.DefaultIfEmpty()
@@ -472,7 +478,7 @@ namespace APICore.Services
 
                 // Sort by Create Date
                 toursDb = toursDb.OrderByDescending(t => t.Id).ToList();
-                
+
                 var total = toursDb.Count();
                 var skip = pageSize * (page - 1);
                 pageSize = pageSize <= 0 ? total : pageSize;
@@ -488,14 +494,14 @@ namespace APICore.Services
                             : new List<SimpleUser>();
 
                         return new SimpleTour(
-                            e.Id, 
-                            e.Name, 
-                            e.StartDay, 
-                            e.EndDay, 
+                            e.Id,
+                            e.Name,
+                            e.StartDay,
+                            e.EndDay,
                             totalMember,
-                            e.Host.ToSimpleUser(_friendService.CalculateIsFriend(userId, e.Host.Id)), 
+                            e.Host.ToSimpleUser(_friendService.CalculateIsFriend(userId, e.Host.Id)),
                             listFriend,
-                            e.Price, 
+                            e.Price,
                             e.TourInfo,
                             e.JoinAt,
                             e.AcceptedAt);
@@ -512,8 +518,9 @@ namespace APICore.Services
 
             return isSuccess;
         }
-        
-        public bool GetTourListForYou(int userId, int page, int pageSize, out List<SimpleTour> tours, out Pagination pagination)
+
+        public bool GetTourListForYou(int userId, int page, int pageSize, out List<SimpleTour> tours,
+            out Pagination pagination)
         {
             tours = null;
             pagination = null;
@@ -522,19 +529,19 @@ namespace APICore.Services
             try
             {
                 DbService.ConnectDb(out _context);
-                
-                var toursDb = (from t in _context.Tours 
+
+                var toursDb = (from t in _context.Tours
                     join ti in _context.TourInfos on t.TourInfoId equals ti.Id
-                    join tm in _context.TourMembers on 
+                    join tm in _context.TourMembers on
                         new
                         {
-                            Id= t.Id,
+                            Id = t.Id,
                             UserId = userId
-                        } 
-                        equals 
+                        }
+                        equals
                         new
                         {
-                            Id= tm.TourId,
+                            Id = tm.TourId,
                             UserId = tm.UserId
                         } into tourInfoMember
                     from tim in tourInfoMember.DefaultIfEmpty()
@@ -565,9 +572,10 @@ namespace APICore.Services
                         tim.AcceptedAt
                     }).AsEnumerable()?.Distinct((a, b) => a.Id == b.Id).ToList();
 
-                // Sort by Create Date
-                toursDb = toursDb.OrderByDescending(t => t.Id).ToList();
-                
+                // Random list
+                Random rnd = new Random();
+                toursDb = toursDb.OrderBy(x => rnd.Next()).ToList();
+
                 var total = toursDb.Count();
                 var skip = pageSize * (page - 1);
                 pageSize = pageSize <= 0 ? total : pageSize;
@@ -583,14 +591,14 @@ namespace APICore.Services
                             : new List<SimpleUser>();
 
                         return new SimpleTour(
-                            e.Id, 
-                            e.Name, 
-                            e.StartDay, 
-                            e.EndDay, 
+                            e.Id,
+                            e.Name,
+                            e.StartDay,
+                            e.EndDay,
                             totalMember,
-                            e.Host.ToSimpleUser(_friendService.CalculateIsFriend(userId, e.Host.Id)), 
+                            e.Host.ToSimpleUser(_friendService.CalculateIsFriend(userId, e.Host.Id)),
                             listFriend,
-                            e.Price, 
+                            e.Price,
                             e.TourInfo,
                             e.JoinAt,
                             e.AcceptedAt);

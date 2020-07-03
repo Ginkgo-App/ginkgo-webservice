@@ -63,7 +63,7 @@ namespace WebMvcPluginTour.Controllers
                             }
                             break;
                         case "foryou":
-                            if (!_tourService.GetTourListRecommend(userId, page, pageSize, out tours, out pagination))
+                            if (!_tourService.GetTourListForYou(userId, page, pageSize, out tours, out pagination))
                             {
                                 responseModel.FromErrorCode(ErrorCode.Fail);
                                 break;
