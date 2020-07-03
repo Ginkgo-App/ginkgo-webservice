@@ -49,6 +49,10 @@ namespace APICore.Entities
         public SimpleUser CreateBy { get; set; }
         [NotMapped]
         public List<TimeLine> TimeLines { get; set; }
+        [NotMapped]
+        public DateTime? JoinAt { get; set; }
+        [NotMapped]
+        public DateTime? AcceptedAt { get; set; }
         
 
         public JObject ToSimpleJson(User host, string friendType, int totalMember, TourInfo tourInfo)

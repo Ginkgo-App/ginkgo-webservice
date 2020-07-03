@@ -296,6 +296,7 @@ namespace APICore.Services
                        throw new ExceptionWithMessage("Tour not found");
                 var createById = tour.CreateById;
                 var createBy = _context.Users.FirstOrDefault(u => u.Id == createById);
+                var tourMember = _context.TourMembers.FirstOrDefault(tm => tm.TourId == id && tm.UserId == userId);
                 var friendType = _friendService.CalculateIsFriend(userId, createById);
 
                 TryGetTourInfo(userId, id, out var tourInfo);
@@ -304,6 +305,8 @@ namespace APICore.Services
                 tour.TimeLines = timeLines;
                 tour.TourInfo = tourInfo;
                 tour.CreateBy = createBy?.ToSimpleUser(friendType);
+                tour.JoinAt = tourMember?.JoinAt;
+                tour.DeletedAt = tourMember?.DeletedAt;
             }
             finally
             {
