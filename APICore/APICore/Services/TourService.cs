@@ -7,6 +7,7 @@ using System.Linq;
 using APICore.Entities;
 using APICore.Helpers;
 using APICore.Models;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace APICore.Services
 {
@@ -27,6 +28,9 @@ namespace APICore.Services
         bool TryDeleteTour(int tourId);
         bool TryAddService(int tourId, IEnumerable<int> serviceIds);
         bool GetTopUser(int myUserId, int page, int pageSize, out List<SimpleUser> result,
+            out Pagination pagination);
+
+        public bool GetTourListRecommend(int userId, int page, int pageSize, out List<SimpleTour> tours,
             out Pagination pagination);
     }
 
@@ -412,6 +416,196 @@ namespace APICore.Services
             }
 
             return true;
+        }
+
+        public bool GetTourListRecommend(int userId, int page, int pageSize, out List<SimpleTour> tours, out Pagination pagination)
+        {
+            tours = null;
+            pagination = null;
+            bool isSuccess;
+
+            try
+            {
+                DbService.ConnectDb(out _context);
+                
+                var toursDb = (from t in _context.Tours 
+                    join ti in _context.TourInfos on t.TourInfoId equals ti.Id
+                    join tm in _context.TourMembers on 
+                        new
+                        {
+                            Id= t.Id,
+                            UserId = userId
+                        } 
+                        equals 
+                        new
+                        {
+                            Id= tm.TourId,
+                            UserId = tm.UserId
+                        } into tourInfoMember
+                    from tim in tourInfoMember.DefaultIfEmpty()
+                    join host in _context.Users on t.CreateById equals host.Id
+                    let f = (from tourMember in _context.TourMembers
+                            join friend in (from fr in _context.Friends.Where(fr =>
+                                        fr.AcceptedAt != null && (fr.UserId == userId || fr.RequestedUserId == userId))
+                                    select new
+                                    {
+                                        Id = fr.UserId == userId ? fr.RequestedUserId : fr.UserId
+                                    }
+                                ) on tourMember.UserId equals friend.Id
+                            join user in _context.Users on friend.Id equals user.Id
+                            select user
+                        )
+                    where (t.StartDay > DateTime.Now && t.CreateById != userId && tim == null)
+                    select new
+                    {
+                        t.Id,
+                        t.Name,
+                        t.StartDay,
+                        t.EndDay,
+                        t.Price,
+                        Host = host,
+                        Friends = f.ToList(),
+                        TourInfo = ti,
+                        tim.JoinAt,
+                        tim.AcceptedAt
+                    }).AsEnumerable()?.Distinct((a, b) => a.Id == b.Id).ToList();
+
+                // Sort by Create Date
+                toursDb = toursDb.OrderByDescending(t => t.Id).ToList();
+                
+                var total = toursDb.Count();
+                var skip = pageSize * (page - 1);
+                pageSize = pageSize <= 0 ? total : pageSize;
+
+                tours = toursDb
+                    .Skip(skip)
+                    .Take(pageSize)
+                    .Select((e) =>
+                    {
+                        var totalMember = _context.TourMembers.Count(t => t.TourId == e.Id);
+                        var listFriend = e.Friends.Any()
+                            ? e.Friends.Select(u => u.ToSimpleUser(FriendType.Accepted)).ToList()
+                            : new List<SimpleUser>();
+
+                        return new SimpleTour(
+                            e.Id, 
+                            e.Name, 
+                            e.StartDay, 
+                            e.EndDay, 
+                            totalMember,
+                            e.Host.ToSimpleUser(_friendService.CalculateIsFriend(userId, e.Host.Id)), 
+                            listFriend,
+                            e.Price, 
+                            e.TourInfo,
+                            e.JoinAt,
+                            e.AcceptedAt);
+                    })
+                    .ToList();
+
+                pagination = new Pagination(total, page, pageSize);
+                isSuccess = true;
+            }
+            finally
+            {
+                DbService.DisconnectDb(ref _context);
+            }
+
+            return isSuccess;
+        }
+        
+        public bool GetTourListForYou(int userId, int page, int pageSize, out List<SimpleTour> tours, out Pagination pagination)
+        {
+            tours = null;
+            pagination = null;
+            bool isSuccess;
+
+            try
+            {
+                DbService.ConnectDb(out _context);
+                
+                var toursDb = (from t in _context.Tours 
+                    join ti in _context.TourInfos on t.TourInfoId equals ti.Id
+                    join tm in _context.TourMembers on 
+                        new
+                        {
+                            Id= t.Id,
+                            UserId = userId
+                        } 
+                        equals 
+                        new
+                        {
+                            Id= tm.TourId,
+                            UserId = tm.UserId
+                        } into tourInfoMember
+                    from tim in tourInfoMember.DefaultIfEmpty()
+                    join host in _context.Users on t.CreateById equals host.Id
+                    let f = (from tourMember in _context.TourMembers
+                            join friend in (from fr in _context.Friends.Where(fr =>
+                                        fr.AcceptedAt != null && (fr.UserId == userId || fr.RequestedUserId == userId))
+                                    select new
+                                    {
+                                        Id = fr.UserId == userId ? fr.RequestedUserId : fr.UserId
+                                    }
+                                ) on tourMember.UserId equals friend.Id
+                            join user in _context.Users on friend.Id equals user.Id
+                            select user
+                        )
+                    where (t.StartDay > DateTime.Now && t.CreateById != userId && tim == null)
+                    select new
+                    {
+                        t.Id,
+                        t.Name,
+                        t.StartDay,
+                        t.EndDay,
+                        t.Price,
+                        Host = host,
+                        Friends = f.ToList(),
+                        TourInfo = ti,
+                        tim.JoinAt,
+                        tim.AcceptedAt
+                    }).AsEnumerable()?.Distinct((a, b) => a.Id == b.Id).ToList();
+
+                // Sort by Create Date
+                toursDb = toursDb.OrderByDescending(t => t.Id).ToList();
+                
+                var total = toursDb.Count();
+                var skip = pageSize * (page - 1);
+                pageSize = pageSize <= 0 ? total : pageSize;
+
+                tours = toursDb
+                    .Skip(skip)
+                    .Take(pageSize)
+                    .Select((e) =>
+                    {
+                        var totalMember = _context.TourMembers.Count(t => t.TourId == e.Id);
+                        var listFriend = e.Friends.Any()
+                            ? e.Friends.Select(u => u.ToSimpleUser(FriendType.Accepted)).ToList()
+                            : new List<SimpleUser>();
+
+                        return new SimpleTour(
+                            e.Id, 
+                            e.Name, 
+                            e.StartDay, 
+                            e.EndDay, 
+                            totalMember,
+                            e.Host.ToSimpleUser(_friendService.CalculateIsFriend(userId, e.Host.Id)), 
+                            listFriend,
+                            e.Price, 
+                            e.TourInfo,
+                            e.JoinAt,
+                            e.AcceptedAt);
+                    })
+                    .ToList();
+
+                pagination = new Pagination(total, page, pageSize);
+                isSuccess = true;
+            }
+            finally
+            {
+                DbService.DisconnectDb(ref _context);
+            }
+
+            return isSuccess;
         }
     }
 }

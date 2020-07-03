@@ -33,6 +33,64 @@ namespace WebMvcPluginTour.Controllers
             _serviceService = serviceService;
         }
         
+        [HttpGet]
+        public object GetListTour([FromQuery] int page, [FromQuery] int pageSize, [FromQuery]string type)
+        {
+            var responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
+                    var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
+                    List<SimpleTour> tours;
+                    Pagination pagination;
+
+                    switch (type.ToLower())
+                    {
+                        case "recommend":
+                            if (!_tourService.GetTourListRecommend(userId, page, pageSize, out tours, out pagination))
+                            {
+                                responseModel.FromErrorCode(ErrorCode.Fail);
+                                break;
+                            }
+                            break;
+                        case  "friend":
+                            if (!_tourService.GetTourListRecommend(userId, page, pageSize, out tours, out pagination))
+                            {
+                                responseModel.FromErrorCode(ErrorCode.Fail);
+                                break;
+                            }
+                            break;
+                        case "foryou":
+                            if (!_tourService.GetTourListRecommend(userId, page, pageSize, out tours, out pagination))
+                            {
+                                responseModel.FromErrorCode(ErrorCode.Fail);
+                                break;
+                            }
+                            break;
+                        default:
+                            if (!_tourService.GetTourListRecommend(userId, page, pageSize, out tours, out pagination))
+                            {
+                                responseModel.FromErrorCode(ErrorCode.Fail);
+                                break;
+                            }
+                            break;
+                    }
+                    
+                    responseModel.FromErrorCode(ErrorCode.Success);
+                    responseModel.Data = JArray.FromObject(tours);
+                    responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
+        
         [HttpGet("top-users")]
         public object GetTopUSer([FromQuery] int page, [FromQuery] int pageSize)
         {
