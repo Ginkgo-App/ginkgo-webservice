@@ -18,6 +18,9 @@ namespace APICore.Services
         bool TryGetAllTours(int tourInfoId, int page, int pageSize, out List<Tour> tours,
             out Pagination pagination);
 
+        bool TryGetTourAllMembers(int myUserId, int tourId, int page, int pageSize, out List<SimpleTourMember> users, out Pagination pagination);
+        bool TryGetTourRequestedMembers(int myUserId, int tourId, int page, int pageSize, out List<SimpleTourMember> users, out Pagination pagination);
+        bool TryGetTourAcceptedMembers(int myUserId, int tourId, int page, int pageSize, out List<SimpleTourMember> users, out Pagination pagination);
         bool TryGetTour(int userId, int id, out Tour tour);
         bool TryGetTourInfo(int userId, int tourId, out TourInfo tourInfo);
         bool TryGetTimelines(int tourId, out List<TimeLine> timelines);
@@ -31,13 +34,13 @@ namespace APICore.Services
         bool GetTopUser(int myUserId, int page, int pageSize, out List<SimpleUser> result,
             out Pagination pagination);
 
-        public bool GetTourListRecommend(int userId, int page, int pageSize, out List<SimpleTour> tours,
+        bool GetTourListRecommend(int userId, int page, int pageSize, out List<SimpleTour> tours,
             out Pagination pagination);
 
-        public bool GetTourListForYou(int userId, int page, int pageSize, out List<SimpleTour> tours,
+        bool GetTourListForYou(int userId, int page, int pageSize, out List<SimpleTour> tours,
             out Pagination pagination);
 
-        public bool GetTourListFriend(int userId, int page, int pageSize, out List<SimpleTour> tours,
+        bool GetTourListFriend(int userId, int page, int pageSize, out List<SimpleTour> tours,
             out Pagination pagination);
     }
 
@@ -103,6 +106,177 @@ namespace APICore.Services
                     tours = new List<Tour>();
                 }
 
+                pagination = new Pagination(total, page, pageSize);
+            }
+            finally
+            {
+                DbService.DisconnectDb(ref _context);
+            }
+
+            return true;
+        }
+
+        public bool TryGetTourAllMembers(int myUserId, int tourId, int page, int pageSize, out List<SimpleTourMember> users, out Pagination pagination)
+        {
+            try
+            {
+                DbService.ConnectDb(out _context);
+                var members = (from tm in _context.TourMembers
+                    join u in _context.Users on tm.UserId equals u.Id
+                    where (tm.TourId == tourId && tm.DeletedAt == null)
+                    select new
+                    {
+                        User = u,
+                        TourMember = tm,
+                    });
+                
+                var total = members?.Count() ?? 0;
+                var skip = pageSize * (page - 1);
+
+                var canPage = skip < total;
+
+                if (canPage)
+                {
+                    members = pageSize <= 0
+                        ? members
+                        : members
+                            .Skip(skip)
+                            .Take(pageSize);
+
+                    users = members.AsEnumerable().Select(e =>
+                    {
+                        var friendType = _friendService.CalculateIsFriend(myUserId, e.User.Id);
+
+                        return new SimpleTourMember(
+                            e.User.Id,
+                            e.User.Name,
+                            e.User.Avatar,
+                            e.User.Job,
+                            friendType,
+                            e.TourMember.JoinAt,
+                            e.TourMember.AcceptedAt
+                        );
+                    }).ToList();
+                }
+                else
+                {
+                    users = new List<SimpleTourMember>();
+                }
+                
+                pagination = new Pagination(total, page, pageSize);
+            }
+            finally
+            {
+                DbService.DisconnectDb(ref _context);
+            }
+
+            return true;
+        }
+        
+        public bool TryGetTourRequestedMembers(int myUserId, int tourId, int page, int pageSize, out List<SimpleTourMember> users, out Pagination pagination)
+        {
+            try
+            {
+                DbService.ConnectDb(out _context);
+                var members = (from tm in _context.TourMembers
+                    join u in _context.Users on tm.UserId equals u.Id
+                    where (tm.TourId == tourId && tm.DeletedAt == null && tm.AcceptedAt == null)
+                    select new
+                    {
+                        User = u,
+                        TourMember = tm,
+                    });
+                
+                var total = members?.Count() ?? 0;
+                var skip = pageSize * (page - 1);
+
+                var canPage = skip < total;
+
+                if (canPage)
+                {
+                    members = pageSize <= 0
+                        ? members
+                        : members
+                            .Skip(skip)
+                            .Take(pageSize);
+
+                    users = members.AsEnumerable().Select(e =>
+                    {
+                        var friendType = _friendService.CalculateIsFriend(myUserId, e.User.Id);
+
+                        return new SimpleTourMember(
+                            e.User.Id,
+                            e.User.Name,
+                            e.User.Avatar,
+                            e.User.Job,
+                            friendType,
+                            e.TourMember.JoinAt,
+                            e.TourMember.AcceptedAt
+                        );
+                    }).ToList();
+                }
+                else
+                {
+                    users = new List<SimpleTourMember>();
+                }
+                
+                pagination = new Pagination(total, page, pageSize);
+            }
+            finally
+            {
+                DbService.DisconnectDb(ref _context);
+            }
+
+            return true;
+        }
+        
+        public bool TryGetTourAcceptedMembers(int myUserId, int tourId, int page, int pageSize, out List<SimpleTourMember> users, out Pagination pagination)
+        {
+            try
+            {
+                DbService.ConnectDb(out _context);
+                var members = (from tm in _context.TourMembers
+                    join u in _context.Users on tm.UserId equals u.Id
+                    where (tm.TourId == tourId && tm.DeletedAt == null && tm.AcceptedAt != null)
+                    select new
+                    {
+                        User = u,
+                        TourMember = tm,
+                    });
+                
+                var total = members?.Count() ?? 0;
+                var skip = pageSize * (page - 1);
+
+                var canPage = skip < total;
+
+                if (canPage)
+                {
+                    members = pageSize <= 0
+                        ? members
+                        : members
+                            .Skip(skip)
+                            .Take(pageSize);
+
+                    users = members.AsEnumerable().Select(e =>
+                    {
+                        var friendType = _friendService.CalculateIsFriend(myUserId, e.User.Id);
+
+                        return new SimpleTourMember(
+                            e.User.Id,
+                            e.User.Name,
+                            e.User.Avatar,
+                            e.User.Job,
+                            friendType,
+                            e.TourMember.JoinAt,
+                            e.TourMember.AcceptedAt
+                        );
+                    }).ToList();
+                }
+                else
+                {
+                    users = new List<SimpleTourMember>();
+                }
+                
                 pagination = new Pagination(total, page, pageSize);
             }
             finally
