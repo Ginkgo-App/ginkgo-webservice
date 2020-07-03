@@ -373,7 +373,7 @@ namespace WebMvcPluginTour.Controllers
 
                     post.Delete();
 
-                    if (!_postService.Update(post))
+                    if (!_postService.DeletePost(id))
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
                         break;
