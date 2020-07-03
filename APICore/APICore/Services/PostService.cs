@@ -63,8 +63,16 @@ namespace APICore.Services
 
                 if (post.TourId != null)
                 {
-                    var _ = _context.Tours.FirstOrDefault(t => t.Id == post.TourId && t.DeletedAt == null) ??
-                            throw new ExceptionWithMessage("Tour not found");
+                    var tour = _context.Tours.FirstOrDefault(t => t.Id == post.TourId && t.DeletedAt == null) ??
+                               throw new ExceptionWithMessage("Tour not found");
+
+                    var tourInfo = _context.TourInfos.FirstOrDefault(ti => ti.Id == tour.TourInfoId) ??
+                                   throw new ExceptionWithMessage("Tour info not found");
+
+                    tourInfo.Rating ??= 0;
+                    tourInfo.Rating = (tourInfo.TotalRating * tourInfo.Rating + post.Rating) /
+                                      (tourInfo.TotalRating + 1);
+                    tourInfo.TotalRating++;
                 }
                 else
                 {

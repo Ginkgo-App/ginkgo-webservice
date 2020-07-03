@@ -24,7 +24,8 @@ namespace APICore.Entities
         public string[]? Images { get; private set; }
         public int StartPlaceId { get; private set; }
         public int DestinatePlaceId { get; private set; }
-        public double? Rating { get; private set; }
+        public int TotalRating { get; set; }
+        public double? Rating { get; set; }
 
         [NotMapped] public SimpleUser CreateBy { get; set; }
         [NotMapped] public Place StartPlace { get; set; }
