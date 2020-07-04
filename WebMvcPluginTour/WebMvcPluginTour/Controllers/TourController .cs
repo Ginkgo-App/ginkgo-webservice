@@ -295,6 +295,58 @@ namespace WebMvcPluginTour.Controllers
             return responseModel.ToJson();
         }
 
+        [HttpPost("{tourId}/remove/{userId}")]
+        public object RemoveMember(int userId, int tourId)
+        {
+            var responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
+                    // Get user id
+                    var myUserId = CoreHelper.GetUserId(HttpContext, ref responseModel);
+
+                    // Check user is exist
+                    if (!_userService.TryGetUsers(userId, out var user))
+                    {
+                        responseModel.FromErrorCode(ErrorCode.UserNotFound);
+                        break;
+                    }
+
+                    // Add tour to tour info
+                    if (!_tourService.TryGetTour(myUserId, tourId, out var tour))
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    // User doest not have permission
+                    if (myUserId != tour.CreateById)
+                    {
+                        Response.StatusCode = 403;
+                        responseModel.FromErrorCode(ErrorCode.UserDoesNotHavePermission);
+                    }
+
+                    // Add join tour
+                    if (!_tourService.TryRemoveTourMember(tour, user))
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    responseModel.FromErrorCode(ErrorCode.Success);
+                    responseModel.Data = new JArray {JObject.FromObject(tour)};
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
+        
         [HttpPut("{tourId}")]
         public object UpdateTour(int tourInfoId, int tourId, [FromBody] object requestBody)
         {

@@ -33,6 +33,7 @@ namespace APICore.Services
         bool TryAddTour(Tour tour, List<TimeLine> timeLines);
         bool TryJoinTour(Tour tour, User user);
         bool TryAcceptJoinTour(Tour tour, User user);
+        bool TryRemoveTourMember(Tour tour, User user);
         bool TryUpdateTour(Tour tour);
         bool TryDeleteTour(int tourId);
         bool TryAddService(int tourId, IEnumerable<int> serviceIds);
@@ -477,6 +478,28 @@ namespace APICore.Services
                 }
 
                 tourMember.AcceptedAt = DateTime.Now;
+                _context.TourMembers.Update(tourMember);
+                _context.SaveChanges();
+            }
+            finally
+            {
+                DbService.DisconnectDb(ref _context);
+            }
+
+            return true;
+        }
+
+        public bool TryRemoveTourMember(Tour tour, User user)
+        {
+            try
+            {
+                DbService.ConnectDb(out _context);
+                var tourMember = _context.TourMembers.FirstOrDefault(t =>
+                                     t.TourId == tour.Id && t.UserId == user.Id && t.AcceptedAt == null &&
+                                     t.DeletedAt == null) ??
+                                 throw new ExceptionWithMessage("You not in that tour");
+                
+                tourMember.Delete();
                 _context.TourMembers.Update(tourMember);
                 _context.SaveChanges();
             }
