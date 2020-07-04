@@ -191,6 +191,8 @@ namespace APICore.Services
 
                 foreach (var tour in tours)
                 {
+                    
+                    
                     TryGetTimelines(tour.Id, out var timeLines);
                     TryGetTourInfoById(tour.TourInfoId, out var tourInfo);
                     tour.TimeLines = timeLines;
