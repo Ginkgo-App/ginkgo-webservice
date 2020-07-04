@@ -323,6 +323,7 @@ namespace APICore.Services
                 tour.TourInfo = tourInfo;
                 tour.CreateBy = createBy?.ToSimpleUser(friendType);
                 tour.JoinAt = tourMember?.JoinAt;
+                tour.AcceptedAt = tourMember?.AcceptedAt;
                 tour.DeletedAt = tourMember?.DeletedAt;
             }
             finally
