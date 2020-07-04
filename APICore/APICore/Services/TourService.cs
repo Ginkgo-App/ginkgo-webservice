@@ -499,12 +499,12 @@ namespace APICore.Services
             {
                 DbService.ConnectDb(out _context);
                 var tourMember = _context.TourMembers.FirstOrDefault(t =>
-                                     t.TourId == tour.Id && t.UserId == user.Id && t.AcceptedAt == null &&
-                                     t.DeletedAt == null) ??
-                                 throw new ExceptionWithMessage("You not in that tour");
-
-                tourMember.Delete();
-                _context.TourMembers.Update(tourMember);
+                                     t.TourId == tour.Id
+                                     && t.UserId == user.Id
+                                     && t.DeletedAt == null) ??
+                                 throw new ExceptionWithMessage("User not in that tour");
+                
+                _context.TourMembers.Remove(tourMember);
                 _context.SaveChanges();
             }
             finally
