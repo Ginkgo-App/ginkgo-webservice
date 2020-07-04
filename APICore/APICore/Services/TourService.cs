@@ -18,9 +18,15 @@ namespace APICore.Services
         bool TryGetAllTours(int tourInfoId, int page, int pageSize, out List<Tour> tours,
             out Pagination pagination);
 
-        bool TryGetTourAllMembers(int myUserId, int tourId, int page, int pageSize, out List<SimpleTourMember> users, out Pagination pagination);
-        bool TryGetTourRequestedMembers(int myUserId, int tourId, int page, int pageSize, out List<SimpleTourMember> users, out Pagination pagination);
-        bool TryGetTourAcceptedMembers(int myUserId, int tourId, int page, int pageSize, out List<SimpleTourMember> users, out Pagination pagination);
+        bool TryGetTourAllMembers(int myUserId, int tourId, int page, int pageSize, out List<SimpleTourMember> users,
+            out Pagination pagination);
+
+        bool TryGetTourRequestedMembers(int myUserId, int tourId, int page, int pageSize,
+            out List<SimpleTourMember> users, out Pagination pagination);
+
+        bool TryGetTourAcceptedMembers(int myUserId, int tourId, int page, int pageSize,
+            out List<SimpleTourMember> users, out Pagination pagination);
+
         bool TryGetTour(int userId, int id, out Tour tour);
         bool TryGetTourInfo(int userId, int tourId, out TourInfo tourInfo);
         bool TryGetTimelines(int tourId, out List<TimeLine> timelines);
@@ -116,7 +122,8 @@ namespace APICore.Services
             return true;
         }
 
-        public bool TryGetTourAllMembers(int myUserId, int tourId, int page, int pageSize, out List<SimpleTourMember> users, out Pagination pagination)
+        public bool TryGetTourAllMembers(int myUserId, int tourId, int page, int pageSize,
+            out List<SimpleTourMember> users, out Pagination pagination)
         {
             try
             {
@@ -129,7 +136,7 @@ namespace APICore.Services
                         User = u,
                         TourMember = tm,
                     });
-                
+
                 var total = members?.Count() ?? 0;
                 var skip = pageSize * (page - 1);
 
@@ -162,7 +169,7 @@ namespace APICore.Services
                 {
                     users = new List<SimpleTourMember>();
                 }
-                
+
                 pagination = new Pagination(total, page, pageSize);
             }
             finally
@@ -172,8 +179,9 @@ namespace APICore.Services
 
             return true;
         }
-        
-        public bool TryGetTourRequestedMembers(int myUserId, int tourId, int page, int pageSize, out List<SimpleTourMember> users, out Pagination pagination)
+
+        public bool TryGetTourRequestedMembers(int myUserId, int tourId, int page, int pageSize,
+            out List<SimpleTourMember> users, out Pagination pagination)
         {
             try
             {
@@ -186,7 +194,7 @@ namespace APICore.Services
                         User = u,
                         TourMember = tm,
                     });
-                
+
                 var total = members?.Count() ?? 0;
                 var skip = pageSize * (page - 1);
 
@@ -219,7 +227,7 @@ namespace APICore.Services
                 {
                     users = new List<SimpleTourMember>();
                 }
-                
+
                 pagination = new Pagination(total, page, pageSize);
             }
             finally
@@ -229,8 +237,9 @@ namespace APICore.Services
 
             return true;
         }
-        
-        public bool TryGetTourAcceptedMembers(int myUserId, int tourId, int page, int pageSize, out List<SimpleTourMember> users, out Pagination pagination)
+
+        public bool TryGetTourAcceptedMembers(int myUserId, int tourId, int page, int pageSize,
+            out List<SimpleTourMember> users, out Pagination pagination)
         {
             try
             {
@@ -243,7 +252,7 @@ namespace APICore.Services
                         User = u,
                         TourMember = tm,
                     });
-                
+
                 var total = members?.Count() ?? 0;
                 var skip = pageSize * (page - 1);
 
@@ -276,7 +285,7 @@ namespace APICore.Services
                 {
                     users = new List<SimpleTourMember>();
                 }
-                
+
                 pagination = new Pagination(total, page, pageSize);
             }
             finally
@@ -566,6 +575,7 @@ namespace APICore.Services
                 result = new List<SimpleUser>();
 
                 var tourGroup = from p in _context.Tours
+                    where p.DeletedAt == null
                     group p by p.CreateById
                     into pg
                     select new
@@ -630,7 +640,11 @@ namespace APICore.Services
                         } into tourInfoMember
                     from tim in tourInfoMember.DefaultIfEmpty()
                     join host in _context.Users on t.CreateById equals host.Id
-                    where (t.StartDay > DateTime.Now && t.CreateById != userId && tim == null)
+                    where (
+                        t.DeletedAt == null
+                        && t.StartDay > DateTime.Now
+                        && t.CreateById != userId
+                        && tim == null)
                     select new
                     {
                         t.Id,
@@ -671,7 +685,7 @@ namespace APICore.Services
                                 where tourMember.TourId == e.Id
                                 select user
                             )?.AsEnumerable().ToList();
-                        
+
                         var listFriend = friends.Any()
                             ? friends.Select(u => u.ToSimpleUser(FriendType.Accepted)).ToList()
                             : new List<SimpleUser>();
@@ -729,7 +743,11 @@ namespace APICore.Services
                         } into tourInfoMember
                     from tim in tourInfoMember.DefaultIfEmpty()
                     join host in _context.Users on t.CreateById equals host.Id
-                    where (t.StartDay > DateTime.Now && t.CreateById != userId && tim == null)
+                    where (
+                        t.DeletedAt == null
+                        && t.StartDay > DateTime.Now
+                        && t.CreateById != userId
+                        && tim == null)
                     select new
                     {
                         t.Id,
@@ -770,8 +788,8 @@ namespace APICore.Services
                                 where tourMember.TourId == e.Id
                                 select user
                             )?.AsEnumerable().ToList();
-                        
-                        var listFriend =friends.Any()
+
+                        var listFriend = friends.Any()
                             ? friends.Select(u => u.ToSimpleUser(FriendType.Accepted)).ToList()
                             : new List<SimpleUser>();
 
@@ -828,9 +846,11 @@ namespace APICore.Services
                         } into tourInfoMember
                     from tim in tourInfoMember.DefaultIfEmpty()
                     join host in _context.Users on t.CreateById equals host.Id
-                    where (t.StartDay > DateTime.Now
-                           && t.CreateById != userId
-                           && tim == null)
+                    where (
+                        t.DeletedAt == null
+                        && t.StartDay > DateTime.Now
+                        && t.CreateById != userId
+                        && tim == null)
                     select new
                     {
                         t.Id,
@@ -861,8 +881,8 @@ namespace APICore.Services
                                 where tourMember.TourId == e.Id
                                 select user
                             )?.AsEnumerable().ToList();
-                        
-                        var listFriend =friends.Any()
+
+                        var listFriend = friends.Any()
                             ? friends.Select(u => u.ToSimpleUser(FriendType.Accepted)).ToList()
                             : new List<SimpleUser>();
 
@@ -880,7 +900,7 @@ namespace APICore.Services
                             e.AcceptedAt);
                     })
                     .ToList();
-                
+
                 // Random list
                 var rnd = new Random();
                 tours = tours
@@ -896,7 +916,7 @@ namespace APICore.Services
                     .Skip(skip)
                     .Take(pageSize)
                     .ToList();
-                    
+
                 pagination = new Pagination(total, page, pageSize);
                 isSuccess = true;
             }

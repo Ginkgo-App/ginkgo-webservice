@@ -217,6 +217,7 @@ namespace APICore.Services
 
                 var users = (from pl in _context.PostLikes
                     join user in _context.Users on pl.UserId equals user.Id
+                    where pl.DeletedAt == null && pl.PostId == postId
                     select user).ToList();
 
                 var total = users.Count();
@@ -548,7 +549,7 @@ namespace APICore.Services
                             join user in _context.Users on friend.Id equals user.Id
                             select user
                         )
-                    where (post.AuthorId == userId)
+                    where (post.AuthorId == userId && post.DeletedAt == null)
                     select new
                     {
                         Id = post.Id,
@@ -570,7 +571,7 @@ namespace APICore.Services
                     join plContexts in _context.PostLikes on new {PostId = post.Id, UserId = myUserId} equals new
                         {PostId = plContexts.PostId, UserId = plContexts.UserId} into pl
                     from subPl in pl.DefaultIfEmpty()
-                    where (post.AuthorId == userId && post.TourId == null)
+                    where (post.AuthorId == userId && post.TourId == null && post.DeletedAt == null)
                     select new
                     {
                         Id = post.Id,
@@ -759,18 +760,7 @@ namespace APICore.Services
                     join tmContexts in _context.TourMembers on new {TourId = post.Id, UserId = myUserId} equals new
                         {TourId = tmContexts.TourId, UserId = tmContexts.UserId} into tm
                     from subTm in tm.DefaultIfEmpty()
-                    let f = (from tourMember in _context.TourMembers
-                            join friend in (from fr in _context.Friends.Where(fr =>
-                                        fr.AcceptedAt != null &&
-                                        (fr.UserId == myUserId || fr.RequestedUserId == myUserId))
-                                    select new
-                                    {
-                                        Id = fr.UserId == myUserId ? fr.RequestedUserId : fr.UserId
-                                    }
-                                ) on tourMember.UserId equals friend.Id
-                            join user in _context.Users on friend.Id equals user.Id
-                            select user
-                        )
+                    where (post.DeletedAt == null)
                     select new
                     {
                         Id = post.Id,
@@ -780,7 +770,6 @@ namespace APICore.Services
                         Tour = tour,
                         TourInfo = tourInfo,
                         PostLike = subPl,
-                        Friends = f.ToList(),
                         TourMember = subTm,
                         StartPlace = startPlace,
                         DestinationPlace = destinationPlace,
@@ -792,7 +781,7 @@ namespace APICore.Services
                     join plContexts in _context.PostLikes on new {PostId = post.Id, UserId = myUserId} equals new
                         {PostId = plContexts.PostId, UserId = plContexts.UserId} into pl
                     from subPl in pl.DefaultIfEmpty()
-                    where post.TourId == null
+                    where post.TourId == null && post.DeletedAt == null
                     select new
                     {
                         Id = post.Id,
@@ -802,7 +791,6 @@ namespace APICore.Services
                         Tour = (Tour) null,
                         TourInfo = (TourInfo) null,
                         PostLike = subPl,
-                        Friends = (List<User>) null,
                         TourMember = (TourMember) null,
                         StartPlace = (Place) null,
                         DestinationPlace = (Place) null,
@@ -851,9 +839,23 @@ namespace APICore.Services
                             post.Author = e.Author.ToSimpleUser(friendType);
                             post.IsLike = e.PostLike != null && e.PostLike.DeletedAt == null;
                             post.FeaturedComment = featuredComment;
+                            
+                            var friends = (from tourMember in _context.TourMembers
+                                    join friend in (from fr in _context.Friends.Where(fr =>
+                                                fr.AcceptedAt != null &&
+                                                (fr.UserId == myUserId || fr.RequestedUserId == myUserId))
+                                            select new
+                                            {
+                                                Id = fr.UserId == myUserId ? fr.RequestedUserId : fr.UserId
+                                            }
+                                        ) on tourMember.UserId equals friend.Id
+                                    join user in _context.Users on friend.Id equals user.Id
+                                    where tourMember.TourId == e.Id
+                                    select user
+                                )?.AsEnumerable().ToList();
 
-                            var listFriend = e.Friends.Any()
-                                ? e.Friends.Select(u => u.ToSimpleUser(FriendType.Accepted)).ToList()
+                            var listFriend = friends.Any()
+                                ? friends.Select(u => u.ToSimpleUser(FriendType.Accepted)).ToList()
                                 : new List<SimpleUser>();
 
                             // Add info for tour info
@@ -921,6 +923,7 @@ namespace APICore.Services
                 result = new List<SimpleUser>();
 
                 var postGroup = from p in _context.Posts
+                    where p.DeletedAt == null
                     group p by p.AuthorId
                     into pg
                     select new
