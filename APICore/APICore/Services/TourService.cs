@@ -154,6 +154,9 @@ namespace APICore.Services
                         : members
                             .Skip(skip)
                             .Take(pageSize);
+                    
+                    // Sort by AcceptedAt
+                    members = members.OrderByDescending(e => e.TourMember.AcceptedAt);
 
                     users = members.AsEnumerable().Select(e =>
                     {
