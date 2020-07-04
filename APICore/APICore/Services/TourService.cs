@@ -995,15 +995,15 @@ namespace APICore.Services
 
                 result = new List<Post>();
 
-                if (sortBy.Equals("createAt", StringComparison.OrdinalIgnoreCase))
+                if (sortBy?.Equals("createAt", StringComparison.OrdinalIgnoreCase) ?? false)
                 {
-                    rs = orderBy.Equals("desc", StringComparison.OrdinalIgnoreCase)
+                    rs = orderBy?.Equals("desc", StringComparison.OrdinalIgnoreCase) ?? false
                         ? rs.OrderByDescending(t => t.Post.CreateAt).ToList()
                         : rs.OrderBy(t => t.Post.CreateAt).ToList();
                 }
-                else if (sortBy.Equals("rating", StringComparison.OrdinalIgnoreCase))
+                else if (sortBy?.Equals("rating", StringComparison.OrdinalIgnoreCase) ?? false)
                 {
-                    rs = orderBy.Equals("desc", StringComparison.OrdinalIgnoreCase)
+                    rs = orderBy?.Equals("desc", StringComparison.OrdinalIgnoreCase) ?? false
                         ? rs.OrderByDescending(t => t.Post.Rating).ToList()
                         : rs.OrderByDescending(t => t.Post.Rating).ToList();
                 }
