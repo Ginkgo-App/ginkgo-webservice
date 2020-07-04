@@ -151,7 +151,8 @@ namespace WebMvcPluginTour.Controllers
         }
 
         [HttpGet("{tourId}/members")]
-        public object GetTourMembers(int tourId, [FromQuery] int page, [FromQuery] int pageSize, [FromQuery]string type)
+        public object GetTourMembers(int tourId, [FromQuery] int page, [FromQuery] int pageSize,
+            [FromQuery] string type)
         {
             var responseModel = new ResponseModel();
 
@@ -166,27 +167,64 @@ namespace WebMvcPluginTour.Controllers
                     switch (type.ToLower())
                     {
                         case "accepted":
-                            if (!_tourService.TryGetTourAcceptedMembers(userId, tourId, page, pageSize,  out members, out pagination))
+                            if (!_tourService.TryGetTourAcceptedMembers(userId, tourId, page, pageSize, out members,
+                                out pagination))
                             {
                                 responseModel.FromErrorCode(ErrorCode.Fail);
                             }
+
                             break;
                         case "requesting":
-                            if (!_tourService.TryGetTourRequestedMembers(userId, tourId, page, pageSize,  out members, out pagination))
+                            if (!_tourService.TryGetTourRequestedMembers(userId, tourId, page, pageSize, out members,
+                                out pagination))
                             {
                                 responseModel.FromErrorCode(ErrorCode.Fail);
                             }
+
                             break;
                         default:
-                            if (!_tourService.TryGetTourAllMembers(userId, tourId, page, pageSize,  out members, out pagination))
+                            if (!_tourService.TryGetTourAllMembers(userId, tourId, page, pageSize, out members,
+                                out pagination))
                             {
                                 responseModel.FromErrorCode(ErrorCode.Fail);
                             }
+
                             break;
                     }
-                    
+
                     responseModel.FromErrorCode(ErrorCode.Success);
                     responseModel.Data = JArray.FromObject(members);
+                    responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
+
+        [HttpGet("{tourId}/feedbacks")]
+        public object GetTourFeedbacks(int tourId, [FromQuery] int page, [FromQuery] int pageSize,
+            [FromQuery] string sortBy, [FromQuery] string orderBy)
+        {
+            var responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
+                    var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
+
+                    if (!_tourService.GetFeedbacks(userId, tourId, sortBy, orderBy, page, pageSize, out var feedbacks,
+                        out var pagination))
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                    }
+
+                    responseModel.FromErrorCode(ErrorCode.Success);
+                    responseModel.Data = JArray.FromObject(feedbacks);
                     responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
                 } while (false);
             }
@@ -346,7 +384,7 @@ namespace WebMvcPluginTour.Controllers
 
             return responseModel.ToJson();
         }
-        
+
         [HttpPut("{tourId}")]
         public object UpdateTour(int tourInfoId, int tourId, [FromBody] object requestBody)
         {
