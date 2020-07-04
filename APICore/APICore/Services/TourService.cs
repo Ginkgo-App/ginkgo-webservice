@@ -980,7 +980,7 @@ namespace APICore.Services
                     join tmContexts in _context.TourMembers on new {TourId = post.Id, UserId = myUserId} equals new
                         {TourId = tmContexts.TourId, UserId = tmContexts.UserId} into tm
                     from subTm in tm.DefaultIfEmpty()
-                    where (post.DeletedAt == null && post.TourId == tourId)
+                    where (post.DeletedAt == null && post.TourId == tourId && post.Rating != null)
                     select new
                     {
                         Id = post.Id,
