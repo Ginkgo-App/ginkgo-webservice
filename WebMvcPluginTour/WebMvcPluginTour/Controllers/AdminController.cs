@@ -135,7 +135,7 @@ namespace WebMvcPluginTour.Controllers
 
                     var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
 
-                    if (!_tourService.TryGetTour(userId, id, out var tour) || tour == null)
+                    if (!_tourService.TryGetTour(userId, tourId, out var tour) || tour == null)
                     {
                         throw new ExceptionWithMessage("Tour not found.");
                     }
