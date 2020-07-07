@@ -693,7 +693,7 @@ namespace WebMvcPluginUser.Controllers
                     int.TryParse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value,
                         out var userId);
 
-                    var errorCode = _friendService.TryAddFriend(userToRequestId, userId);
+                    var errorCode = _friendService.TryAddFriend(userId, userToRequestId);
                     if (errorCode != ErrorCode.Success)
                     {
                         responseModel.FromErrorCode(errorCode);
