@@ -23,7 +23,7 @@ namespace WebMvcPluginPlace.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public object GetAllPlaces([FromQuery] int page, [FromQuery] int pageSize)
+        public object GetAllPlaces([FromQuery] int page, [FromQuery] int pageSize, [FromQuery] string type, [FromQuery] string keyword)
         {
             var responseModel = new ResponseModel();
 
@@ -31,7 +31,7 @@ namespace WebMvcPluginPlace.Controllers
             {
                 do
                 {
-                    var errorCode = _placeService.TryGetAllPlaces(page, pageSize, out var places, out var pagination);
+                    var errorCode = _placeService.TryGetAllPlaces(page, pageSize, type, keyword, out var places, out var pagination);
 
                     if (!errorCode)
                     {

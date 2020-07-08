@@ -793,7 +793,7 @@ namespace APICore.Services
                         PostLike = subPl,
                         TourMember = (TourMember) null,
                         StartPlace = (Place) null,
-                        DestinationPlace = (Place) null,
+                        DestinationPlace = (Place) null, 
                         TourInfoAuthor = (User) null,
                     })?.AsEnumerable()?.ToList();
 
