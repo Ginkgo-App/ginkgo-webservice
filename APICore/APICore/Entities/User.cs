@@ -1,19 +1,27 @@
-﻿using System;
+﻿#nullable enable
+using Newtonsoft.Json.Linq;
+using System;
 using System.ComponentModel.DataAnnotations.Schema;
+using APICore.Helpers;
+using APICore.Models;
 
-namespace WebMvcPluginUser.Entities
+namespace APICore.Entities
 {
-    public class User
+    public class User : IIsDeleted
     {
-        public User()
+        public User(string email, string role)
         {
+            Email = email;
+            Role = role;
         }
 
-        public User(string name, string hashPassword, string email, string? phoneNumber, string? fullName, string? avatar, string? bio, string? slogan, string? job, DateTime? birthday, string? gender, string? address, string role)
+        public User(string password, string email, string role, string name, string phoneNumber = null,
+            string fullName = null, string avatar = null, string bio = null, string slogan = null, string job = null,
+            DateTime? birthday = null, string gender = null, string address = null)
         {
             Name = name;
-            Password = hashPassword;
-            Email = email;
+            Password = CoreHelper.HashPassword(password);
+            Email = CoreHelper.ValidateEmail(email);
             PhoneNumber = phoneNumber;
             FullName = fullName;
             Avatar = avatar;
@@ -23,52 +31,78 @@ namespace WebMvcPluginUser.Entities
             Birthday = birthday ?? new DateTime();
             Gender = gender;
             Address = address;
-            Role = role;
+            Role = RoleType.TryParse(role) ?? RoleType.User;
         }
 
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Password { get; set; }
-        [NotMapped]
-        public string Token { get; set; }
-        public string Email { get; set; }
-        public string PhoneNumber { get; set; }
-        public string FullName { get; set; }
-        public string Avatar { get; set; }
-        public string Bio { get; set; }
-        public string Slogan { get; set; }
-        public string Job { get; set; }
-        public DateTime Birthday { get; set; }
-        public string Gender { get; set; }
-        public string Address { get; set; }
-        public string Role { get; set; }
-    }
+        public void Update(string? name, string? password, string email, string? phoneNumber, string? avatar,
+            string? bio, string? slogan, string? job, DateTime? birthday, string? gender, string? address, string? role)
+        {
+            Name = name ?? Name;
+            Password = password != null ? CoreHelper.HashPassword(password) : Password;
+            Email = email != null ? CoreHelper.ValidateEmail(email) : Email;
+            PhoneNumber = phoneNumber ?? PhoneNumber;
+            Avatar = avatar ?? Avatar;
+            Bio = bio ?? Bio;
+            Slogan = slogan ?? Slogan;
+            Job = job ?? Job;
+            Birthday = birthday ?? Birthday;
+            Gender = gender ?? Gender;
+            Address = address ?? Address;
+            // If role diff Null, try parse to correct role, else role = default(user)
+            Role = (role != null ? RoleType.TryParse(role) : Role) ?? RoleType.User;
+        }
 
+        public int Id { get; private set; }
+        public string? Name { get; private set; }
+        public string? Password { get; private set; }
+        [NotMapped] public string? Token { get; set; }
+        public string Email { get; private set; }
+        public string? PhoneNumber { get; private set; }
+        public string? FullName { get; private set; }
+        public string? Avatar { get; private set; }
+        public string? Bio { get; private set; }
+        public string? Slogan { get; private set; }
+        public string? Job { get; private set; }
+        public DateTime? Birthday { get; private set; }
+        public string? Gender { get; private set; }
+        public string? Address { get; private set; }
+        public string Role { get; private set; }
+
+
+        public JObject ToSimpleJson(string friendType, int totalPost = -1)
+        {
+            var simpleUser = new SimpleUser(Id, Name, Avatar, Job, FriendType.TryParse(friendType), totalPost);
+            return JObject.FromObject(simpleUser);
+        }
+
+        public SimpleUser ToSimpleUser(string friendType, int totalPost = -1)
+        {
+            var simpleUser = new SimpleUser(Id, Name, Avatar, Job, FriendType.TryParse(friendType), totalPost);
+            return simpleUser;
+        }
+
+        public DateTime? DeletedAt { get; set; }
+        public void Delete()
+        {
+            DeletedAt = DateTime.Now;
+        }
+    }
+    
     public static class RoleType
     {
         public const string Creator = "creator";
         public const string User = "user";
         public const string Admin = "admin";
 
-        public static string  TryParse(string text)
+        public static string? TryParse(string text)
         {
-            if (text == null)
+            return text?.ToLower() switch
             {
-                return null;
-            }
-            if (text.Equals(Creator, StringComparison.OrdinalIgnoreCase))
-            {
-                return Creator;
-            }
-            else if(text.Equals(Admin, StringComparison.OrdinalIgnoreCase))
-            {
-                return Admin;
-            }
-            else if(text.Equals(User, StringComparison.OrdinalIgnoreCase))
-            {
-                return User;
-            }
-            return null;
+                Creator => Creator,
+                Admin => Admin,
+                User => User,
+                _ => User
+            };
         }
     }
 
@@ -78,25 +112,37 @@ namespace WebMvcPluginUser.Entities
         public const string Female = "female";
         public const string Other = "other";
 
-        public static string  TryParse(string text)
+        public static string? TryParse(string text)
         {
-            if (text == null)
+            return text?.ToLower() switch
             {
-                return null;
-            }
-            if (text.Equals(Male, StringComparison.OrdinalIgnoreCase))
+                "male" => Male,
+                "female" => Female,
+                "other" => Other,
+                _ => Other
+            };
+        }
+    }
+
+    public static class FriendType
+    {
+        public const string Me = "me";
+        public const string None = "none";
+        public const string Accepted = "accepted";
+        public const string Waiting = "waiting";
+        public const string Requested = "requested";
+
+        public static string TryParse(string type)
+        {
+            return type?.ToLower() switch
             {
-                return Male;
-            }
-            else if(text.Equals(Female, StringComparison.OrdinalIgnoreCase))
-            {
-                return Female;
-            }
-            else if(text.Equals(Other, StringComparison.OrdinalIgnoreCase))
-            {
-                return Other;
-            }
-            return null;
+                "me" => Me,
+                "none" => None,
+                "accepted" => Accepted,
+                "waiting" => Waiting,
+                "requested" => Requested,
+                _ => None
+            };
         }
     }
 }

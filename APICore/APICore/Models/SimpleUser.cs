@@ -7,10 +7,21 @@ namespace APICore.Models
 {
     public class SimpleUser
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Avatar { get; set; }
-        public string Job { get; set; }
+        public int Id { get; }
+        public string Name { get; }
+        public string Avatar { get; }
+        public string Job { get; }
+        public string FriendType { get; }
+        public int TotalPost { get; }
 
+        public SimpleUser(int id, string name, string avatar, string job, string friendType, int totalPost)
+        {
+            Id = id;
+            Name = name;
+            Avatar = avatar;
+            Job = job;
+            FriendType = friendType;
+            TotalPost = totalPost;
+        }
     }
 }

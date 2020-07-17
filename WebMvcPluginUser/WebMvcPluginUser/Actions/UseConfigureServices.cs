@@ -1,7 +1,6 @@
-﻿using ExtCore.Infrastructure.Actions;
+﻿using System;
+using ExtCore.Infrastructure.Actions;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using WebMvcPluginUser.Services;
 
 namespace WebMvcPluginUser.Actions
 {
@@ -11,7 +10,7 @@ namespace WebMvcPluginUser.Actions
 
         public void Execute(IServiceCollection services, IServiceProvider serviceProvider)
         {
-            services.AddSingleton<IUserService, UserService>();
+            
         }
     }
 }

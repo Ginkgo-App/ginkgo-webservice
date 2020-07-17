@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace WebMvcPluginUser
+﻿namespace WebMvcPluginUser
 {
-    class UserVars
+    internal static class UserVars
     {
         public const string Version = "v1";
     }

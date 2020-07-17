@@ -2,11 +2,12 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json.Linq;
-using NLog;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Security.Claims;
+using System.Text;
+using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 
 namespace APICore.Helpers
 {
@@ -14,7 +15,7 @@ namespace APICore.Helpers
     {
         public static bool GetParameter(out JToken result, JObject body, string fieldName, JTokenType tokenType, ref ResponseModel response, bool isNullable = false, bool isIgnoreCase = true)
         {
-            bool isSuccess = false;
+            var isSuccess = false;
             result = null;
 
             do
@@ -23,15 +24,15 @@ namespace APICore.Helpers
                 {
                     response.ErrorCode = (int)ErrorList.ErrorCode.BodyInvalid;
                     response.Message = ErrorList.Description(response.ErrorCode);
-                    Vars.LOGGER.Debug("Body is null");
+                    Vars.Logger.Debug("Body is null");
                     break;
                 }
 
-                var stringComparation = isIgnoreCase
+                var stringComparision = isIgnoreCase
                     ? StringComparison.OrdinalIgnoreCase
                     : StringComparison.Ordinal;
 
-                body.TryGetValue(fieldName, stringComparation, out result);
+                body.TryGetValue(fieldName, stringComparision, out result);
 
                 if (isNullable)
                 {
@@ -43,7 +44,11 @@ namespace APICore.Helpers
                 {
                     response.ErrorCode = (int)ErrorList.ErrorCode.InvalidParameter;
                     response.Message = ErrorList.Description(response.ErrorCode);
-                    Vars.LOGGER.Debug("Field '" + fieldName + "' is missing or incorrect");
+                    response.Data = new JArray
+                    {
+                       new JObject{{"Field", fieldName}}
+                    };
+                    Vars.Logger.Debug("Field '" + fieldName + "' is missing or incorrect");
                     break;
                 }
 
@@ -54,7 +59,6 @@ namespace APICore.Helpers
 
         public bool ConvertFormToJson(ref IFormCollection form, out JObject json)
         {
-            bool isSuccess = false;
             json = new JObject();
 
             do
@@ -66,7 +70,59 @@ namespace APICore.Helpers
                 }
             } while (false);
 
-            return isSuccess;
+            return true;
+        }
+        
+        public static string ValidateEmail(string email)
+        {
+            if (!Regex.IsMatch(email, @"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$"))
+            {
+                throw new ExceptionWithMessage("'" + email + "' is invalid format");
+            }
+            return email;
+        }
+        
+        public static string ValidatePhoneNumber(string phoneNumber)
+        {
+            if (!Regex.IsMatch(phoneNumber, @"^-*[0-9,\.?\-?\(?\)?\ ]+$"))
+            {
+                throw new ExceptionWithMessage("'" + phoneNumber + "' is invalid format");
+            }
+            return phoneNumber;
+        }
+
+        public static void ValidatePageSize(ref int page, ref int pageSize)
+        {
+            page = page < 0 ? Vars.DefaultPage : page;
+            pageSize = pageSize < 0 ? Vars.DefaultPageSize : pageSize;
+        }
+        
+        public static string HashPassword(string password)
+        {
+            var salt = Encoding.ASCII.GetBytes(Vars.PasswordSalt);
+
+            var hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
+                password: password,
+                salt: salt,
+                prf: KeyDerivationPrf.HMACSHA1,
+                iterationCount: 10000,
+                numBytesRequested: 256 / 8));
+
+            return hashed;
+        }
+        
+        public static int GetUserId(HttpContext requestContext, ref  ResponseModel responseModel)
+        {
+            var identity = requestContext.User.Identity as ClaimsIdentity;
+            if (identity == null)
+            {
+                responseModel.FromErrorCode(ErrorList.ErrorCode.Fail);
+            }
+
+            var claims = identity.Claims;
+            int.TryParse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value,
+                out var userId);
+            return userId;
         }
     }
 } 

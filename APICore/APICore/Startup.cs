@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -11,42 +10,50 @@ using Microsoft.IdentityModel.Tokens;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using APICore.DBContext;
 using Toycloud.AspNetCore.Mvc.ModelBinding;
-using WebMvcPluginUser.DBContext;
+using APICore.Middlewares;
+using APICore.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace APICore
 {
     public class Startup
     {
-        private readonly string pluginsPath;
+        private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly string _pluginsPath;
 
         public Startup(IConfiguration configuration, IWebHostEnvironment webHostEnvironment)
         {
+            _webHostEnvironment = webHostEnvironment;
             Configuration = configuration;
 
-            string contentRootPath = webHostEnvironment.ContentRootPath;
+            var contentRootPath = webHostEnvironment.ContentRootPath;
             if (webHostEnvironment.IsDevelopment())
             {
                 // development
                 contentRootPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             }
 
-            this.pluginsPath = Path.Combine(contentRootPath, "Plugins");
-            //this.pluginsPath = Path.Combine("D:\\Documents\\Code\\Ginko\\APICore\\APICore", "Plugins");
+            _pluginsPath = Path.Combine(contentRootPath, "Plugins");
         }
 
-        public IConfiguration Configuration { get; }
+        private IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddExtCore(this.pluginsPath);
+            services.AddSingleton<IUserService, UserService>();
+            services.AddSingleton<IFriendService, FriendService>();
+            services.AddSingleton<ITourInfoService, TourInfoService>();
+            services.AddSingleton<ITourService, TourService>();
+            services.AddSingleton<IPlaceService, PlaceService>();
+            services.AddSingleton<IServiceService, ServiceService>();
+            services.AddSingleton<IPostService, PostService>();
+            
+            services.AddExtCore(this._pluginsPath);
 
             services.AddControllers();
-     //.AddNewtonsoftJson(options =>
-     //{
-     //    options.SerializerSettings.ContractResolver = new DefaultContractResolver();
-     //});
 
             services.AddCors();
 
@@ -82,13 +89,13 @@ namespace APICore
             });
 
             // Add global variables
-            Vars.CONNECTION_STRING = appSettings.ConnectionString; 
-            Vars.PASSWORD_SALT = appSettings.PasswordSalt;
+            Vars.ConnectionString = appSettings.ConnectionString; 
+            Vars.PasswordSalt = appSettings.PasswordSalt;
 
             services.AddDbContext<PostgreSQLContext>(options =>
             {
-                options.UseNpgsql(Vars.CONNECTION_STRING);
-            });
+                options.UseNpgsql(Vars.ConnectionString, options => options.EnableRetryOnFailure());
+            }, ServiceLifetime.Transient);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -100,9 +107,9 @@ namespace APICore
                 app.UseDeveloperExceptionPage();
             }
             app.UseAuthentication();
+            app.UseCorsMiddleware();
 
-            app.UseHttpsRedirection();
-            app.UseMvc();
+            //app.UseHttpsRedirection();
             app.UseRouting();
 
             // global cors policy
@@ -111,12 +118,13 @@ namespace APICore
                 .AllowAnyMethod()
                 .AllowAnyHeader());
 
+            app.UseMvc();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
                     name: "default",
-                    pattern: "{controller=Home}/{action=Index}/{id?}");
+                    pattern: "{controller=Home}/{action=Index}/{Id?}");
             });
         }
     }

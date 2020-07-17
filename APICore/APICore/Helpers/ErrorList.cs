@@ -16,11 +16,23 @@
             FeatureIsBeingImplemented = 8,
             AuthProviderMissingEmail = 9,
             UserNotFound = 10,
+            TourNotFound = 11,
+            TourAlreadyExist = 12,
+
+            FriendRequestAlreadySent = 13,
+            AlreadyFriend = 14,
+            FriendRequestNotFound = 15,
+            FriendNotFound = 16,
+            
+            ServiceNotFound = 17,
+            PlaceNotFound = 18,
+            
+            UserDoesNotHavePermission = 19,
         }
 
         public static string Description(int errorCode)
         {
-            ErrorCode code = (ErrorCode)errorCode;
+            var code = (ErrorCode) errorCode;
 
             return code switch
             {
@@ -36,9 +48,17 @@
                 ErrorCode.FeatureIsBeingImplemented => "Feature is being implemented",
                 ErrorCode.AuthProviderMissingEmail => "Authenticate provider is lack off emails",
                 ErrorCode.UserNotFound => "User not found",
-                _ => "Error code is invalid",
+                ErrorCode.TourNotFound => "Tour not found",
+                ErrorCode.TourAlreadyExist => "Tour already exist",
+                ErrorCode.FriendRequestAlreadySent => "Request have already sent.",
+                ErrorCode.AlreadyFriend => "You both were friend already.",
+                ErrorCode.FriendRequestNotFound => "Friend request not found.",
+                ErrorCode.FriendNotFound => "Friend not found.",
+                ErrorCode.ServiceNotFound => "Service not found",
+                ErrorCode.PlaceNotFound => "Place not found",
+                ErrorCode.UserDoesNotHavePermission => "You dont have permission",
+                _ => "Error code is invalid"
             };
         }
     }
-
 }

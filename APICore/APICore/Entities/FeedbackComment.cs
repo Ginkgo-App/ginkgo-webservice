@@ -1,14 +1,21 @@
-﻿using System;
+﻿#nullable enable
+using System;
+using APICore.Models;
 
 namespace APICore.Entities
 {
-    public class FeedbackComment
+    public class FeedbackComment : IIsDeleted
     {
-        public int Id { get; set; }
-        public string Content { get; set; }
-        public int UserId { get; set; }
-        public DateTime CreateAt { get; set; }
-        public int TourInfoId { get; set; }
-        public int AuthorId { get; set; }
+        public int Id { get; private set; }
+        public string? Content { get; private set; }
+        public int UserId { get; private set; }
+        public DateTime CreateAt { get; private set; }
+        public int TourInfoId { get; private set; }
+        public int AuthorId { get; private set; }
+        public DateTime? DeletedAt { get; set; }
+        public void Delete()
+        {
+            DeletedAt = DateTime.Now;
+        }
     }
 }

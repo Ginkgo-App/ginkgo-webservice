@@ -1,18 +1,16 @@
-﻿using APICore.Entities;
-using APICore.Helpers;
-using APICore.Models;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
-using WebMvcPluginUser.Entities;
-using WebMvcPluginUser.Helpers;
+using APICore;
+using APICore.Entities;
+using APICore.Helpers;
+using APICore.Models;
+using APICore.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
 using WebMvcPluginUser.Models;
-using WebMvcPluginUser.Services;
 using static APICore.Helpers.ErrorList;
 
 namespace WebMvcPluginUser.Controllers
@@ -22,26 +20,36 @@ namespace WebMvcPluginUser.Controllers
     [Route("api/" + UserVars.Version + "/users")]
     public class UsersController : ControllerBase
     {
-        private IUserService _userService;
+        private readonly ITourInfoService _tourInfoService;
+        private readonly IUserService _userService;
+        private readonly IFriendService _friendService;
+        private readonly ITourService _tourService;
+        private readonly IServiceService _serviceService;
+        private readonly IPostService _postService;
 
-        public UsersController(IUserService userService)
+        public UsersController(ITourInfoService tourInfoService, IUserService userService,
+            IFriendService friendService, ITourService tourService, IServiceService serviceService,
+            IPostService postService)
         {
+            _tourInfoService = tourInfoService;
             _userService = userService;
+            _friendService = friendService;
+            _tourService = tourService;
+            _serviceService = serviceService;
+            _postService = postService;
         }
 
         [AllowAnonymous]
         [HttpPost("authenticate")]
-        public object Authenticate([FromBody]AuthenticateModel model)
+        public object Authenticate([FromBody] AuthenticateModel model)
         {
-            ResponseModel responseModel = new ResponseModel();
-            JArray data = new JArray();
-            string hashedPassword = UserHelper.HashPassword(model.Password);
+            var responseModel = new ResponseModel();
+            var data = new JArray();
 
             try
             {
-                var errorCode = _userService.Authenticate(model.Email, hashedPassword, out User user);
+                var errorCode = _userService.Authenticate(model.Email, model.Password, out User user);
 
-                //data.Add(JObject.Parse(JsonConvert.SerializeObject(userHelper.WithoutPassword(user))));
                 if (user == null || errorCode != ErrorCode.Success)
                 {
                     responseModel.ErrorCode = (int)ErrorCode.UsernamePasswordIncorrect;
@@ -58,9 +66,7 @@ namespace WebMvcPluginUser.Controllers
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 501;
-                responseModel.ErrorCode = 501;
-                responseModel.Message = ex.Message;
+                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
@@ -68,36 +74,38 @@ namespace WebMvcPluginUser.Controllers
 
         [AllowAnonymous]
         [HttpPost("register")]
-        public object Register([FromBody]object requestBody)
+        public object Register([FromBody] object requestBody)
         {
-            ResponseModel response = new ResponseModel();
-            User user = null;
+            var response = new ResponseModel();
             try
             {
                 do
                 {
-                    JArray data = new JArray();
+                    var data = new JArray();
 
                     // Parse request body to json
-                    JObject reqBody = requestBody != null
-                        ? JObject.Parse(requestBody.ToString())
+                    var reqBody = requestBody != null
+                        ? JObject.Parse(requestBody.ToString()!)
                         : null;
 
-                    if (!CoreHelper.GetParameter(out JToken jsonName, reqBody, "Name", JTokenType.String, ref response)
-                        || !CoreHelper.GetParameter(out JToken jsonPhonenumber, reqBody, "PhoneNumber", JTokenType.String, ref response)
-                        || !CoreHelper.GetParameter(out JToken jsonEmail, reqBody, "Email", JTokenType.String, ref response)
-                        || !CoreHelper.GetParameter(out JToken jsonPassword, reqBody, "Password", JTokenType.String, ref response)
-                        )
+                    if (!CoreHelper.GetParameter(out var jsonName, reqBody, "Name", JTokenType.String, ref response)
+                        || !CoreHelper.GetParameter(out var jsonPhoneNumber, reqBody, "PhoneNumber", JTokenType.String,
+                            ref response)
+                        || !CoreHelper.GetParameter(out var jsonEmail, reqBody, "Email", JTokenType.String,
+                            ref response)
+                        || !CoreHelper.GetParameter(out var jsonPassword, reqBody, "Password", JTokenType.String,
+                            ref response)
+                    )
                     {
                         break;
                     }
 
-                    string name = jsonName.ToString();
-                    string email = jsonEmail.ToString();
-                    string phonenumber = jsonPhonenumber.ToString();
-                    string hashedPassword = UserHelper.HashPassword(jsonPassword.ToString());
+                    var name = jsonName.ToString();
+                    var email = jsonEmail.ToString();
+                    var phoneNumber = jsonPhoneNumber.ToString();
+                    var password = jsonPassword.ToString();
 
-                    var statusCode = _userService.Register(name, email, phonenumber, hashedPassword, out user);
+                    var statusCode = _userService.Register(name, email, phoneNumber, password, out var user);
 
                     if (statusCode == ErrorCode.Success)
                     {
@@ -105,39 +113,38 @@ namespace WebMvcPluginUser.Controllers
                     }
 
                     response.ErrorCode = (int)statusCode;
-                    response.Message = ErrorList.Description(response.ErrorCode);
+                    response.Message = Description(response.ErrorCode);
                     response.Data = data;
-
                 } while (false);
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 501;
-                response.ErrorCode = 501;
-                response.Message = ex.Message;
+                response.FromException(ex);
             }
 
-            return response;
+            return response.ToJson();
         }
 
         [AllowAnonymous]
         [HttpPost("social-provider")]
-        public object SocialProvider([FromBody]object requestBody)
+        public object SocialProvider([FromBody] object requestBody)
         {
-            ResponseModel responseModel = new ResponseModel();
+            var responseModel = new ResponseModel();
 
             try
             {
                 do
                 {
-
-                    JObject body = requestBody != null
-                        ? JObject.Parse(requestBody.ToString())
+                    var body = requestBody != null
+                        ? JObject.Parse(requestBody.ToString()!)
                         : null;
 
-                    if (!CoreHelper.GetParameter(out JToken jsonAccessToken, body, "AccessToken", JTokenType.String, ref responseModel)
-                        || !CoreHelper.GetParameter(out JToken jsonType, body, "Type", JTokenType.String, ref responseModel)
-                        || !CoreHelper.GetParameter(out JToken jsonEmail, body, "Email", JTokenType.String, ref responseModel, isNullable: true))
+                    if (!CoreHelper.GetParameter(out var jsonAccessToken, body, "AccessToken", JTokenType.String,
+                            ref responseModel)
+                        || !CoreHelper.GetParameter(out var jsonType, body, "Type", JTokenType.String,
+                            ref responseModel)
+                        || !CoreHelper.GetParameter(out var jsonEmail, body, "Email", JTokenType.String,
+                            ref responseModel, isNullable: true))
                     {
                         break;
                     }
@@ -148,7 +155,7 @@ namespace WebMvcPluginUser.Controllers
 
                     if (type.Equals("facebook", StringComparison.OrdinalIgnoreCase))
                     {
-                        if (!_userService.TryGetFacbookInfo(accessToken, out AuthProvider authProvider))
+                        if (!_userService.TryGetFacebookInfo(accessToken, out AuthProvider authProvider))
                         {
                             break;
                         }
@@ -173,101 +180,52 @@ namespace WebMvcPluginUser.Controllers
                     {
                         responseModel.FromErrorCode(ErrorCode.FeatureIsBeingImplemented);
                     }
-
                 } while (false);
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 501;
-                responseModel.ErrorCode = 501;
-                responseModel.Message = ex.Message;
+                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
         }
 
-        //[Authorize(Roles = RoleType.Admin)]
-        //[HttpGet]
-        //public IActionResult GetAllUser(int userId, [FromQuery]int page, [FromQuery]int pageSize)
-        //{
-        //    ResponseModel responseModel = new ResponseModel();
-
-        //    try
-        //    {
-        //        do
-        //        {
-        //            List<User> users = null;
-        //            JArray data = new JArray();
-
-        //            if (!_userService.TryGetUsers(page, pageSize, out users))
-        //            {
-        //                break;
-        //            }
-
-        //            if (users == null || users.Count == 0)
-        //            {
-        //                responseModel.ErrorCode = (int)ErrorList.ErrorCode.UserNotFound;
-        //                responseModel.Message = ErrorList.Description(responseModel.ErrorCode);
-        //                break;
-        //            }
-
-        //            foreach (var user in users)
-        //            {
-        //                data.Add(JObject.FromObject(user));
-        //            }
-
-        //            responseModel.ErrorCode = (int)ErrorList.ErrorCode.Success;
-        //            responseModel.Message = ErrorList.Description(responseModel.ErrorCode);
-        //            responseModel.Data = data;
-
-        //        } while (false);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Response.StatusCode = 501;
-        //        responseModel.ErrorCode = 501;
-        //        responseModel.Message = ex.Message;
-        //    }
-
-        //    return responseModel.ToJson();
-        //}
-
         [HttpGet("{userId}")]
         public object GetUserById(int userId)
         {
-            ResponseModel responseModel = new ResponseModel();
+            var responseModel = new ResponseModel();
 
             try
             {
                 do
                 {
-                    User user = null;
-                    JArray data = new JArray();
+                    var data = new JArray();
 
-                    if (!_userService.TryGetUsers(userId, out user))
+                    var myUserId = CoreHelper.GetUserId(HttpContext, ref responseModel);
+
+                    if (!_userService.TryGetUsers(userId, out var user))
                     {
                         break;
                     }
 
                     if (user == null)
                     {
-                        responseModel.ErrorCode = (int)ErrorList.ErrorCode.UserNotFound;
-                        responseModel.Message = ErrorList.Description(responseModel.ErrorCode);
+                        responseModel.ErrorCode = (int)ErrorCode.UserNotFound;
+                        responseModel.Message = Description(responseModel.ErrorCode);
                         break;
                     }
 
-                    data.Add(JObject.FromObject(user));
-                    responseModel.ErrorCode = (int)ErrorList.ErrorCode.Success;
-                    responseModel.Message = ErrorList.Description(responseModel.ErrorCode);
-                    responseModel.Data = data;
+                    var friendType = _friendService.CalculateIsFriend(myUserId, userId);
 
+                    data.Add(user.ToSimpleJson(friendType));
+                    responseModel.ErrorCode = (int)ErrorCode.Success;
+                    responseModel.Message = Description(responseModel.ErrorCode);
+                    responseModel.Data = data;
                 } while (false);
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 501;
-                responseModel.ErrorCode = 501;
-                responseModel.Message = ex.Message;
+                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
@@ -276,7 +234,7 @@ namespace WebMvcPluginUser.Controllers
         [HttpDelete("{userId}")]
         public object DeleteUser(int userId)
         {
-            ResponseModel responseModel = new ResponseModel();
+            var responseModel = new ResponseModel();
 
             try
             {
@@ -288,96 +246,23 @@ namespace WebMvcPluginUser.Controllers
                         responseModel.Message = "Remove user fail";
                         break;
                     }
+
                     responseModel.ErrorCode = (int)ErrorCode.Success;
-                    responseModel.Message = ErrorList.Description(responseModel.ErrorCode);
+                    responseModel.Message = Description(responseModel.ErrorCode);
                 } while (false);
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 501;
-                responseModel.ErrorCode = 501;
-                responseModel.Message = ex.Message;
+                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
         }
 
-        [HttpPut("{userId}")]
-        public object UpdateUser(int userId, [FromBody]object requestBody)
+        [HttpPut("me")]
+        public object UpdateUser([FromBody] object requestBody)
         {
-            ResponseModel responseModel = new ResponseModel();
-
-            try
-            {
-                do
-                {
-                    JObject body = requestBody != null
-                        ? JObject.Parse(requestBody.ToString())
-                        : null;
-
-                    JArray data = new JArray();
-
-                    if (!CoreHelper.GetParameter(out JToken jsonPassword, body, "password", JTokenType.String, ref responseModel, true)
-                        || !CoreHelper.GetParameter(out JToken jsonPhonenumber, body, "phonenumber", JTokenType.String, ref responseModel, true)
-                        || !CoreHelper.GetParameter(out JToken jsonAddress, body, "address", JTokenType.String, ref responseModel, true)
-                        || !CoreHelper.GetParameter(out JToken jsonAvatar, body, "avatar", JTokenType.String, ref responseModel, true)
-                        || !CoreHelper.GetParameter(out JToken jsonSlogan, body, "slogan", JTokenType.String, ref responseModel, true)
-                        || !CoreHelper.GetParameter(out JToken jsonBio, body, "bio", JTokenType.String, ref responseModel, true)
-                        || !CoreHelper.GetParameter(out JToken jsonJob, body, "job", JTokenType.String, ref responseModel, true)
-                        || !CoreHelper.GetParameter(out JToken jsonGender, body, "gender", JTokenType.String, ref responseModel, true)
-                        || !CoreHelper.GetParameter(out JToken jsonBirthday, body, "birthday", JTokenType.Date, ref responseModel, true))
-                    {
-                        break;
-                    }
-
-                    string password = jsonPassword?.ToString();
-                    string phoneNumber = jsonPhonenumber?.ToString();
-                    string address = jsonAddress?.ToString();
-                    string avatar = jsonAvatar?.ToString();
-                    string slogan = jsonSlogan?.ToString();
-                    string bio = jsonBio?.ToString();
-                    string job = jsonJob?.ToString();
-                    string gender = jsonGender?.ToString();
-                    DateTime.TryParse(jsonBirthday?.ToString(), out DateTime birthday);
-
-                    if (!_userService.TryGetUsers(userId, out User user))
-                    {
-                        responseModel.FromErrorCode(ErrorCode.Fail);
-                        break;
-                    }
-
-                    user.Password = password ?? user.Password;
-                    user.PhoneNumber = phoneNumber ?? user.Password;
-                    user.Address = address ?? user.Password;
-                    user.Avatar = avatar ?? user.Password;
-                    user.Slogan = slogan ?? user.Password;
-                    user.Password = password ?? user.Password;
-
-                    bool isSuccess = _userService.TryUpdateUser(user);
-
-                    if (!isSuccess)
-                    {
-                        responseModel.FromErrorCode(ErrorCode.Fail);
-                    }
-                    responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data = new JArray { JObject.FromObject(user) };
-
-                } while (false);
-            }
-            catch (Exception ex)
-            {
-                Response.StatusCode = 501;
-                responseModel.ErrorCode = 501;
-                responseModel.Message = ex.Message;
-            }
-
-            return responseModel.ToJson();
-        }
-
-        [HttpGet("me")]
-        public object GetMyInfo()
-        {
-            ResponseModel responseModel = new ResponseModel();
+            var responseModel = new ResponseModel();
 
             try
             {
@@ -390,9 +275,97 @@ namespace WebMvcPluginUser.Controllers
                         break;
                     }
 
-                    IEnumerable<Claim> claims = identity.Claims;
-                    int.TryParse(claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value, out int userId);
-                    _userService.TryGetUsers(userId, out User user);
+                    var claims = identity.Claims;
+                    int.TryParse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value,
+                        out var userId);
+
+                    var body = requestBody != null
+                        ? JObject.Parse(requestBody.ToString()!)
+                        : null;
+
+                    if (!CoreHelper.GetParameter(out var jsonPassword, body, "password", JTokenType.String,
+                            ref responseModel, true)
+                        || !CoreHelper.GetParameter(out var jsonName, body, "name", JTokenType.String,
+                            ref responseModel, true)
+                        || !CoreHelper.GetParameter(out var jsonPhoneNumber, body, "phoneNumber", JTokenType.String,
+                            ref responseModel, true)
+                        || !CoreHelper.GetParameter(out var jsonAddress, body, "address", JTokenType.String,
+                            ref responseModel, true)
+                        || !CoreHelper.GetParameter(out var jsonAvatar, body, "avatar", JTokenType.String,
+                            ref responseModel, true)
+                        || !CoreHelper.GetParameter(out var jsonSlogan, body, "slogan", JTokenType.String,
+                            ref responseModel, true)
+                        || !CoreHelper.GetParameter(out var jsonBio, body, "bio", JTokenType.String, ref responseModel,
+                            true)
+                        || !CoreHelper.GetParameter(out var jsonJob, body, "job", JTokenType.String, ref responseModel,
+                            true)
+                        || !CoreHelper.GetParameter(out var jsonGender, body, "gender", JTokenType.String,
+                            ref responseModel, true)
+                        || !CoreHelper.GetParameter(out var jsonBirthday, body, "birthday", JTokenType.Date,
+                            ref responseModel, true))
+                    {
+                        break;
+                    }
+
+                    var isParseBirthday = DateTime.TryParse(jsonBirthday?.ToString(), out var birthday);
+
+                    if (!_userService.TryGetUsers(userId, out var user))
+                    {
+                        break;
+                    }
+
+                    if (user == null)
+                    {
+                        responseModel.FromErrorCode(ErrorCode.UserNotFound);
+                        break;
+                    }
+
+                    user.Update(name: jsonName?.ToString(),
+                        password: jsonPassword?.ToString(),
+                        email: null!, phoneNumber: jsonPhoneNumber?.ToString(), avatar: jsonAvatar?.ToString(),
+                        bio: jsonBio?.ToString(), slogan: jsonSlogan?.ToString(), job: jsonJob?.ToString(),
+                        birthday: isParseBirthday ? birthday : (DateTime?)null, gender: jsonGender?.ToString(),
+                        address: jsonAddress?.ToString(), role: null);
+
+                    var isSuccess = _userService.TryUpdateUser(user);
+
+                    if (!isSuccess)
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                    }
+
+                    responseModel.FromErrorCode(ErrorCode.Success);
+                    responseModel.Data = new JArray { JObject.FromObject(user) };
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
+
+        [HttpGet("me")]
+        public object GetMyInfo()
+        {
+            var responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
+                    var identity = HttpContext.User.Identity as ClaimsIdentity;
+                    if (identity == null)
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    var claims = identity.Claims;
+                    int.TryParse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value,
+                        out var userId);
+                    _userService.TryGetUsers(userId, out var user);
 
                     if (user == null)
                     {
@@ -405,38 +378,159 @@ namespace WebMvcPluginUser.Controllers
                     {
                         JObject.FromObject(user)
                     };
-
                 } while (false);
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 501;
-                responseModel.ErrorCode = 501;
-                responseModel.Message = ex.Message;
+                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
         }
 
         [HttpGet("me/tours")]
-        public object GetMyTours()
+        public object GetMyTours([FromQuery] int page, [FromQuery] int pageSize, [FromQuery] string type)
         {
-            ResponseModel responseModel = new ResponseModel();
+            var responseModel = new ResponseModel();
 
             try
             {
                 do
                 {
-                    var identity = HttpContext.User.Identity as ClaimsIdentity;
-                    if (identity == null)
+                    CoreHelper.ValidatePageSize(ref page, ref pageSize);
+
+                    var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
+                    _userService.TryGetTours(userId, page, pageSize, type, out var tours, out var pagination);
+
+                    if (tours == null)
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
                         break;
                     }
 
-                    IEnumerable<Claim> claims = identity.Claims;
-                    int.TryParse(claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value, out int userId);
-                    _userService.TryGetTours(userId, out List<TourInfo> tourInfos);
+                    responseModel.FromErrorCode(ErrorCode.Success);
+                    responseModel.Data = tours.Count > 0
+                        ? JArray.FromObject(tours.Select(t => t.ToJson()))
+                        : new JArray();
+                    responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
+
+        [HttpGet("{userId}/tours")]
+        public object GetUserTours(int userId, [FromQuery] int page, [FromQuery] int pageSize, [FromQuery] string type)
+        {
+            var responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
+                    CoreHelper.ValidatePageSize(ref page, ref pageSize);
+
+                    _userService.TryGetTours(userId, page, pageSize, type, out var tours, out var pagination);
+
+                    if (tours == null)
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    responseModel.FromErrorCode(ErrorCode.Success);
+                    responseModel.Data = tours.Count > 0
+                        ? JArray.FromObject(tours.Select(t => t.ToJson()))
+                        : new JArray();
+                    responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
+
+        [HttpGet("me/posts")]
+        public object GetMyPosts([FromQuery] int page, [FromQuery] int pageSize)
+        {
+            var responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
+                    var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
+
+                    if (!_postService.GetPostByUserId_join(userId, userId, page, pageSize, out var posts, out var pagination))
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    responseModel.FromErrorCode(ErrorCode.Success);
+                    responseModel.Data = JArray.FromObject(posts);
+                    responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
+
+        [HttpGet("{userId}/posts")]
+        public object GetMyPosts(int userId, [FromQuery] int page, [FromQuery] int pageSize)
+        {
+            var responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
+                    var myUserId = CoreHelper.GetUserId(HttpContext, ref responseModel);
+
+                    if (!_postService.GetPostByUserId_join(myUserId, userId, page, pageSize, out var posts, out var pagination))
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    responseModel.FromErrorCode(ErrorCode.Success);
+                    responseModel.Data = JArray.FromObject(posts);
+                    responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
+
+        [HttpGet("me/tour-infos")]
+        public object GetMyTourInfos([FromQuery] int page, [FromQuery] int pageSize)
+        {
+            var responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
+                    CoreHelper.ValidatePageSize(ref page, ref pageSize);
+
+                    var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
+                    _tourInfoService.TryGetTourInfosByUserId(userId, page, pageSize, out var tourInfos,
+                        out var pagination);
 
                     if (tourInfos == null)
                     {
@@ -445,24 +539,144 @@ namespace WebMvcPluginUser.Controllers
                     }
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data = JArray.FromObject(tourInfos);
-
+                    responseModel.Data = tourInfos.Count > 0
+                        ? JArray.FromObject(tourInfos.Select(t => t.ToJson()))
+                        : new JArray();
+                    responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
                 } while (false);
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 501;
-                responseModel.ErrorCode = 501;
-                responseModel.Message = ex.Message;
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
+
+        [HttpGet("{userId}/tour-infos")]
+        public object GetMyTourInfos(int userId, [FromQuery] int page, [FromQuery] int pageSize)
+        {
+            var responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
+                    CoreHelper.ValidatePageSize(ref page, ref pageSize);
+
+                    _tourInfoService.TryGetTourInfosByUserId(userId, page, pageSize, out var tourInfos,
+                        out var pagination);
+
+                    if (tourInfos == null)
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    responseModel.FromErrorCode(ErrorCode.Success);
+                    responseModel.Data = tourInfos.Count > 0
+                        ? JArray.FromObject(tourInfos.Select(t => t.ToJson()))
+                        : new JArray();
+                    responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
+
+        [HttpGet("{id}/friends")]
+        public object GetUserFriends(int id, [FromQuery] int page, [FromQuery] int pageSize)
+        {
+            var responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
+                    CoreHelper.ValidatePageSize(ref page, ref pageSize);
+
+                    if (!(HttpContext.User.Identity is ClaimsIdentity identity))
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    if (!_userService.TryGetFriends(id, FriendType.Accepted, page, pageSize, out var friends,
+                        out var pagination) || friends == null)
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    // Remove me from list
+                    friends.RemoveAll(u => u.Id == id);
+                    var listFriendSimple = friends.Select(u => u.ToSimpleJson(FriendType.Accepted));
+
+                    responseModel.FromErrorCode(ErrorCode.Success);
+                    responseModel.Data = JArray.FromObject(listFriendSimple);
+                    responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
         }
 
         [HttpGet("me/friends")]
-        public object GetMyFriends()
+        public object GetMyFriends([FromQuery] string type, [FromQuery] int page, [FromQuery] int pageSize)
         {
-            ResponseModel responseModel = new ResponseModel();
+            var responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
+                    CoreHelper.ValidatePageSize(ref page, ref pageSize);
+
+                    var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
+
+                    var friendType = type?.ToLower() switch
+                    {
+                        FriendType.Accepted => FriendType.Accepted,
+                        FriendType.Requested => FriendType.Requested,
+                        FriendType.Waiting => FriendType.Waiting,
+                        _ => FriendType.Accepted
+                    };
+
+                    if (!_userService.TryGetFriends(userId, friendType, page, pageSize, out var friends,
+                        out var pagination) || friends == null)
+                    {
+                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        break;
+                    }
+
+                    var listFriendSimple = friends.Select(u => u.ToSimpleUser(friendType))?.ToList() ??
+                                           new List<SimpleUser>();
+
+                    responseModel.FromErrorCode(ErrorCode.Success);
+                    responseModel.Data = JArray.FromObject(listFriendSimple);
+                    responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
+
+        [HttpPost("me/friends/{userToRequestId}")]
+        public object AddFriend(int userToRequestId)
+        {
+            var responseModel = new ResponseModel();
 
             try
             {
@@ -475,35 +689,89 @@ namespace WebMvcPluginUser.Controllers
                         break;
                     }
 
-                    IEnumerable<Claim> claims = identity.Claims;
-                    int.TryParse(claims.Where(x => x.Type == ClaimTypes.NameIdentifier).FirstOrDefault().Value, out int userId);
-                    _userService.TryGetFriends(userId, out List<User> friends);
+                    var claims = identity.Claims;
+                    int.TryParse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value,
+                        out var userId);
 
-                    if (friends == null)
+                    var errorCode = _friendService.TryAddFriend(userId, userToRequestId);
+                    if (errorCode != ErrorCode.Success)
                     {
-                        responseModel.FromErrorCode(ErrorCode.Fail);
+                        responseModel.FromErrorCode(errorCode);
                         break;
                     }
 
-                    responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data = JArray.FromObject(friends);
-
+                    responseModel.FromErrorCode(errorCode);
                 } while (false);
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 501;
-                responseModel.ErrorCode = 501;
-                responseModel.Message = ex.Message;
+                responseModel.FromException(ex);
             }
 
             return responseModel.ToJson();
         }
-        private JObject UserResponseJson(User user)
+
+        [HttpPost("me/accept-friend/{userId}")]
+        public object AcceptFriendRequest(int userId)
         {
-            JObject jObject = new JObject();
-            jObject.Add("Id", user.Id);
-            jObject.Add("Token", user.Token);
+            var responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
+                    var userRequestedId = CoreHelper.GetUserId(HttpContext, ref responseModel);
+
+                    var errorCode = _friendService.TryAcceptFriend(userId, userRequestedId);
+                    if (errorCode != ErrorCode.Success)
+                    {
+                        responseModel.FromErrorCode(errorCode);
+                        break;
+                    }
+
+                    responseModel.FromErrorCode(errorCode);
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
+
+        [HttpDelete("me/friends/{friendId}")]
+        public object RemoveFriend(int friendId)
+        {
+            var responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
+                    var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
+
+                    var errorCode = _friendService.TryRemoveFriend(userId, friendId);
+                    if (errorCode != ErrorCode.Success)
+                    {
+                        responseModel.FromErrorCode(errorCode);
+                        break;
+                    }
+
+                    responseModel.FromErrorCode(errorCode);
+                } while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
+
+        private static JObject UserResponseJson(User user)
+        {
+            var jObject = new JObject { { "Id", user.Id }, { "Token", user.Token } };
 
             return jObject;
         }

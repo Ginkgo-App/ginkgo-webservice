@@ -1,6 +1,6 @@
-﻿using ExtCore.Infrastructure.Actions;
+﻿using System;
+using ExtCore.Infrastructure.Actions;
 using Microsoft.AspNetCore.Builder;
-using System;
 
 namespace WebMvcPluginUser.Actions
 {

@@ -1,11 +1,7 @@
-﻿using ExtCore.Mvc.Infrastructure.Actions;
+﻿using System;
+using ExtCore.Mvc.Infrastructure.Actions;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.EntityFrameworkCore;
-using System;
-using WebMvcPluginUser.DBContext;
-using WebMvcPluginUser.Entities;
 
 namespace WebMvcPluginUser.Actions
 {
@@ -17,7 +13,7 @@ namespace WebMvcPluginUser.Actions
         {
             endpointRouteBuilder.MapControllerRoute(
                 name: "Default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
+                pattern: "{controller=Home}/{action=Index}/{Id?}");
         }
     }
 }
