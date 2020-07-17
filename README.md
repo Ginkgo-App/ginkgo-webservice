@@ -1,4 +1,4 @@
-## Require packages
+## Required packages
 
 - "Asp.Net Core Version="3.0+"
 - "ExtCore.Infrastructure" Version="5.0.0"
