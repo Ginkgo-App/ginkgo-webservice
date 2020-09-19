@@ -5,10 +5,10 @@ WORKDIR /source
 # copy everything and build app
 COPY . .
 WORKDIR /source
-RUN cd WebMvcPluginUser/WebMvcPluginUser && dotnet publish -c release -o ../../APICore/APICore/Plugins
-RUN cd WebMvcPluginTour/WebMvcPluginTour && dotnet publish -c release -o ../../APICore/APICore/Plugins
-RUN cd WebMvcPluginPlace/WebMvcPluginPlace && dotnet publish -c release -o ../../APICore/APICore/Plugins
-RUN cd APICore/APICore && dotnet publish -c release -o /app
+RUN cd WebMvcPluginUser/WebMvcPluginUser && dotnet restore && dotnet publish -c release -o ../../APICore/APICore/Plugins
+RUN cd WebMvcPluginTour/WebMvcPluginTour && dotnet restore && dotnet publish -c release -o ../../APICore/APICore/Plugins
+RUN cd WebMvcPluginPlace/WebMvcPluginPlace && dotnet restore && dotnet publish -c release -o ../../APICore/APICore/Plugins
+RUN cd APICore/APICore && dotnet restore && dotnet publish -c release -o /app
 # final stage/image
 FROM mcr.microsoft.com/dotnet/core/aspnet:3.1
 WORKDIR /app
