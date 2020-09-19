@@ -4,3 +4,5 @@ APICore/APICore/logs/internal-nlog.txt
 WebMvcPluginTourService/WebMvcPluginTourService/obj/Debug/netcoreapp3.1/WebMvcPluginTourService.csprojAssemblyReference.cache
 *.cache
 *.cache
+APICore/.vs/APICore/v16/.suo
+WebMvcPluginTourService/WebMvcPluginTourService/obj/Debug/netcoreapp3.1/WebMvcPluginTourService.assets.cache
