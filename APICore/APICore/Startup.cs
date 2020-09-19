@@ -15,6 +15,7 @@ using Toycloud.AspNetCore.Mvc.ModelBinding;
 using APICore.Middlewares;
 using APICore.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 
 namespace APICore
 {
@@ -96,6 +97,11 @@ namespace APICore
             {
                 options.UseNpgsql(Vars.ConnectionString, options => options.EnableRetryOnFailure());
             }, ServiceLifetime.Transient);
+
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Ginkgo API", Version = "v1" });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -111,6 +117,13 @@ namespace APICore
 
             //app.UseHttpsRedirection();
             app.UseRouting();
+
+            app.UseSwagger();
+
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Ginkgo API");
+            });
 
             // global cors policy
             app.UseCors(x => x
