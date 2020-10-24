@@ -43,13 +43,13 @@ namespace APICore
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<IUserService, UserService>();
-            services.AddSingleton<IFriendService, FriendService>();
-            services.AddSingleton<ITourInfoService, TourInfoService>();
-            services.AddSingleton<ITourService, TourService>();
-            services.AddSingleton<IPlaceService, PlaceService>();
-            services.AddSingleton<IServiceService, ServiceService>();
-            services.AddSingleton<IPostService, PostService>();
+            services.AddTransient<IUserService, UserService>();
+            services.AddTransient<IFriendService, FriendService>();
+            services.AddTransient<ITourInfoService, TourInfoService>();
+            services.AddTransient<ITourService, TourService>();
+            services.AddTransient<IPlaceService, PlaceService>();
+            services.AddTransient<IServiceService, ServiceService>();
+            services.AddTransient<IPostService, PostService>();
             
             services.AddExtCore(this._pluginsPath);
 
