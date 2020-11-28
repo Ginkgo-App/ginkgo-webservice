@@ -1,10 +1,10 @@
 ﻿using APICore.Helpers;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Net.WebSockets;
-using System.Reflection;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -29,6 +29,7 @@ namespace APICore.Middlewares
 
             var socket = await context.WebSockets.AcceptWebSocketAsync();
             var token = context.Request.Query["token"].ToString();
+
             if (!CoreHelper.ValidateCurrentToken(token))
             {
                 socket.Abort();
@@ -36,19 +37,36 @@ namespace APICore.Middlewares
                 return;
             }
 
-            await _webSocketHandler.OnConnected(socket);
+            // Get user claims
+            var handler = new JwtSecurityTokenHandler();
+            var tokenS = handler.ReadToken(token) as JwtSecurityToken;
+            var userID = tokenS.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.NameIdentifier).Value;
+
+            await _webSocketHandler.OnConnected(new Models.WebSocketMap
+            {
+                WebSocket = socket,
+                UserEmail = userID,
+            });
 
             await Receive(socket, async (result, buffer) =>
             {
                 if (result.MessageType == WebSocketMessageType.Text)
                 {
-                    await _webSocketHandler.ReceiveAsync(socket, result, buffer);
+
+                    await _webSocketHandler.ReceiveAsync(new Models.WebSocketMap
+                    {
+                        UserEmail = userID,
+                        WebSocket = socket,
+                    }, result, buffer);
                     return;
                 }
 
                 else if (result.MessageType == WebSocketMessageType.Close)
                 {
-                    await _webSocketHandler.OnDisconnected(socket);
+                    await _webSocketHandler.OnDisconnected(new Models.WebSocketMap
+                    {
+                        WebSocket = socket,
+                    });
                     return;
                 }
 

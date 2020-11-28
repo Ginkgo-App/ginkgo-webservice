@@ -1,6 +1,7 @@
 using APICore.DBContext;
 using APICore.Entities;
 using APICore.Helpers;
+using APICore.Middlewares;
 using APICore.Models;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Options;
@@ -23,11 +24,13 @@ namespace APICore.Services
         private readonly Logger _logger = Vars.Logger;
         private PostgreSQLContext _context;
         private readonly FriendService _friendService;
+        private ConnectionManager _connectionManager;
 
-        public ChatService(IOptions<AppSettings> appSettings)
+        public ChatService(IOptions<AppSettings> appSettings, ConnectionManager connectionManager)
         {
             _appSettings = appSettings.Value;
             _friendService = new FriendService(appSettings);
+            _connectionManager = connectionManager;
         }
 
         public bool GetAllGroupChat(int page, int pageSize, int userId, out List<GroupInfo> groups,
@@ -270,7 +273,7 @@ namespace APICore.Services
             return isSuccess;
         }
 
-        public bool RecieveMessage(int userId, int groupId)
+        public bool SendMessage(int userId, int groupId, string message)
         {
             bool isSuccess;
 
@@ -287,9 +290,19 @@ namespace APICore.Services
                         throw new ExceptionWithMessage($"Group not found");
                     }
 
-                    var memberIds = _context.UserGroup.Where(x => x.GroupId == groupId);
-                    var members = memberIds.Select(id => _context.Users.FirstOrDefault(u => u.Id == id.UserId))
-                        .Where(x => x != null);
+                    var members = _context.UserGroup.Where(x => x.GroupId == groupId);
+                    var memberIds = new List<string>();
+                    foreach (var mem in members)
+                    {
+                        var user = _context.Users.FirstOrDefault(u => u.Id == mem.UserId);
+                        if (user != null)
+                        {
+                            memberIds.Add(user.Email);
+                        }
+                    }
+
+                    var chatMessageHandler = new ChatMessageHandler(_connectionManager);
+                    _ = chatMessageHandler.SendMessageToUsersAsync(message, memberIds.ToArray());
 
                     isSuccess = true;
                 } while (false);

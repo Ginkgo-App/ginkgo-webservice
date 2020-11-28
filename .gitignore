@@ -14,6 +14,7 @@ BenchmarkDotNet.Artifacts/
 src/SignalR/clients/**/dist/
 modules/
 .ionide/
+logs/*
 
 # File extensions
 *.aps
@@ -43,3 +44,7 @@ msbuild.ProjectImports.zip
 StyleCop.Cache
 UpgradeLog.htm
 .idea
+
+# Custom
+APICore/APICore/logs/internal-nlog.txt
+APICore/.vs
