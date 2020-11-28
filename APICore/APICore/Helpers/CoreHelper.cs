@@ -8,6 +8,8 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace APICore.Helpers
 {
@@ -123,6 +125,33 @@ namespace APICore.Helpers
             int.TryParse(claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value,
                 out var userId);
             return userId;
+        }
+
+        public static bool ValidateCurrentToken(string token)
+        {
+            var mySecurityKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes("DcsV6yN5PsbmKGNbn7JF6AfTrYjYpFRz2DgBkwBrVasAUJhWxvvm7ayY7KTw7CAM"));
+
+            //var myIssuer = "http://mysite.com";
+            //var myAudience = "http://myaudience.com";
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            try
+            {
+                tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    //ValidIssuer = myIssuer,
+                    //ValidAudience = myAudience,
+                    IssuerSigningKey = mySecurityKey
+                }, out SecurityToken validatedToken);
+            }
+            catch
+            {
+                return false;
+            }
+            return true;
         }
     }
 } 

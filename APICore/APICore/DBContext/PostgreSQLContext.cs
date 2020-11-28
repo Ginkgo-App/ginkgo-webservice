@@ -55,7 +55,8 @@ namespace APICore.DBContext
         public DbSet<TourMember> TourMembers { get; set; }
         public DbSet<TourService> TourServices { get; set; }
         public DbSet<Friend> Friends { get; set; }
-
+        public DbSet<Group> Groups { get; set; }
+        public DbSet<UserGroup> UserGroup { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             //modelBuilder.Entity<AuthProvider>()

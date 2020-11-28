@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
-using NLog.Web;
 using System;
-using APICore;
 
 namespace APICore
 {

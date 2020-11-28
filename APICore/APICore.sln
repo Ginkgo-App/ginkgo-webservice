@@ -17,9 +17,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebMvcPluginPlace", "..\WebMvcPluginPlace\WebMvcPluginPlace\WebMvcPluginPlace.csproj", "{B8675508-D638-4471-BE6A-2F0ED8B35C48}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebMvcPluginPlace", "..\WebMvcPluginPlace\WebMvcPluginPlace\WebMvcPluginPlace.csproj", "{B8675508-D638-4471-BE6A-2F0ED8B35C48}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebMvcPluginTourService", "..\WebMvcPluginTourService\WebMvcPluginTourService\WebMvcPluginTourService.csproj", "{6A3FFBBC-7934-4628-9CE4-09972C57361D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebMvcPluginTourService", "..\WebMvcPluginTourService\WebMvcPluginTourService\WebMvcPluginTourService.csproj", "{6A3FFBBC-7934-4628-9CE4-09972C57361D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebMvcPluginChat", "WebMvcPluginChat\WebMvcPluginChat.csproj", "{BC391AFD-7E6B-42BA-AB0F-E54B739256DE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{115B4455-EFA9-46E3-9194-CC61F9C21FE2} = {115B4455-EFA9-46E3-9194-CC61F9C21FE2}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -47,6 +52,10 @@ Global
 		{6A3FFBBC-7934-4628-9CE4-09972C57361D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6A3FFBBC-7934-4628-9CE4-09972C57361D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6A3FFBBC-7934-4628-9CE4-09972C57361D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC391AFD-7E6B-42BA-AB0F-E54B739256DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC391AFD-7E6B-42BA-AB0F-E54B739256DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC391AFD-7E6B-42BA-AB0F-E54B739256DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC391AFD-7E6B-42BA-AB0F-E54B739256DE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

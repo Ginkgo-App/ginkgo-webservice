@@ -1,4 +1,8 @@
-﻿namespace APICore
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Net.WebSockets;
+
+namespace APICore
 {
     public static class Vars
     {
