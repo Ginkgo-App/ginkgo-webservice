@@ -14,8 +14,11 @@ namespace APICore.Services
 {
     public interface IChatService
     {
+        bool AddUsersToGroup(int userId, int[] addUserIds, int groupId, List<int> members);
         bool CreateGroupChat(int userId, string groupName, List<int> members, string avatar);
         bool GetAllGroupChat(int page, int pageSize, int userId, out List<GroupInfo> groups, out Pagination pagination);
+        bool RemoveUsersInGroup(int userId, int[] removeUserIds, int groupId, List<int> members);
+        bool SendMessage(int userId, Message message);
     }
 
     public class ChatService : IChatService
@@ -273,7 +276,7 @@ namespace APICore.Services
             return isSuccess;
         }
 
-        public bool SendMessage(int userId, int groupId, string message)
+        public bool SendMessage(int userId, Message message)
         {
             bool isSuccess;
 
@@ -284,13 +287,13 @@ namespace APICore.Services
                 {
                     DbService.ConnectDb(out _context);
 
-                    var group = _context.Groups.FirstOrDefault(g => g.ID == groupId);
+                    var group = _context.Groups.FirstOrDefault(g => g.ID == message.GroupId);
                     if (group == null)
                     {
                         throw new ExceptionWithMessage($"Group not found");
                     }
 
-                    var members = _context.UserGroup.Where(x => x.GroupId == groupId);
+                    var members = _context.UserGroup.Where(x => x.GroupId == message.GroupId);
                     var memberIds = new List<string>();
                     foreach (var mem in members)
                     {
@@ -302,7 +305,7 @@ namespace APICore.Services
                     }
 
                     var chatMessageHandler = new ChatMessageHandler(_connectionManager);
-                    _ = chatMessageHandler.SendMessageToUsersAsync(message, memberIds.ToArray());
+                    _ = chatMessageHandler.SendMessageToUsersAsync(message.ToString(), memberIds.ToArray());
 
                     isSuccess = true;
                 } while (false);

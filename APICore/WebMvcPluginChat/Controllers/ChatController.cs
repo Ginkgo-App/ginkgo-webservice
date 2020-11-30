@@ -1,4 +1,5 @@
-﻿using APICore.Helpers;
+﻿using APICore.Entities;
+using APICore.Helpers;
 using APICore.Models;
 using APICore.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -55,5 +56,38 @@ namespace WebMvcPluginChat.Controllers
 
             return responseModel.ToJson();
         }
+
+        [HttpPost("message")]
+        public object SendMessage([FromBody]Message message)
+        {
+            var responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
+                    var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
+
+                    var errorCode = _chatService.SendMessage(userId, message);
+
+                    if (!errorCode)
+                    {
+                        responseModel.FromErrorCode(ErrorList.ErrorCode.Fail);
+                        break;
+                    }
+
+                    responseModel.FromErrorCode(ErrorList.ErrorCode.Success);
+                    responseModel.Data = new JArray();
+                }
+                while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
+
     }
 }
