@@ -40,7 +40,7 @@ namespace APICore.Middlewares
             // Get user claims
             var handler = new JwtSecurityTokenHandler();
             var tokenS = handler.ReadToken(token) as JwtSecurityToken;
-            var userID = tokenS.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.NameIdentifier).Value;
+            var userID = tokenS.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.NameIdentifier)?.Value ?? tokenS.Claims.FirstOrDefault(claim => claim.Type == "unique_name")?.Value;
 
             await _webSocketHandler.OnConnected(new Models.WebSocketMap
             {

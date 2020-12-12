@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace WebMvcPluginChat.Controllers
@@ -22,8 +23,9 @@ namespace WebMvcPluginChat.Controllers
             _chatService = chatService;
         }
 
-        [HttpPost]
-        public object CreateGroupChat([FromBody]GroupInfo groupInfo)
+
+        [HttpGet]
+        public object GetAllGroupChat([FromQuery] int page, [FromQuery] int pageSize)
         {
             var responseModel = new ResponseModel();
 
@@ -33,10 +35,7 @@ namespace WebMvcPluginChat.Controllers
                 {
                     var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
 
-                    var errorCode = _chatService.CreateGroupChat(
-                        userId, groupInfo.Name,
-                        groupInfo.Members.Select(x => x.Id).ToList(),
-                        groupInfo.Avatar);
+                    var errorCode = _chatService.GetAllGroupChat(page, pageSize, userId, out var groups, out var pagination);
 
                     if (!errorCode)
                     {
@@ -57,8 +56,9 @@ namespace WebMvcPluginChat.Controllers
             return responseModel.ToJson();
         }
 
-        [HttpPost("message")]
-        public object SendMessage([FromBody]Message message)
+
+        [HttpPost("group")]
+        public object CreateGroupChat([FromBody]object requestBody)
         {
             var responseModel = new ResponseModel();
 
@@ -66,7 +66,79 @@ namespace WebMvcPluginChat.Controllers
             {
                 do
                 {
+                    var body = requestBody != null
+                        ? JObject.Parse(requestBody.ToString() ?? "{}")
+                        : null;
+
                     var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
+
+                    if (!CoreHelper.GetParameter(out var jsonName, body, "Name", JTokenType.String,
+                            ref responseModel)
+                        || !CoreHelper.GetParameter(out var jsonAvatar, body, "Avatar", JTokenType.String,
+                            ref responseModel)
+                        || !CoreHelper.GetParameter(out var jsonMembers, body, "Members", JTokenType.Array,
+                            ref responseModel, true))
+                    {
+                        break;
+                    }
+                    var errorCode = _chatService.CreateGroupChat(
+                        userId, jsonName.ToString(),
+                        jsonMembers.ToObject<List<int>>(),
+                        jsonAvatar.ToString(),
+                        out var group);
+
+                    if (!errorCode)
+                    {
+                        responseModel.FromErrorCode(ErrorList.ErrorCode.Fail);
+                        break;
+                    }
+
+                    responseModel.FromErrorCode(ErrorList.ErrorCode.Success);
+                    responseModel.Data = new JArray(JObject.FromObject(group));
+                }
+                while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
+
+        [HttpPost("message")]
+        public object SendMessage([FromBody] object requestBody)
+        {
+            var responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
+                    var body = requestBody != null
+                        ? JObject.Parse(requestBody.ToString() ?? "{}")
+                        : null;
+
+                    var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
+
+                    if (!CoreHelper.GetParameter(out var jsonGroupId, body, "GroupId", JTokenType.Integer,
+                            ref responseModel)
+                        || !CoreHelper.GetParameter(out var jsonContent, body, "Content", JTokenType.String,
+                            ref responseModel)
+                        || !CoreHelper.GetParameter(out var jsonMembers, body, "Images", JTokenType.Array,
+                            ref responseModel, true))
+                    {
+                        break;
+                    }
+
+                    var message = new Message
+                    {
+                        GroupId = int.Parse(jsonGroupId.ToString()),
+                        Content = jsonContent.ToString(),
+                        Images = jsonMembers?.ToObject<string[]>(),
+                        CreateAt = DateTime.UtcNow,
+                        CreateBy = userId,
+                    };
 
                     var errorCode = _chatService.SendMessage(userId, message);
 

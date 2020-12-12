@@ -1,4 +1,5 @@
 ﻿using System;
+using APICore.Services;
 using ExtCore.Infrastructure.Actions;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -10,7 +11,7 @@ namespace WebMvcPluginChat.Actions
 
         public void Execute(IServiceCollection services, IServiceProvider serviceProvider)
         {
-            
+            services.AddTransient<IChatService, ChatService>();
         }
     }
 }

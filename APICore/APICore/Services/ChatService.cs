@@ -15,7 +15,7 @@ namespace APICore.Services
     public interface IChatService
     {
         bool AddUsersToGroup(int userId, int[] addUserIds, int groupId, List<int> members);
-        bool CreateGroupChat(int userId, string groupName, List<int> members, string avatar);
+        bool CreateGroupChat(int userId, string groupName, List<int> members, string avatar, out Group group);
         bool GetAllGroupChat(int page, int pageSize, int userId, out List<GroupInfo> groups, out Pagination pagination);
         bool RemoveUsersInGroup(int userId, int[] removeUserIds, int groupId, List<int> members);
         bool SendMessage(int userId, Message message);
@@ -48,7 +48,6 @@ namespace APICore.Services
                 CoreHelper.ValidatePageSize(ref page, ref pageSize);
 
                 DbService.ConnectDb(out _context);
-                // var listPlaces =  _context.Places.Where(t => t.DeletedAt == null).ToList();
 
                 var listGroup = (
                     from ug in _context.UserGroup
@@ -59,8 +58,10 @@ namespace APICore.Services
                     select new
                     {
                         Group = gc.Key,
-                        Members = gc.ToList(),
+                        Members = gc.Count(),
                     })?.AsEnumerable().ToList();
+
+                ////var listGroup = _context.UserGroup
 
                 var total = listGroup.Count();
                 var skip = pageSize * (page - 1);
@@ -99,16 +100,17 @@ namespace APICore.Services
             return isSuccess;
         }
 
-        public bool CreateGroupChat(int userId, string groupName, List<int> members, string avatar)
+        public bool CreateGroupChat(int userId, string groupName, List<int> members, string avatar, out Group group)
         {
             bool isSuccess;
+            group = null;
 
             try
             {
 
                 DbService.ConnectDb(out _context);
 
-                var group = new Group
+                group = new Group
                 {
                     CreatorId = userId,
                     GroupName = groupName,
@@ -122,6 +124,8 @@ namespace APICore.Services
                 }
 
                 group = _context.Groups.Add(group).Entity;
+                _context.SaveChanges();
+                var groupId = group.ID;
 
                 // Filter existed members
                 members = members.Where(userId => _context.Users.FirstOrDefault(x => x.Id == userId) != null).ToList();
@@ -137,8 +141,7 @@ namespace APICore.Services
 
                     return new UserGroup
                     {
-                        ID = userId,
-                        GroupId = group.ID,
+                        GroupId = groupId,
                         UserId = user.Id,
                     };
                 }).Where(x => x != null);
@@ -293,7 +296,7 @@ namespace APICore.Services
                         throw new ExceptionWithMessage($"Group not found");
                     }
 
-                    var members = _context.UserGroup.Where(x => x.GroupId == message.GroupId);
+                    var members = _context.UserGroup.Where(x => x.GroupId == message.GroupId).ToList();
                     var memberIds = new List<string>();
                     foreach (var mem in members)
                     {

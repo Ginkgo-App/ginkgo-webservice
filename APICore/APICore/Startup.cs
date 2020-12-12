@@ -15,6 +15,7 @@ using Toycloud.AspNetCore.Mvc.ModelBinding;
 using APICore.Middlewares;
 using APICore.Services;
 using Microsoft.EntityFrameworkCore;
+using APICore.Helpers;
 
 namespace APICore
 {
@@ -96,6 +97,8 @@ namespace APICore
             {
                 options.UseNpgsql(Vars.ConnectionString, options => options.EnableRetryOnFailure());
             }, ServiceLifetime.Transient);
+
+            services.AddWebSocketManager();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -117,6 +120,13 @@ namespace APICore
                 .AllowAnyOrigin()
                 .AllowAnyMethod()
                 .AllowAnyHeader());
+
+            var serviceScopeFactory = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>();
+            var serviceProvider = serviceScopeFactory.CreateScope().ServiceProvider;
+
+            app.UseWebSockets();
+            app.MapWebSocketManager("/ws", serviceProvider.GetService<ChatMessageHandler>());
+            app.UseStaticFiles();
 
             app.UseMvc();
 
