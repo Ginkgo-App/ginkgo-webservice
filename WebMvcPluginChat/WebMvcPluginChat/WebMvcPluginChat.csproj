@@ -8,9 +8,9 @@
     <PackageReference Include="ExtCore.Infrastructure" Version="5.0.0" />
     <PackageReference Include="ExtCore.Mvc.Infrastructure" Version="5.0.0" />
   </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\APICore\APICore\APICore.csproj" />
-  </ItemGroup>
+  
+    <ItemGroup>
+      <ProjectReference Include="..\..\APICore\APICore\APICore.csproj" />
+    </ItemGroup>
 
 </Project>

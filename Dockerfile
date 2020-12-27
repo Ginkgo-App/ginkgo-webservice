@@ -7,7 +7,7 @@ WORKDIR /source
 RUN cd WebMvcPluginUser/WebMvcPluginUser && dotnet publish -c release -o ../../APICore/APICore/Plugins
 RUN cd WebMvcPluginTour/WebMvcPluginTour && dotnet publish -c release -o ../../APICore/APICore/Plugins
 RUN cd WebMvcPluginPlace/WebMvcPluginPlace && dotnet publish -c release -o ../../APICore/APICore/Plugins
-RUN cd APICore/WebMvcPluginChat && dotnet publish -c release -o ../../APICore/APICore/Plugins
+RUN cd WebMvcPluginChat/WebMvcPluginChat && dotnet publish -c release -o ../../APICore/APICore/Plugins
 RUN cd APICore/APICore && dotnet publish -c release -o /app
 # final stage/image
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1
