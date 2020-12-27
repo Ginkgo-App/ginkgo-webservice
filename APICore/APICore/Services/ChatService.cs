@@ -89,16 +89,20 @@ namespace APICore.Services
                     {
                         ////var groupContext = _context.Groups.FirstOrDefault(x => x.ID == group.Group);
                         var memberIds = _context.UserGroup.Where(x => x.GroupId == group.ID);
-                        var members = _context.Users.Where(x => memberIds.FirstOrDefault(id => id.UserId == x.Id) != null);
+                        var members = _context.Users.Where(x => memberIds.FirstOrDefault(id => id.UserId == x.Id) != null).ToList();
 
-                        
-                        ////var memInfo = members.Select(mem => ConvertToSimpleUser(mem, userId)).ToList();
+                        var memInfo = new List<SimpleUser>();
+
+                        for (int i = 0; i < members.Count(); i++)
+                        {
+                            memInfo.Add(ConvertToSimpleUser(members[i], userId));
+                        }
 
                         var groupInfo = new GroupInfo
                         (
                             group.ID,
                             group.GroupName,
-                            new List<SimpleUser>(),
+                            memInfo,
                             group.Avatar
                         );
 
@@ -107,7 +111,7 @@ namespace APICore.Services
 
 
                     groups.AddRange(groupBags);
-                        //groups.Add(new ListGroupInfo(group.Group, "Test", group.Members.Select(x=>x.UserName));
+                    //groups.Add(new ListGroupInfo(group.Group, "Test", group.Members.Select(x=>x.UserName));
                 }
                 else
                 {
@@ -125,9 +129,11 @@ namespace APICore.Services
             return isSuccess;
         }
 
-        public SimpleUser ConvertToSimpleUser(User user, int userId)
+        private SimpleUser ConvertToSimpleUser(User user, int userId)
         {
-            var friendType = _friendService.CalculateIsFriend(userId, user.Id);
+            DbService.ConnectDb(out _context);
+
+            var friendType = CalculateIsFriend(userId, user.Id);
             var totalPost = _context.Posts.Where(p => p.AuthorId == user.Id).Count();
 
             return new SimpleUser
@@ -155,7 +161,7 @@ namespace APICore.Services
                 DbService.ConnectDb(out _context);
 
                 var messagesContext = (
-                    _context.Messages.Where(m=>m.GroupId == groupId)
+                    _context.Messages.Where(m => m.GroupId == groupId)
                     )?.AsEnumerable().ToList();
 
                 ////var listGroup = _context.UserGroup
@@ -415,6 +421,43 @@ namespace APICore.Services
             }
 
             return isSuccess;
+        }
+
+        public string CalculateIsFriend(int userId, int userRequestId)
+        {
+            if (userId == userRequestId)
+            {
+                return FriendType.Me;
+            }
+
+            TryGetFriendRequest(userId, userRequestId, out var friendDb);
+            if (friendDb == null)
+            {
+                return FriendType.None;
+            }
+
+            if (friendDb.AcceptedAt != null)
+            {
+                return FriendType.Accepted;
+            }
+
+            if (userId == friendDb.UserId)
+            {
+                return FriendType.Waiting;
+            }
+
+            return userId == friendDb.RequestedUserId ? FriendType.Requested : FriendType.None;
+        }
+
+        private void TryGetFriendRequest(int userId, int userOtherId, out Friend friendDb)
+        {
+            DbService.ConnectDb(out _context);
+            var friendDBs = _context.Friends.Where(a =>
+                    (a.UserId == userId && a.RequestedUserId == userOtherId && a.DeletedAt == null)
+                    || (a.RequestedUserId == userId && a.UserId == userOtherId && a.DeletedAt == null))
+                .ToArray();
+
+            friendDb = friendDBs.Length > 0 ? friendDBs[0] : null;
         }
     }
 }
