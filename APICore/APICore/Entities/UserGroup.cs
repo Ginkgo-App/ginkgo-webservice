@@ -10,5 +10,6 @@ namespace APICore.Entities
         public int ID { get; set; }
         public int UserId { get; set; }
         public int GroupId { get; set; }
+        public int LastSeenMessageId { get; set; }
     }
 }

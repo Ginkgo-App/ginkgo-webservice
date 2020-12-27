@@ -5,10 +5,13 @@ using APICore.Middlewares;
 using APICore.Models;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json.Linq;
 using NLog;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace APICore.Services
 {
@@ -42,6 +45,7 @@ namespace APICore.Services
             groups = new List<GroupInfo>();
             pagination = null;
             bool isSuccess;
+            ConcurrentBag<GroupInfo> groupInfos = new ConcurrentBag<GroupInfo>();
 
             try
             {
@@ -49,19 +53,20 @@ namespace APICore.Services
 
                 DbService.ConnectDb(out _context);
 
-                var listGroup = (
-                    from ug in _context.UserGroup
-                    join g in _context.Groups
-                        on ug.GroupId equals g.ID
-                    where ug.ID == userId
-                    group ug by ug.GroupId into gc
-                    select new
-                    {
-                        Group = gc.Key,
-                        Members = gc.Count(),
-                    })?.AsEnumerable().ToList();
+                ////var listGroup = (
+                ////    from ug in _context.UserGroup
+                ////    join g in _context.Groups
+                ////        on ug.GroupId equals g.ID
+                ////    where ug.ID == userId
+                ////    group ug by ug.GroupId into gc
+                ////    select new
+                ////    {
+                ////        Group = gc.Key,
+                ////        Members = gc.Count(),
+                ////    })?.AsEnumerable().ToList();
 
-                ////var listGroup = _context.UserGroup
+                var lisMem = _context.UserGroup.Where(x => x.UserId == userId);
+                var listGroup = _context.Groups.Where(g => lisMem.FirstOrDefault(m => m.GroupId == g.ID) != null).ToList();
 
                 var total = listGroup.Count();
                 var skip = pageSize * (page - 1);
@@ -78,11 +83,31 @@ namespace APICore.Services
                             .Take(pageSize)
                             .ToList();
 
-                    foreach (var group in listGroup)
-                    {
+                    ConcurrentBag<GroupInfo> groupBags = new ConcurrentBag<GroupInfo>();
 
+                    Parallel.ForEach(listGroup, (group) =>
+                    {
+                        ////var groupContext = _context.Groups.FirstOrDefault(x => x.ID == group.Group);
+                        var memberIds = _context.UserGroup.Where(x => x.GroupId == group.ID);
+                        var members = _context.Users.Where(x => memberIds.FirstOrDefault(id => id.UserId == x.Id) != null);
+
+                        
+                        ////var memInfo = members.Select(mem => ConvertToSimpleUser(mem, userId)).ToList();
+
+                        var groupInfo = new GroupInfo
+                        (
+                            group.ID,
+                            group.GroupName,
+                            new List<SimpleUser>(),
+                            group.Avatar
+                        );
+
+                        groupBags.Add(groupInfo);
+                    });
+
+
+                    groups.AddRange(groupBags);
                         //groups.Add(new ListGroupInfo(group.Group, "Test", group.Members.Select(x=>x.UserName));
-                    }
                 }
                 else
                 {
@@ -100,6 +125,77 @@ namespace APICore.Services
             return isSuccess;
         }
 
+        public SimpleUser ConvertToSimpleUser(User user, int userId)
+        {
+            var friendType = _friendService.CalculateIsFriend(userId, user.Id);
+            var totalPost = _context.Posts.Where(p => p.AuthorId == user.Id).Count();
+
+            return new SimpleUser
+            (
+                user.Id,
+                user.Name,
+                user.Avatar,
+                user.Job,
+                friendType,
+                totalPost
+            );
+        }
+
+        public bool GetAllMessagesOfGroup(int page, int pageSize, int userId, int groupId, out List<Message> messages,
+            out Pagination pagination)
+        {
+            messages = new List<Message>();
+            pagination = null;
+            bool isSuccess;
+
+            try
+            {
+                CoreHelper.ValidatePageSize(ref page, ref pageSize);
+
+                DbService.ConnectDb(out _context);
+
+                var messagesContext = (
+                    _context.Messages.Where(m=>m.GroupId == groupId)
+                    )?.AsEnumerable().ToList();
+
+                ////var listGroup = _context.UserGroup
+
+                var total = messagesContext.Count();
+                var skip = pageSize * (page - 1);
+
+                var canPage = skip < total;
+
+                if (canPage)
+                {
+                    // If pageSize = 0 => Get all
+                    messagesContext = pageSize <= 0
+                        ? messagesContext
+                        : messagesContext
+                            .Skip(skip)
+                            .Take(pageSize)
+                            .ToList();
+
+                    foreach (var msgContext in messagesContext)
+                    {
+
+                        //groups.Add(new ListGroupInfo(group.Group, "Test", group.Members.Select(x=>x.UserName));
+                    }
+                }
+                else
+                {
+                    messages = new List<Message>();
+                }
+
+                pagination = new Pagination(total, page, pageSize > 0 ? pageSize : total);
+                isSuccess = true;
+            }
+            finally
+            {
+                DbService.DisconnectDb(ref _context);
+            }
+
+            return isSuccess;
+        }
         public bool CreateGroupChat(int userId, string groupName, List<int> members, string avatar, out Group group)
         {
             bool isSuccess;
@@ -308,7 +404,7 @@ namespace APICore.Services
                     }
 
                     var chatMessageHandler = new ChatMessageHandler(_connectionManager);
-                    _ = chatMessageHandler.SendMessageToUsersAsync(message.ToString(), memberIds.ToArray());
+                    _ = chatMessageHandler.SendMessageToUsersAsync(JObject.FromObject(message).ToString(), memberIds.ToArray());
 
                     isSuccess = true;
                 } while (false);

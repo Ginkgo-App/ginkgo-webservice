@@ -44,7 +44,8 @@ namespace WebMvcPluginChat.Controllers
                     }
 
                     responseModel.FromErrorCode(ErrorList.ErrorCode.Success);
-                    responseModel.Data = new JArray();
+                    responseModel.Data = JArray.FromObject(groups);
+                    responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
                 }
                 while (false);
             }
