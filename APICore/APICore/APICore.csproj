@@ -59,6 +59,9 @@
         <None Update="Plugins\TestAPI.pdb">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
+        <None Update="Plugins\WebMvcPluginChat.dll">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
         <None Update="Plugins\WebMvcPluginPlace.dll">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
