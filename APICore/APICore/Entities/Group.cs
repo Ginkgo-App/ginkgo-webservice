@@ -11,6 +11,9 @@ namespace APICore.Entities
         public int CreatorId { get; set; }
         public string GroupName { get; set; }
         public string Avatar { get; set; }
+        public int TourInfoId { get; set; }
+        public int LastMessageId { get; set; }
+        public DateTime LastMessageAt { get; set; }
         public DateTime LastUpdate { get; set; }
-    }
+    };
 }

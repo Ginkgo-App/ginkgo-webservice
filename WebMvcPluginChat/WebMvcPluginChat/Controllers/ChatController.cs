@@ -162,5 +162,38 @@ namespace WebMvcPluginChat.Controllers
             return responseModel.ToJson();
         }
 
+        [HttpGet("{groupId}/messages")]
+        public object GetAllMessage(int groupId, [FromQuery] int page, [FromQuery] int pageSize)
+        {
+            var responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
+                    var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
+
+                    var errorCode = _chatService.GetAllMessagesOfGroup(page, pageSize, userId, groupId, out var messages, out var pagination);
+
+                    if (!errorCode)
+                    {
+                        responseModel.FromErrorCode(ErrorList.ErrorCode.Fail);
+                        break;
+                    }
+
+                    responseModel.FromErrorCode(ErrorList.ErrorCode.Success);
+                    responseModel.Data = JArray.FromObject(messages);
+                    responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
+                }
+                while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
+
     }
 }

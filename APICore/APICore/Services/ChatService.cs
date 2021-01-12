@@ -18,8 +18,10 @@ namespace APICore.Services
     public interface IChatService
     {
         bool AddUsersToGroup(int userId, int[] addUserIds, int groupId, List<int> members);
+        string CalculateIsFriend(int userId, int userRequestId);
         bool CreateGroupChat(int userId, string groupName, List<int> members, string avatar, out Group group);
         bool GetAllGroupChat(int page, int pageSize, int userId, out List<GroupInfo> groups, out Pagination pagination);
+        bool GetAllMessagesOfGroup(int page, int pageSize, int userId, int groupId, out List<Message> messages, out Pagination pagination);
         bool RemoveUsersInGroup(int userId, int[] removeUserIds, int groupId, List<int> members);
         bool SendMessage(int userId, Message message);
     }
@@ -66,7 +68,8 @@ namespace APICore.Services
                 ////    })?.AsEnumerable().ToList();
 
                 var lisMem = _context.UserGroup.Where(x => x.UserId == userId);
-                var listGroup = _context.Groups.Where(g => lisMem.FirstOrDefault(m => m.GroupId == g.ID) != null).ToList();
+                var listGroup = _context.Groups.Where(g => lisMem.FirstOrDefault(m => m.GroupId == g.ID) != null)
+                    .OrderByDescending(g => g.LastMessageAt).ToList();
 
                 var total = listGroup.Count();
                 var skip = pageSize * (page - 1);
@@ -90,7 +93,7 @@ namespace APICore.Services
                         ////var groupContext = _context.Groups.FirstOrDefault(x => x.ID == group.Group);
                         var memberIds = _context.UserGroup.Where(x => x.GroupId == group.ID);
                         var members = _context.Users.Where(x => memberIds.FirstOrDefault(id => id.UserId == x.Id) != null).ToList();
-
+                        var lastMessage = _context.Messages.FirstOrDefault(x => x.Id == group.LastMessageId);
                         var memInfo = new List<SimpleUser>();
 
                         for (int i = 0; i < members.Count(); i++)
@@ -103,7 +106,8 @@ namespace APICore.Services
                             group.ID,
                             group.GroupName,
                             memInfo,
-                            group.Avatar
+                            group.Avatar,
+                            lastMessage
                         );
 
                         groupBags.Add(groupInfo);
@@ -181,11 +185,12 @@ namespace APICore.Services
                             .Take(pageSize)
                             .ToList();
 
-                    foreach (var msgContext in messagesContext)
-                    {
+                    //foreach (var msgContext in messagesContext)
+                    //{
+                    //    messages.Add(msgContext);
+                    //}
 
-                        //groups.Add(new ListGroupInfo(group.Group, "Test", group.Members.Select(x=>x.UserName));
-                    }
+                    messages = messagesContext;
                 }
                 else
                 {
@@ -412,6 +417,14 @@ namespace APICore.Services
                     var chatMessageHandler = new ChatMessageHandler(_connectionManager);
                     _ = chatMessageHandler.SendMessageToUsersAsync(JObject.FromObject(message).ToString(), memberIds.ToArray());
 
+
+                    message.GroupId = group.ID;
+                    _context.Messages.Add(message);
+                    _context.SaveChanges();
+
+                    group.LastMessageId = message.Id;
+                    group.LastMessageAt = DateTime.Now;
+                    _context.SaveChanges();
                     isSuccess = true;
                 } while (false);
             }

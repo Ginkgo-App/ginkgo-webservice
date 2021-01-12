@@ -15,13 +15,14 @@ namespace APICore.Models
         public Message LastMessage { get; }
         public List<SimpleUser> Members { get; }
 
-        public GroupInfo(int id, string name, List<SimpleUser> members, string avatar)
+        public GroupInfo(int id, string name, List<SimpleUser> members, string avatar, Message message)
         {
             Id = id;
             Name = name;
             Avatar = avatar;
             Members = members;
             Avatar = avatar;
+            LastMessage = message;
         }
 
         public GroupInfo()
