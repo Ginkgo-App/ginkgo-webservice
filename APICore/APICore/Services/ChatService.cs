@@ -263,9 +263,9 @@ namespace APICore.Services
                 var user = _context.Users.FirstOrDefault(x => x.Id == userId);
                 var otherUser = _context.Users.FirstOrDefault(x => x.Id == otherUserId);
 
-                var userGroupIds = _context.UserGroup.Where(x => x.UserId == userId).Select(x => x.GroupId);
-                var otherUserGroupIds = _context.UserGroup.Where(x => x.UserId == otherUserId).Select(x => x.GroupId);
-                var similarGroupIds = userGroupIds.Where(x => otherUserGroupIds.Contains(x));
+                var userGroupIds = _context.UserGroup.Where(x => x.UserId == userId).Select(x => x.GroupId).ToList();
+                var otherUserGroupIds = _context.UserGroup.Where(x => x.UserId == otherUserId).Select(x => x.GroupId).ToList();
+                var similarGroupIds = userGroupIds.Where(x => otherUserGroupIds.Contains(x)).ToList();
 
                 var groupContext = _context.Groups.FirstOrDefault(g => similarGroupIds.Contains(g.ID) && g.TourId < 1);
 
@@ -283,6 +283,21 @@ namespace APICore.Services
                     };
 
                     _context.Groups.Add(groupContext);
+                    _context.SaveChanges();
+
+                    _context.UserGroup.Add(new UserGroup
+                    {
+                        GroupId = groupContext.ID,
+                        LastSeenMessageId = 0,
+                        UserId = userId
+                    });
+                    _context.UserGroup.Add(new UserGroup
+                    {
+                        GroupId = groupContext.ID,
+                        LastSeenMessageId = 0,
+                        UserId = otherUserId
+                    });
+
                     _context.SaveChanges();
                 }
 
