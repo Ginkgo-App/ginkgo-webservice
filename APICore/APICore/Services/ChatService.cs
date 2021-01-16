@@ -68,9 +68,11 @@ namespace APICore.Services
                 ////        Members = gc.Count(),
                 ////    })?.AsEnumerable().ToList();
 
-                var listGrouIds = _context.UserGroup.Where(x => x.UserId == userId).Select(x => x.GroupId); ;
-                var listGroup = _context.Groups.Where(g => listGrouIds.Contains(g.ID) != null)
-                    .OrderByDescending(g => g.LastMessageAt).ToList();
+                var listTourIds = _context.TourMembers.Where(x => x.UserId == userId).Select(x => x.TourId).ToList();
+                var listGrouIds = _context.UserGroup.Where(x => x.UserId == userId).Select(x => x.GroupId).ToList();
+
+                var listGroup = _context.Groups.Where(g => listGrouIds.Contains(g.ID) || listTourIds.Contains(g.TourId))
+                    .OrderBy(g => g.LastMessageAt).ToList();
 
                 var total = listGroup.Count();
                 var skip = pageSize * (page - 1);
