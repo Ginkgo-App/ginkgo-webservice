@@ -20,7 +20,7 @@ namespace APICore.Services
         string CalculateIsFriend(int userId, int userRequestId);
         bool CreateGroupChat(int userId, string groupName, List<int> members, string avatar, out Group group);
         bool GetAllGroupChat(int page, int pageSize, int userId, out List<GroupInfo> groups, out Pagination pagination);
-        bool GetAllMessagesOfGroup(int page, int pageSize, int userId, int groupId, out List<Message> messages, out Pagination pagination);
+        bool GetAllMessagesOfGroup(int page, int pageSize, int userId, int groupId, out List<MessageInfo> messages, out Pagination pagination);
         bool RemoveUsersInGroup(int userId, int[] removeUserIds, int groupId, List<int> members);
         bool SendMessage(int userId, Message message);
         bool TryGetTourGroupChat(int userId, int tourId, out GroupInfo group);
@@ -340,10 +340,10 @@ namespace APICore.Services
             );
         }
 
-        public bool GetAllMessagesOfGroup(int page, int pageSize, int userId, int groupId, out List<Message> messages,
+        public bool GetAllMessagesOfGroup(int page, int pageSize, int userId, int groupId, out List<MessageInfo> messages,
             out Pagination pagination)
         {
-            messages = new List<Message>();
+            messages = new List<MessageInfo>();
             pagination = null;
             bool isSuccess;
 
@@ -377,11 +377,37 @@ namespace APICore.Services
 
                     var userGroup = _context.UserGroup.FirstOrDefault(x => x.GroupId == groupId && x.UserId == userId);
                     userGroup.LastSeenMessageId = messagesContext.First()?.Id ?? 0;
-                    messages = messagesContext;
+                    _context.SaveChanges();
+
+                    var memberIds = _context.UserGroup.Where(x => x.GroupId == groupId);
+                    var members = _context.Users.Where(x => memberIds.FirstOrDefault(id => id.UserId == x.Id) != null).ToList();
+                    var memInfo = new List<SimpleUser>();
+
+                    for (int i = 0; i < members.Count(); i++)
+                    {
+                        memInfo.Add(ConvertToSimpleUser(members[i], userId));
+                    }
+
+                    foreach (var message in messagesContext)
+                    {
+                        var msgInfo = new MessageInfo
+                        {
+                            Content = message.Content,
+                            CreateAt = message.CreateAt,
+                            CreateBy = message.CreateBy,
+                            DeletedAt = message.DeletedAt,
+                            GroupId = message.GroupId,
+                            Id = message.Id,
+                            Images = message.Images,
+                            Sender = memInfo.FirstOrDefault(x => x.Id == message.CreateBy)
+                        };
+
+                        messages.Add(msgInfo);
+                    }
                 }
                 else
                 {
-                    messages = new List<Message>();
+                    messages = new List<MessageInfo>();
                 }
 
                 pagination = new Pagination(total, page, pageSize > 0 ? pageSize : total);
