@@ -23,7 +23,6 @@ namespace WebMvcPluginChat.Controllers
             _chatService = chatService;
         }
 
-
         [HttpGet]
         public object GetAllGroupChat([FromQuery] int page, [FromQuery] int pageSize)
         {
@@ -56,7 +55,6 @@ namespace WebMvcPluginChat.Controllers
 
             return responseModel.ToJson();
         }
-
 
         [HttpPost("group")]
         public object CreateGroupChat([FromBody]object requestBody)
@@ -195,5 +193,68 @@ namespace WebMvcPluginChat.Controllers
             return responseModel.ToJson();
         }
 
+        [HttpGet("tour/{groupId}")]
+        public object TryGetTourGroupChat(int groupId)
+        {
+            var responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
+                    var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
+
+                    var errorCode = _chatService.TryGetTourGroupChat(userId, groupId, out var groupInfo);
+
+                    if (!errorCode)
+                    {
+                        responseModel.FromErrorCode(ErrorList.ErrorCode.Fail);
+                        break;
+                    }
+
+                    responseModel.FromErrorCode(ErrorList.ErrorCode.Success);
+                    responseModel.Data = new JArray { JObject.FromObject(groupInfo) };
+                }
+                while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
+
+        [HttpGet("user/{userId}")]
+        public object TryGetUserChat(int userId)
+        {
+            var responseModel = new ResponseModel();
+
+            try
+            {
+                do
+                {
+                    var myId = CoreHelper.GetUserId(HttpContext, ref responseModel);
+
+                    var errorCode = _chatService.TryGetUserChat(myId, userId, out var groupInfo);
+
+                    if (!errorCode)
+                    {
+                        responseModel.FromErrorCode(ErrorList.ErrorCode.Fail);
+                        break;
+                    }
+
+                    responseModel.FromErrorCode(ErrorList.ErrorCode.Success);
+                    responseModel.Data = new JArray { JObject.FromObject(groupInfo) };
+                }
+                while (false);
+            }
+            catch (Exception ex)
+            {
+                responseModel.FromException(ex);
+            }
+
+            return responseModel.ToJson();
+        }
     }
 }

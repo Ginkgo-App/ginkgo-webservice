@@ -8,12 +8,17 @@ namespace APICore.Models
 {
     public class GroupInfo
     {
-        public int Id { get; }
-        public string Name { get; }
-        public string Avatar { get; }
-        public DateTime LastUpdate { get; }
-        public Message LastMessage { get; }
-        public List<SimpleUser> Members { get; }
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Avatar { get; set; }
+        public DateTime LastUpdate { get; set; }
+        public Message LastMessage { get; set; }
+        public List<SimpleUser> Members { get; set; }
+        public SimpleUser OtherUser { get; set; }
+        public SimpleTour Tour { get; set; }
+        public int TourId { get; set; }
+        public int OtherUserId { get; set; }
+        public int UnreadCount { get; set; }
 
         public GroupInfo(int id, string name, List<SimpleUser> members, string avatar, Message message)
         {
