@@ -17,8 +17,8 @@ namespace APICore.Helpers
         {
             await base.OnConnected(socketMap);
 
-            var socketId = WebSocketConnectionManager.GetId(socketMap);
-            await SendMessageToAllAsync($"{socketId} is now connected");
+            //var socketId = WebSocketConnectionManager.GetId(socketMap);
+            //await SendMessageToAllAsync($"{socketId} is now connected");
         }
 
         public override async Task ReceiveAsync(WebSocketMap socket, WebSocketReceiveResult result, byte[] buffer)
