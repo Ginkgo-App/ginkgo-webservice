@@ -628,6 +628,15 @@ namespace APICore.Services
                     DbService.ConnectDb(out _context);
 
                     var group = _context.Groups.FirstOrDefault(g => g.ID == message.GroupId);
+                    var groupInfo = new GroupInfo
+                    {
+                        Avatar = group.Avatar,
+                        LastUpdate = group.LastUpdate,
+                        Id = group.ID,
+                        Name = group.GroupName,
+                        TourId = group.TourId,
+                    };
+
                     var senderConntext = _context.Users.FirstOrDefault(x => x.Id == message.CreateBy);
                     SimpleUser sender = new SimpleUser(senderConntext.Id, senderConntext.Name, senderConntext.Avatar, senderConntext.Job, FriendType.Me, 0);
                     var messageInfo = new MessageInfo
@@ -638,7 +647,7 @@ namespace APICore.Services
                         DeletedAt = message.DeletedAt,
                         GroupId = message.GroupId,
                         Images = message.Images,
-                        Group = group,
+                        Group = groupInfo,
                         Sender = sender,
                     };
 

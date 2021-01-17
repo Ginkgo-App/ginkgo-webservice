@@ -9,6 +9,6 @@ namespace APICore.Models
     public class MessageInfo : Message
     {
         public SimpleUser Sender { get; set; }
-        public Group Group { get; set; }
+        public GroupInfo Group { get; set; }
     }
 }
