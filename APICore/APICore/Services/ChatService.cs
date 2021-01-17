@@ -628,6 +628,20 @@ namespace APICore.Services
                     DbService.ConnectDb(out _context);
 
                     var group = _context.Groups.FirstOrDefault(g => g.ID == message.GroupId);
+                    var senderConntext = _context.Users.FirstOrDefault(x => x.Id == message.CreateBy);
+                    SimpleUser sender = new SimpleUser(senderConntext.Id, senderConntext.Name, senderConntext.Avatar, senderConntext.Job, FriendType.Me, 0);
+                    var messageInfo = new MessageInfo
+                    {
+                        Content = message.Content,
+                        CreateAt = message.CreateAt,
+                        CreateBy = message.CreateBy,
+                        DeletedAt = message.DeletedAt,
+                        GroupId = message.GroupId,
+                        Images = message.Images,
+                        Group = group,
+                        Sender = sender,
+                    };
+
                     if (group == null)
                     {
                         throw new ExceptionWithMessage($"Group not found");
@@ -663,7 +677,7 @@ namespace APICore.Services
                     }
 
                     var chatMessageHandler = new ChatMessageHandler(_connectionManager);
-                    _ = chatMessageHandler.SendMessageToUsersAsync(JObject.FromObject(message).ToString(), memberIds.ToArray());
+                    _ = chatMessageHandler.SendMessageToUsersAsync(JObject.FromObject(messageInfo).ToString(), memberIds.ToArray());
 
 
                     message.GroupId = group.ID;
