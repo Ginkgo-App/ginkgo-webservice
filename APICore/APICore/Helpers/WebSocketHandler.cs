@@ -60,11 +60,11 @@ namespace APICore.Helpers
             }
         }
 
-        public async Task SendMessageToUsersAsync(string message, string[] userMails)
+        public async Task SendMessageToUsersAsync(string message, int[] userIds)
         {
             foreach (var pair in WebSocketConnectionManager.GetAll())
             {
-                if (pair.Value.WebSocket.State == WebSocketState.Open || userMails.Contains(pair.Value.UserEmail))
+                if (pair.Value.WebSocket.State == WebSocketState.Open && userIds.Contains(pair.Value.UserId))
                     await SendMessageAsync(pair.Value, message);
             }
         }

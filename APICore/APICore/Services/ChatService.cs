@@ -637,56 +637,57 @@ namespace APICore.Services
                         TourId = group.TourId,
                     };
 
-                    var senderConntext = _context.Users.FirstOrDefault(x => x.Id == message.CreateBy);
-                    SimpleUser sender = new SimpleUser(senderConntext.Id, senderConntext.Name, senderConntext.Avatar, senderConntext.Job, FriendType.Me, 0);
-                    var messageInfo = new MessageInfo
-                    {
-                        Content = message.Content,
-                        CreateAt = message.CreateAt,
-                        CreateBy = message.CreateBy,
-                        DeletedAt = message.DeletedAt,
-                        GroupId = message.GroupId,
-                        Images = message.Images,
-                        Group = groupInfo,
-                        Sender = sender,
-                    };
+                    //groupInfo.Avatar = string.IsNullOrEmpty(groupInfo.Avatar)
+                    //    ? otherUser?.Avatar ?? groupInfo.Avatar
+                    //    : groupInfo.Avatar;
 
+                    //groupInfo.Name = string.IsNullOrEmpty(groupInfo.Name)
+                    //    ? otherUser?.Name ?? groupInfo.Name
+                    //    : groupInfo.Name;
+
+                    var senderConntext = _context.Users.FirstOrDefault(x => x.Id == message.CreateBy);
+                    
                     if (group == null)
                     {
                         throw new ExceptionWithMessage($"Group not found");
                     }
 
-                    var memberIds = new List<string>();
+                    var memberIds = new List<int>();
 
                     if (group.TourId > 0)
                     {
                         var members = _context.TourMembers.Where(t => t.TourId == group.TourId);
-
-                        foreach (var mem in members)
-                        {
-                            var user = _context.Users.FirstOrDefault(u => u.Id == mem.UserId);
-                            if (user != null)
-                            {
-                                memberIds.Add(user.Email);
-                            }
-                        }
+                        memberIds.AddRange(members.Select(x => x.UserId));
                     }
                     else
                     {
                         var members = _context.UserGroup.Where(x => x.GroupId == message.GroupId).ToList();
-
-                        foreach (var mem in members)
-                        {
-                            var user = _context.Users.FirstOrDefault(u => u.Id == mem.UserId);
-                            if (user != null)
-                            {
-                                memberIds.Add(user.Email);
-                            }
-                        }
+                        memberIds.AddRange(members.Select(x => x.UserId));
                     }
 
                     var chatMessageHandler = new ChatMessageHandler(_connectionManager);
-                    _ = chatMessageHandler.SendMessageToUsersAsync(JObject.FromObject(messageInfo).ToString(), memberIds.ToArray());
+
+                    memberIds = memberIds.Distinct().ToList();
+
+                    for (int i = 0; i < memberIds.Count(); i++)
+                    {
+                        var memberId = memberIds[i];
+                        
+                        SimpleUser sender = new SimpleUser(senderConntext.Id, senderConntext.Name, senderConntext.Avatar, senderConntext.Job, CalculateIsFriend(senderConntext.Id, memberId), 0);
+                        var messageInfo = new MessageInfo
+                        {
+                            Content = message.Content,
+                            CreateAt = message.CreateAt,
+                            CreateBy = message.CreateBy,
+                            DeletedAt = message.DeletedAt,
+                            GroupId = message.GroupId,
+                            Images = message.Images,
+                            Group = groupInfo,
+                            Sender = sender,
+                        };
+
+                        _ = chatMessageHandler.SendMessageToUsersAsync(JObject.FromObject(messageInfo).ToString(), new int[] { memberId });
+                    }
 
 
                     message.GroupId = group.ID;

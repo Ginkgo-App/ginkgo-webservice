@@ -8,7 +8,7 @@ namespace APICore.Models
 {
     public class WebSocketMap
     {
-        public string UserEmail;
+        public int UserId;
         public WebSocket WebSocket;
     }
 }

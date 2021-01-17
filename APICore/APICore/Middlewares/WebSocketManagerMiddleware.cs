@@ -40,12 +40,13 @@ namespace APICore.Middlewares
             // Get user claims
             var handler = new JwtSecurityTokenHandler();
             var tokenS = handler.ReadToken(token) as JwtSecurityToken;
-            var userID = tokenS.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.NameIdentifier)?.Value ?? tokenS.Claims.FirstOrDefault(claim => claim.Type == "unique_name")?.Value;
+            var userIDstr = tokenS.Claims.FirstOrDefault(claim => claim.Type == "nameid")?.Value ?? tokenS.Claims.FirstOrDefault(claim => claim.Type == "unique_name")?.Value;
+            int.TryParse(userIDstr, out int userId);
 
             await _webSocketHandler.OnConnected(new Models.WebSocketMap
             {
                 WebSocket = socket,
-                UserEmail = userID,
+                UserId = userId,
             });
 
             await Receive(socket, async (result, buffer) =>
@@ -55,7 +56,7 @@ namespace APICore.Middlewares
 
                     await _webSocketHandler.ReceiveAsync(new Models.WebSocketMap
                     {
-                        UserEmail = userID,
+                        UserId = userId,
                         WebSocket = socket,
                     }, result, buffer);
                     return;
