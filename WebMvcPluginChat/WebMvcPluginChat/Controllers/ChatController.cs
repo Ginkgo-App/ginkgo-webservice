@@ -8,6 +8,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace WebMvcPluginChat.Controllers
 {
@@ -17,10 +18,12 @@ namespace WebMvcPluginChat.Controllers
     public class ChatController : ControllerBase
     {
         private readonly IChatService _chatService;
+        private readonly IOneSignalService _oneSignalService;
 
-        public ChatController(IChatService chatService)
+        public ChatController(IChatService chatService, IOneSignalService oneSignalService)
         {
             _chatService = chatService;
+            _oneSignalService = oneSignalService;
         }
 
         [HttpGet]
@@ -57,7 +60,7 @@ namespace WebMvcPluginChat.Controllers
         }
 
         [HttpPost("group")]
-        public object CreateGroupChat([FromBody]object requestBody)
+        public object CreateGroupChat([FromBody] object requestBody)
         {
             var responseModel = new ResponseModel();
 
@@ -139,7 +142,7 @@ namespace WebMvcPluginChat.Controllers
                         CreateBy = userId,
                     };
 
-                    var errorCode = _chatService.SendMessage(userId, message);
+                    var errorCode = _chatService.SendMessage(userId, message, out var sender, out var group, out var members);
 
                     if (!errorCode)
                     {
@@ -149,6 +152,11 @@ namespace WebMvcPluginChat.Controllers
 
                     responseModel.FromErrorCode(ErrorList.ErrorCode.Success);
                     responseModel.Data = new JArray();
+
+                    Task.Factory.StartNew(() =>
+                    {
+                        _oneSignalService.SendNotification(members.ToArray(), $"{group?.Name ?? "Tin nhắn mới"}", $"Bạn có tin nhắn mới từ {sender?.Name}");
+                    });
                 }
                 while (false);
             }

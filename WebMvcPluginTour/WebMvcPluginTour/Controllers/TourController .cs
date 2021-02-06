@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using APICore.Entities;
 using APICore.Helpers;
 using APICore.Models;
@@ -22,15 +23,17 @@ namespace WebMvcPluginTour.Controllers
         private readonly IFriendService _friendService;
         private readonly ITourService _tourService;
         private readonly IServiceService _serviceService;
+        private readonly IOneSignalService _oneSignalService;
 
         public TourController(ITourInfoService tourInfoService, IUserService userService,
-            IFriendService friendService, ITourService tourService, IServiceService serviceService)
+            IFriendService friendService, ITourService tourService, IServiceService serviceService, IOneSignalService oneSignalService)
         {
             _tourInfoService = tourInfoService;
             _userService = userService;
             _friendService = friendService;
             _tourService = tourService;
             _serviceService = serviceService;
+            _oneSignalService = oneSignalService;
         }
 
         [HttpGet]
@@ -271,6 +274,11 @@ namespace WebMvcPluginTour.Controllers
 
                     responseModel.FromErrorCode(ErrorCode.Success);
                     responseModel.Data = new JArray {JObject.FromObject(tour)};
+
+                    Task.Factory.StartNew(() =>
+                    {
+                        _oneSignalService.SendNotification(new int[] { tour.CreateById }, $"{tour?.Name ?? "Yêu cầu tham gia"}", $"{user.Name} yêu cầu tham gia tour '{tour.Name}' của bạn");
+                    });
                 } while (false);
             }
             catch (Exception ex)
@@ -307,7 +315,7 @@ namespace WebMvcPluginTour.Controllers
                         break;
                     }
 
-                    // User doest not have permission
+                    // User does not have permission
                     if (myUserId != tour.CreateById)
                     {
                         Response.StatusCode = 403;
@@ -323,6 +331,11 @@ namespace WebMvcPluginTour.Controllers
 
                     responseModel.FromErrorCode(ErrorCode.Success);
                     responseModel.Data = new JArray {JObject.FromObject(tour)};
+
+                    Task.Factory.StartNew(() =>
+                    {
+                        _oneSignalService.SendNotification(new int[] { userId }, $"{tour?.Name ?? "Yêu cầu tham gia"}", $"Yêu cầu tham gia tour '{tour.Name}' của bạn đã được chấp nhận");
+                    });
                 } while (false);
             }
             catch (Exception ex)

@@ -22,7 +22,7 @@ namespace APICore.Services
         bool GetAllGroupChat(int page, int pageSize, int userId, out List<GroupInfo> groups, out Pagination pagination);
         bool GetAllMessagesOfGroup(int page, int pageSize, int userId, int groupId, out List<MessageInfo> messages, out Pagination pagination);
         bool RemoveUsersInGroup(int userId, int[] removeUserIds, int groupId, List<int> members);
-        bool SendMessage(int userId, Message message);
+        bool SendMessage(int userId, Message message, out User sender, out GroupInfo groupInfo, out List<int> memberIds);
         bool TryGetTourGroupChat(int userId, int tourId, out GroupInfo group);
         bool TryGetUserChat(int userId, int otherUserId, out GroupInfo group);
     }
@@ -616,9 +616,12 @@ namespace APICore.Services
             return isSuccess;
         }
 
-        public bool SendMessage(int userId, Message message)
+        public bool SendMessage(int userId, Message message, out User sender, out GroupInfo groupInfo, out List<int> memberIds)
         {
             bool isSuccess;
+            sender = null;
+            groupInfo = null;
+            memberIds = new List<int>();
 
             try
             {
@@ -628,7 +631,7 @@ namespace APICore.Services
                     DbService.ConnectDb(out _context);
 
                     var group = _context.Groups.FirstOrDefault(g => g.ID == message.GroupId);
-                    var groupInfo = new GroupInfo
+                    groupInfo = new GroupInfo
                     {
                         Avatar = group.Avatar,
                         LastUpdate = group.LastUpdate,
@@ -645,14 +648,12 @@ namespace APICore.Services
                     //    ? otherUser?.Name ?? groupInfo.Name
                     //    : groupInfo.Name;
 
-                    var senderConntext = _context.Users.FirstOrDefault(x => x.Id == message.CreateBy);
-                    
+                    sender = _context.Users.FirstOrDefault(x => x.Id == message.CreateBy);
+
                     if (group == null)
                     {
                         throw new ExceptionWithMessage($"Group not found");
                     }
-
-                    var memberIds = new List<int>();
 
                     if (group.TourId > 0)
                     {
@@ -672,8 +673,8 @@ namespace APICore.Services
                     for (int i = 0; i < memberIds.Count(); i++)
                     {
                         var memberId = memberIds[i];
-                        
-                        SimpleUser sender = new SimpleUser(senderConntext.Id, senderConntext.Name, senderConntext.Avatar, senderConntext.Job, CalculateIsFriend(senderConntext.Id, memberId), 0);
+
+                        SimpleUser senderInfo = new SimpleUser(sender.Id, sender.Name, sender.Avatar, sender.Job, CalculateIsFriend(sender.Id, memberId), 0);
                         var messageInfo = new MessageInfo
                         {
                             Content = message.Content,
@@ -683,7 +684,7 @@ namespace APICore.Services
                             GroupId = message.GroupId,
                             Images = message.Images,
                             Group = groupInfo,
-                            Sender = sender,
+                            Sender = senderInfo,
                         };
 
                         _ = chatMessageHandler.SendMessageToUsersAsync(JObject.FromObject(messageInfo).ToString(), new int[] { memberId });

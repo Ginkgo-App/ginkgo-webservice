@@ -83,12 +83,12 @@
         <ItemGroup>
             <!--
             <PluginProject Include="..\..\WebMvcPluginHello\ApiPluginHello\ApiPluginHello.csproj" />
+            -->
             <PluginProject Include="..\..\WebMvcPluginTour\WebMvcPluginTour\WebMvcPluginTour.csproj" />
             <PluginProject Include="..\..\WebMvcPluginUser\WebMvcPluginUser\WebMvcPluginUser.csproj" />
             <PluginProject Include="..\..\WebMvcPluginPlace\WebMvcPluginPlace\WebMvcPluginPlace.csproj" />
             <PluginProject Include="..\..\WebMvcPluginTourService\WebMvcPluginTourService\WebMvcPluginTourService.csproj" />
-            <PluginProject Include="D:\Code\C Sharp\ginkgo-webservice\APICore\WebMvcPluginChat\WebMvcPluginChat.csproj" />
-            -->
+            <PluginProject Include="..\..\WebMvcPluginChat\WebMvcPluginChat\WebMvcPluginChat.csproj" />
         </ItemGroup>
 
         <MSBuild Projects="@(PluginProject)" Targets="Publish" Properties="PublishDir=$(TargetDir)\Plugins" />
