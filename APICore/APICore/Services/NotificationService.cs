@@ -25,6 +25,8 @@ namespace APICore.Services
             pagination = null;
             bool isSuccess;
             ConcurrentBag<GroupInfo> groupInfos = new ConcurrentBag<GroupInfo>();
+            notifications = new List<NotificationInfo>();
+            user = null;
 
             try
             {
@@ -107,11 +109,11 @@ namespace APICore.Services
                         //});
                     }
 
-                    groups.AddRange(groupBags);
+                    //groups.AddRange(groupBags);
                 }
                 else
                 {
-                    groups = new List<GroupInfo>();
+                    //groups = new List<GroupInfo>();
                 }
 
                 pagination = new Pagination(total, page, pageSize > 0 ? pageSize : total);
