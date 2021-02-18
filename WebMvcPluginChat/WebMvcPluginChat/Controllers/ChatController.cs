@@ -155,7 +155,7 @@ namespace WebMvcPluginChat.Controllers
 
                     Task.Factory.StartNew(() =>
                     {
-                        _oneSignalService.SendNotification(members.ToArray(), $"{group?.Name ?? "Tin nhắn mới"}", $"Bạn có tin nhắn mới từ {sender?.Name}");
+                        _oneSignalService.SendNotification(members.Where(x=>!x.Equals(userId)).ToArray(), $"{group?.Name ?? "Tin nhắn mới"}", $"Bạn có tin nhắn mới từ {sender?.Name}");
                     });
                 }
                 while (false);
