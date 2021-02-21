@@ -233,7 +233,7 @@ namespace WebMvcPluginTour.Controllers
                     );
                     
                     // Add tour to tour info
-                    if (!_tourService.TryAddTour(tour, timelines))
+                    if (!_tourService.TryAddTour(userId, tour, timelines))
                     {
                         responseModel.FromErrorCode(ErrorCode.Fail);
                         break;

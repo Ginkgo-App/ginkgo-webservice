@@ -19,10 +19,10 @@ namespace APICore.Entities
         }
 
         [Key]
-        public int TourId { get; private set; }
+        public int TourId { get; set; }
         [Key]
-        public int UserId { get; private set; }
-        public DateTime JoinAt { get; private set; }
+        public int UserId { get; set; }
+        public DateTime JoinAt { get; set; }
         public DateTime? AcceptedAt { get; set; }
         public DateTime? DeletedAt { get; set; }
         public void Delete()

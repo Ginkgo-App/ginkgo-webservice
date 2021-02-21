@@ -30,7 +30,7 @@ namespace APICore.Services
         bool TryGetTour(int userId, int id, out Tour tour);
         bool TryGetTourInfo(int userId, int tourId, out TourInfo tourInfo);
         bool TryGetTimelines(int tourId, out List<TimeLine> timelines);
-        bool TryAddTour(Tour tour, List<TimeLine> timeLines);
+        bool TryAddTour(int userId, Tour tour, List<TimeLine> timeLines);
         bool TryJoinTour(Tour tour, User user);
         bool TryAcceptJoinTour(Tour tour, User user);
         bool TryRemoveTourMember(Tour tour, User user);
@@ -393,7 +393,7 @@ namespace APICore.Services
             return true;
         }
 
-        public bool TryAddTour(Tour tour, List<TimeLine> timeLines)
+        public bool TryAddTour(int userId, Tour tour, List<TimeLine> timeLines)
         {
             try
             {
@@ -427,6 +427,15 @@ namespace APICore.Services
                             _context.SaveChanges();
                         }
                 }
+
+                _context.TourMembers.Add(new TourMember
+                {
+                    AcceptedAt = DateTime.Now,
+                    JoinAt = DateTime.Now,
+                    TourId = tour.Id,
+                    UserId = userId,
+                });
+                _context.SaveChanges();
             }
             finally
             {
