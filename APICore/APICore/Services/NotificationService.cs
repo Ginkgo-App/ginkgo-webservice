@@ -98,7 +98,7 @@ namespace APICore.Services
 
                 foreach (var noti in notifications)
                 {
-                    noti.SeenAt = DateTime.UtcNow;
+                    noti.SendAt = DateTime.UtcNow;
                     noti.SenderId = userId;
 
                     _context.Notifications.Add(noti);

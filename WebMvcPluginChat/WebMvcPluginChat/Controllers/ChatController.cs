@@ -161,6 +161,7 @@ namespace WebMvcPluginChat.Controllers
                             Message = $"Bạn có tin nhắn mới từ {sender?.Name}",
                             Type = "message",
                             ReceiverId = memberId,
+                            Payload = group.Id.ToString(),
                         }).ToList()); 
                     });
                 }
