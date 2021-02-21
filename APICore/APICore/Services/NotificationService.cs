@@ -67,6 +67,8 @@ namespace APICore.Services
                         var notoInfo = JObject.FromObject(noti).ToObject<NotificationInfo>();
                         var senderInfo = _context.Users.FirstOrDefault(m => m.Id == noti.SenderId);
                         notoInfo.SenderName = senderInfo?.Name ?? "Không có tên";
+
+                        notiInfos.Add(notoInfo);
                     }
 
                     notifications.Clear();
