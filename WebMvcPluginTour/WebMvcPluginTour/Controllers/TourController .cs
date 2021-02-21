@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using APICore.Entities;
+﻿using APICore.Entities;
 using APICore.Helpers;
 using APICore.Models;
 using APICore.Services;
@@ -9,6 +6,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using static APICore.Helpers.ErrorList;
 
 namespace WebMvcPluginTour.Controllers
@@ -23,17 +23,17 @@ namespace WebMvcPluginTour.Controllers
         private readonly IFriendService _friendService;
         private readonly ITourService _tourService;
         private readonly IServiceService _serviceService;
-        private readonly IOneSignalService _oneSignalService;
+        private readonly INotificationService _notificationService;
 
         public TourController(ITourInfoService tourInfoService, IUserService userService,
-            IFriendService friendService, ITourService tourService, IServiceService serviceService, IOneSignalService oneSignalService)
+            IFriendService friendService, ITourService tourService, IServiceService serviceService, INotificationService notificationService)
         {
             _tourInfoService = tourInfoService;
             _userService = userService;
             _friendService = friendService;
             _tourService = tourService;
             _serviceService = serviceService;
-            _oneSignalService = oneSignalService;
+            _notificationService = notificationService;
         }
 
         [HttpGet]
@@ -142,7 +142,7 @@ namespace WebMvcPluginTour.Controllers
                     }
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data = new JArray {JObject.FromObject(tour)};
+                    responseModel.Data = new JArray { JObject.FromObject(tour) };
                 } while (false);
             }
             catch (Exception ex)
@@ -273,11 +273,18 @@ namespace WebMvcPluginTour.Controllers
                     }
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data = new JArray {JObject.FromObject(tour)};
+                    responseModel.Data = new JArray { JObject.FromObject(tour) };
 
                     Task.Factory.StartNew(() =>
                     {
-                        _oneSignalService.SendNotification(new int[] { tour.CreateById }, $"{tour?.Name ?? "Yêu cầu tham gia"}", $"{user.Name} yêu cầu tham gia tour '{tour.Name}' của bạn");
+                        _notificationService.CreateNotification(userId, new List<Notification> { new Notification
+                        {
+                            Title =  $"{tour?.Name ?? "Yêu cầu tham gia"}",
+                            Message = $"{user.Name} yêu cầu tham gia tour '{tour.Name}' của bạn",
+                            Type = "tour_request",
+                            ReceiverId = tour.CreateById,
+                            Payload = tourId.ToString()
+                        } });
                     });
                 } while (false);
             }
@@ -330,11 +337,18 @@ namespace WebMvcPluginTour.Controllers
                     }
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data = new JArray {JObject.FromObject(tour)};
+                    responseModel.Data = new JArray { JObject.FromObject(tour) };
 
                     Task.Factory.StartNew(() =>
                     {
-                        _oneSignalService.SendNotification(new int[] { userId }, $"{tour?.Name ?? "Yêu cầu tham gia"}", $"Yêu cầu tham gia tour '{tour.Name}' của bạn đã được chấp nhận");
+                        _notificationService.CreateNotification(userId, new List<Notification> { new Notification
+                        {
+                            Title =  $"{tour?.Name ?? "Yêu cầu tham gia"}",
+                            Message =  $"Yêu cầu tham gia tour '{tour.Name}' của bạn đã được chấp nhận",
+                            Type = "tour_request",
+                            ReceiverId = userId,
+                            Payload = tourId.ToString()
+                        } });
                     });
                 } while (false);
             }
@@ -387,7 +401,7 @@ namespace WebMvcPluginTour.Controllers
                     }
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data = new JArray {JObject.FromObject(tour)};
+                    responseModel.Data = new JArray { JObject.FromObject(tour) };
                 } while (false);
             }
             catch (Exception ex)
@@ -469,12 +483,12 @@ namespace WebMvcPluginTour.Controllers
                     tour.Update(
                         name: name!,
                         timelines: timelines,
-                        startDay: isStartDayParse ? startDate : (DateTime?) null,
-                        endDay: isEndDayParse ? endDate : (DateTime?) null,
-                        totalDay: isTotalDayParsed ? totalDay : (int?) null,
-                        totalNight: isTotalNightParsed ? totalNight : (int?) null,
-                        maxMember: isMaxMemberParse ? maxMember : (int?) null,
-                        price: isPriceParsed ? price : (float?) null,
+                        startDay: isStartDayParse ? startDate : (DateTime?)null,
+                        endDay: isEndDayParse ? endDate : (DateTime?)null,
+                        totalDay: isTotalDayParsed ? totalDay : (int?)null,
+                        totalNight: isTotalNightParsed ? totalNight : (int?)null,
+                        maxMember: isMaxMemberParse ? maxMember : (int?)null,
+                        price: isPriceParsed ? price : (float?)null,
                         services: services
                     );
 
@@ -485,7 +499,7 @@ namespace WebMvcPluginTour.Controllers
                     }
 
                     responseModel.FromErrorCode(ErrorCode.Success);
-                    responseModel.Data = new JArray {JObject.FromObject(tour)};
+                    responseModel.Data = new JArray { JObject.FromObject(tour) };
                 } while (false);
             }
             catch (Exception ex)

@@ -14,20 +14,20 @@ namespace WebMvcPluginChat.Controllers
 {
     [Authorize]
     [ApiController]
-    [Route("api/" + PlaceVars.Version + "/chats")]
-    public class ChatController : ControllerBase
+    [Route("api/" + PlaceVars.Version + "/notifications")]
+    public class NotificationController : ControllerBase
     {
         private readonly IChatService _chatService;
         private readonly INotificationService _notificationService;
 
-        public ChatController(IChatService chatService, INotificationService notificationService)
+        public NotificationController(IChatService chatService, INotificationService notificationService)
         {
             _chatService = chatService;
             _notificationService = notificationService;
         }
 
         [HttpGet]
-        public object GetAllGroupChat([FromQuery] int page, [FromQuery] int pageSize)
+        public object GetNotifications([FromQuery] int page, [FromQuery] int pageSize)
         {
             var responseModel = new ResponseModel();
 
@@ -37,7 +37,7 @@ namespace WebMvcPluginChat.Controllers
                 {
                     var userId = CoreHelper.GetUserId(HttpContext, ref responseModel);
 
-                    var errorCode = _chatService.GetAllGroupChat(page, pageSize, userId, out var groups, out var pagination);
+                    var errorCode = _notificationService.GetNotification(userId, page, pageSize, out var user, out var notifications, out var pagination);
 
                     if (!errorCode)
                     {
@@ -46,7 +46,7 @@ namespace WebMvcPluginChat.Controllers
                     }
 
                     responseModel.FromErrorCode(ErrorList.ErrorCode.Success);
-                    responseModel.Data = JArray.FromObject(groups);
+                    responseModel.Data = JArray.FromObject(notifications);
                     responseModel.AdditionalProperties["Pagination"] = JObject.FromObject(pagination);
                 }
                 while (false);

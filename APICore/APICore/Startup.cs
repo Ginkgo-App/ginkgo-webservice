@@ -52,6 +52,7 @@ namespace APICore
             services.AddTransient<IServiceService, ServiceService>();
             services.AddTransient<IPostService, PostService>();
             services.AddTransient<IOneSignalService, OneSignalService>();
+            services.AddTransient<INotificationService, NotificationService>();
             
             services.AddExtCore(this._pluginsPath);
 
