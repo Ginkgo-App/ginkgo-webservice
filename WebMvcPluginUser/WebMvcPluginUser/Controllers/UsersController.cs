@@ -1,15 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using APICore;
-using APICore.Entities;
+﻿using APICore.Entities;
 using APICore.Helpers;
 using APICore.Models;
 using APICore.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using WebMvcPluginUser.Models;
 using static APICore.Helpers.ErrorList;
 
@@ -26,10 +26,11 @@ namespace WebMvcPluginUser.Controllers
         private readonly ITourService _tourService;
         private readonly IServiceService _serviceService;
         private readonly IPostService _postService;
+        private readonly INotificationService _notificationService;
 
         public UsersController(ITourInfoService tourInfoService, IUserService userService,
             IFriendService friendService, ITourService tourService, IServiceService serviceService,
-            IPostService postService)
+            IPostService postService, INotificationService notificationService)
         {
             _tourInfoService = tourInfoService;
             _userService = userService;
@@ -37,6 +38,7 @@ namespace WebMvcPluginUser.Controllers
             _tourService = tourService;
             _serviceService = serviceService;
             _postService = postService;
+            _notificationService = notificationService;
         }
 
         [AllowAnonymous]
@@ -701,7 +703,20 @@ namespace WebMvcPluginUser.Controllers
                     }
 
                     responseModel.FromErrorCode(errorCode);
-                } while (false);
+
+                    Task.Factory.StartNew(() =>
+                    {
+                        _notificationService.CreateNotification(userId, new List<Notification> { new Notification
+                        {
+                            Title =  $"Lời mời kết bạn",
+                            Message = $"Bạn có một lời mời kết bạn mới",
+                            Type = "friend_request",
+                            ReceiverId = userToRequestId,
+                            Payload = userId.ToString(),
+                        }});
+                    });
+                }
+                while (false);
             }
             catch (Exception ex)
             {

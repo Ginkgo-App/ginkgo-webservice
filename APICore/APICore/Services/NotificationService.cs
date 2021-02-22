@@ -104,8 +104,7 @@ namespace APICore.Services
                     _context.Notifications.Add(noti);
                     _context.SaveChanges();
 
-                    var notiJson = JObject.FromObject(noti);
-                    _oneSignalService.SendNotification(new int[] { noti.ReceiverId }, noti.Title, notiJson.ToString());
+                    _oneSignalService.SendNotification(new int[] { noti.ReceiverId }, noti.Title, noti.Message);
                 }
             }
             finally
